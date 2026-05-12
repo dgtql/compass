@@ -14,11 +14,14 @@ state, which is exactly what a ``PreToolUse`` hook does.
 
 from __future__ import annotations
 
+import json
 import sys
 import time
 from typing import Any, Awaitable, Callable
 
 from claude_agent_sdk import HookContext, PreToolUseHookInput
+
+from compass.db import insert_audit
 
 HookFn = Callable[
     [PreToolUseHookInput | dict[str, Any], str | None, HookContext],
@@ -26,15 +29,23 @@ HookFn = Callable[
 ]
 
 
-def make_tool_logger(started_at: float) -> HookFn:
-    """Return a PreToolUse hook that prefixes each line with elapsed time.
+def make_tool_logger(
+    started_at: float,
+    *,
+    session_id: str | None = None,
+) -> HookFn:
+    """Return a PreToolUse hook that streams to stderr AND audits to SQLite.
 
     The hook closes over ``started_at`` (a ``time.monotonic()`` value)
     so each agent run can stamp its own progress without a global. The
     SDK declares the input as ``PreToolUseHookInput`` but at runtime
     delivers a dict (JSON over the CLI subprocess), so we read it both
-    ways. Output goes to stderr to keep stdout clean for the final
-    answer; ``flush=True`` so it appears live, not in a 4KB pipe buffer.
+    ways. Stderr output keeps stdout clean for the final answer; the
+    SQLite audit row is what survives the session.
+
+    Slice 4: every tool call writes one row to ``audit`` in compass.db.
+    For Read calls we also extract ``file_path`` + ``offset`` + ``limit``
+    into typed columns so later queries can join against ``evidence``.
     """
 
     async def hook(
@@ -50,6 +61,36 @@ def make_tool_logger(started_at: float) -> HookFn:
             flush=True,
             file=sys.stderr,
         )
+
+        # Audit to SQLite. Read-specific fields get parsed out; other tools
+        # land with file_path/offset NULL but the full tool_input is still
+        # preserved in the JSON column so we don't lose information.
+        file_path: str | None = None
+        offset_start: int | None = None
+        offset_end: int | None = None
+        if isinstance(tool_input, dict):
+            fp = tool_input.get("file_path")
+            if isinstance(fp, str):
+                file_path = fp
+            off = tool_input.get("offset")
+            lim = tool_input.get("limit")
+            if isinstance(off, int):
+                offset_start = off
+                if isinstance(lim, int):
+                    offset_end = off + lim
+        try:
+            insert_audit(
+                tool_name=str(tool_name),
+                tool_input_json=json.dumps(tool_input, default=str),
+                file_path=file_path,
+                offset_start=offset_start,
+                offset_end=offset_end,
+                session_id=session_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            # An audit-DB failure must never break the agent loop. Log it
+            # and continue — the user sees the agent's output either way.
+            print(f"[audit] insert failed: {exc}", file=sys.stderr, flush=True)
         return {}
 
     return hook

@@ -6,12 +6,12 @@ Compass produces the work a buy-side analyst would: pitch memos, maintenance
 updates, earnings reactions, and real-time alerts on covered names — grounded
 in primary sources, scalable to any number of tickers, available 24/7.
 
-**Status: pre-alpha.** Slices 1–3 of the
+**Status: pre-alpha.** Slices 1–4 of the
 [build plan](docs/design/README.md#7-build-plan) shipped: the agent can
 answer a prompt, ingest SEC filings as clean Markdown via `edgartools`,
-and produce a grounded one-paragraph summary of a real 10-K. The
-evidence ledger, real skills system, memo pipeline, and UI are on the
-runway.
+produce a grounded one-paragraph summary of a real 10-K, and write
+every fetched chunk + every tool call into the SQLite evidence ledger.
+Real skills system, memo pipeline, and UI are on the runway.
 
 ## Quickstart
 
@@ -52,7 +52,8 @@ pytest tests/
 | 1. Hello, agent | done | `compass ask` — minimal CLI that talks to Claude |
 | 2. Ingest one document | done | `compass fetch SOC 10-K` — pulls the latest 10-K into `data/tickers/SOC_US/corpus/filings/10-K/<accession>/primary.md` as clean Markdown via `edgartools` |
 | 3. Agent reads a document | done | `compass summarize SOC <path>` — agent reads a filing with the Read tool, observed by a PreToolUse hook, returns a grounded one-paragraph PM-grade summary |
-| 4+ | planned | See the [build plan](docs/design/README.md#7-build-plan) — evidence ledger is next |
+| 4. Evidence ledger | done | `compass evidence list/show/audit` — SQLite at `data/compass.db`; every fetched doc chunked into rows; every tool call audited |
+| 5+ | planned | See the [build plan](docs/design/README.md#7-build-plan) — first production skill is next |
 
 ## Design
 

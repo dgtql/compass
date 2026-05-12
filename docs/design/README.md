@@ -172,20 +172,20 @@ Patterns dropped from Dr. Claw:
 
 ### Grounding as a first-class object
 
-The evidence ledger is a SQLite table:
+The evidence ledger is a SQLite table (Slice 4, see note below for current shape):
 
 ```
 evidence(
-  id, doc_id, source_url, retrieved_at,
-  page, char_span_start, char_span_end,
-  text_hash, content
+  id, doc_id, ticker, source, source_url, form_type, retrieved_at,
+  local_path, page, char_span_start, char_span_end,
+  line_start, line_end, text_hash, content
 )
 ```
 
-Every retrieved chunk gets a row. Every claim in generated memos must cite a
-ledger row by ID. The `PreToolUse` hook auto-logs on Read / WebFetch. A
-post-generation validator strips any claim missing citations and replaces with
-`[UNGROUNDED]`.
+Every fetched chunk gets a row at fetch time. Every claim in generated memos
+must cite a ledger row by ID (Slice 6+). The `PreToolUse` hook writes a row
+to the companion `audit` table on every Read / WebFetch. A post-generation
+validator strips any claim missing citations and replaces with `[UNGROUNDED]`.
 
 ### Data strategy
 
@@ -347,6 +347,17 @@ data/tickers/SOC_US/
 2. The slice also originally mentioned Anthropic's `pdf` skill, but SEC primary documents (10-K, 10-Q, 8-K) are HTML. We deferred the PDF skill to when we add a source that actually emits PDFs (likely the IR scraper in Slice 7+). The agent reads HTML directly via the Read tool.
 
 **Slice 3.5 note (superseded by Slice 2.5).** A first attempt at the HTML preprocessing problem introduced a `skills/parse-edgar-filing/` folder (`SKILL.md` + `scripts/extract_text.py` using BeautifulSoup) to strip raw EDGAR HTML before the agent read it. This shipped briefly but was retired the same day in favor of adopting `edgartools` wholesale (see Slice 2.5 above) — the upstream library already emits clean Markdown, so the custom skill became dead weight. The retired pattern is preserved here for historical context: `compass.agent.summarize()` shelled out to the script via `subprocess`, `add_dirs` granted Read access, and `max_turns=20` bounded the loop. The architectural lesson worth keeping: **published Claude SEC skills assume input is already clean text — the cleaning happens upstream of the skill layer**, in an MCP server / Python library / paid data provider. Compass now relies on `edgartools` for that cleaning step.
+
+**Slice 4 note — SQLite evidence ledger and audit log shipped.** Two tables in a single `data/compass.db`:
+
+- **`evidence`** — every chunk of every fetched doc. Populated by `EdgarSource.fetch()` after writing `primary.md`. Schema: `id, doc_id, ticker, source, source_url, form_type, retrieved_at, local_path, page (NULL for Markdown), char_span_start, char_span_end, line_start, line_end, text_hash, content`. `UNIQUE(doc_id, char_span_start, char_span_end)` makes re-fetch idempotent.
+- **`audit`** — every tool call the agent makes. Populated by the `PreToolUse` hook (which still streams progress to stderr — that wasn't replaced, both happen now). Read-tool's `file_path`/`offset`/`limit` are extracted into typed columns so future queries can join against `evidence`. Full `tool_input` is preserved as JSON so non-Read tools don't lose information.
+
+**Chunking strategy:** 100-line fixed chunks (~50 rows per 10-K). The `text_hash` (sha256) supports content-equality checks and dedup across re-fetches. `line_start`/`line_end` are added beyond the originally-sketched `char_span_*` because the agent reads via line offsets (Read tool's `offset` and `limit`) — keeping both byte spans and line ranges lets later joins go either direction without an extra lookup.
+
+**CLI surface:** `compass evidence list <TICKER>` lists recent chunks (id, form, line range, hash); `compass evidence show <ID>` prints one chunk's content; `compass evidence audit` lists recent tool calls. Audit-DB failures inside the hook are caught and logged — they can never break the agent loop.
+
+**Deferred to later slices:** session/run modeling (link audit rows to a single `compass summarize` invocation), citation validation (Slice 6's `citation-audit` skill), full-text search via FTS5 (only when the catalogue is large enough to need it).
 
 ### System architecture
 

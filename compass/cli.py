@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from compass import __version__
 from compass.agent import DEFAULT_MODEL, ask as agent_ask, summarize as agent_summarize
+from compass.db import get_evidence, list_evidence_for_ticker, recent_audit
 from compass.ingest.edgar import EdgarConfigError, EdgarSource
 
 # Pick up ANTHROPIC_API_KEY (and friends) from a local .env if present.
@@ -128,8 +129,9 @@ def summarize(
     """Have the agent read a document and print a one-paragraph summary.
 
     Slice 3 entry point. The agent uses the Read tool to load the file;
-    every tool call streams to stdout via a PreToolUse hook (Slice 4
-    rewires this hook to write SQLite evidence-ledger rows).
+    every tool call streams to stderr via a PreToolUse hook and is also
+    appended to the SQLite audit log (Slice 4) at compass.db's
+    ``audit`` table.
     """
     try:
         text = asyncio.run(agent_summarize(path, ticker=ticker, model=model))
@@ -138,6 +140,79 @@ def summarize(
         sys.exit(1)
     typer.echo()
     typer.echo(text)
+
+
+# --- Slice 4: evidence ledger inspection -----------------------------------
+
+evidence_app = typer.Typer(
+    name="evidence",
+    help="Inspect the SQLite evidence ledger and audit log.",
+    no_args_is_help=True,
+)
+app.add_typer(evidence_app, name="evidence")
+
+
+@evidence_app.command("list")
+def evidence_list(
+    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
+    limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
+) -> None:
+    """List recent evidence chunks for a ticker."""
+    rows = list_evidence_for_ticker(ticker, limit=limit)
+    if not rows:
+        typer.secho(f"No evidence rows for {ticker.upper()}.", fg=typer.colors.YELLOW)
+        return
+    typer.echo(f"{'ID':>5}  {'FORM':<6}  {'LINES':<12}  {'HASH':<14}  DOC")
+    for r in rows:
+        line_range = f"{r['line_start']}-{r['line_end']}"
+        typer.echo(
+            f"{r['id']:>5}  {r['form_type'] or '?':<6}  {line_range:<12}  "
+            f"{r['text_hash'][:12]}…  {r['doc_id']}"
+        )
+
+
+@evidence_app.command("show")
+def evidence_show(
+    row_id: int = typer.Argument(..., help="Evidence row id (from `evidence list`)."),
+) -> None:
+    """Print the content of a single evidence chunk."""
+    row = get_evidence(row_id)
+    if row is None:
+        typer.secho(f"No evidence row with id {row_id}.", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+    typer.echo(
+        f"# evidence#{row['id']}  {row['ticker']}  {row['form_type']}  "
+        f"{row['doc_id']}  lines {row['line_start']}-{row['line_end']}"
+    )
+    typer.echo(f"# source_url: {row['source_url']}")
+    typer.echo(f"# retrieved_at: {row['retrieved_at']}")
+    typer.echo("")
+    typer.echo(row["content"])
+
+
+@evidence_app.command("audit")
+def evidence_audit(
+    limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
+) -> None:
+    """Show the most recent tool-call audit rows."""
+    rows = recent_audit(limit=limit)
+    if not rows:
+        typer.secho("No audit rows yet.", fg=typer.colors.YELLOW)
+        return
+    typer.echo(f"{'ID':>5}  {'TS':<32}  {'TOOL':<8}  OFFSET  FILE")
+    for r in rows:
+        offset_part = (
+            f"{r['offset_start']}-{r['offset_end']}"
+            if r["offset_start"] is not None
+            else "—"
+        )
+        file_part = r["file_path"] or ""
+        if len(file_part) > 60:
+            file_part = "…" + file_part[-58:]
+        typer.echo(
+            f"{r['id']:>5}  {r['ts']:<32}  {r['tool_name']:<8}  "
+            f"{offset_part:<8}  {file_part}"
+        )
 
 
 if __name__ == "__main__":

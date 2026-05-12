@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 
 from edgar import Company, set_identity
 
+from compass.db import chunk_markdown_file, insert_evidence_for_document
 from compass.ingest.base import Document, Source
 from compass.workspace import ensure_workspace
 
@@ -132,6 +133,22 @@ class EdgarSource(Source):
                     local_path=primary_md,
                     source_url=filing.filing_url,
                 )
+            )
+
+            # Slice 4: chunk the new doc and write rows into the evidence
+            # ledger. UNIQUE(doc_id, char_span_start, char_span_end) makes
+            # this idempotent — re-fetching the same accession is a no-op
+            # on the table.
+            chunks = chunk_markdown_file(primary_md)
+            insert_evidence_for_document(
+                doc_id=accession,
+                ticker=ticker_upper,
+                source=self.name,
+                source_url=filing.filing_url,
+                form_type=form_type,
+                retrieved_at=retrieved_at,
+                local_path=primary_md,
+                chunks=chunks,
             )
         return documents
 
