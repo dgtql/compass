@@ -1,0 +1,79 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+dist/
+sdist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+.installed.cfg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyre/
+.pytype/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ===== Node / Frontend (web/) =====
+node_modules/
+.vite/
+*.local
+
+# ===== Editors / OS =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== Secrets =====
+.env
+.env.local
+.env.*.local
+
+# ===== Compass runtime data =====
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# ===== Claude Code local state =====
+.claude/
+
+# ===== Personal reference materials =====
+background/
