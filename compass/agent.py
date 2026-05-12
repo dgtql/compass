@@ -155,11 +155,23 @@ async def research(
     skill_text = skill_md.read_text(encoding="utf-8")
 
     filings_dir = workspace / "corpus" / "filings"
-    primary_paths = sorted(filings_dir.glob("*/*/primary.md"))
+    primary_paths: list[Path] = sorted(filings_dir.glob("*/*/primary.md"))
+    # Pull in the most recent snapshot per source (Yahoo, future Bloomberg, etc.)
+    # so memos cite market context — price, analyst consensus, recent news —
+    # alongside the EDGAR filings. Older snapshots stay on disk in the ledger;
+    # only the latest reaches the prompt to keep context manageable.
+    snapshots_root = workspace / "corpus" / "snapshots"
+    if snapshots_root.exists():
+        for source_dir in sorted(snapshots_root.iterdir()):
+            if not source_dir.is_dir():
+                continue
+            snapshots = sorted(source_dir.glob("*.md"), reverse=True)
+            if snapshots:
+                primary_paths.append(snapshots[0])
     if not primary_paths:
         raise FileNotFoundError(
             f"no filings ingested for {ticker.upper()} — run `compass fetch "
-            f"{ticker.upper()} 10-K` first."
+            f"{ticker.upper()} 10-K` and/or `compass snapshot {ticker.upper()}` first."
         )
 
     today = date.today().isoformat()

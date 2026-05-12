@@ -6,15 +6,15 @@ Compass produces the work a buy-side analyst would: pitch memos, maintenance
 updates, earnings reactions, and real-time alerts on covered names — grounded
 in primary sources, scalable to any number of tickers, available 24/7.
 
-**Status: pre-alpha.** Slices 1–6 of the
+**Status: pre-alpha.** Slices 1–7 of the
 [build plan](docs/design/README.md#7-build-plan) shipped: the agent can
 answer a prompt, ingest SEC filings as clean Markdown via `edgartools`,
-write every fetched chunk + every tool call into the SQLite evidence
-ledger, and produce a **structured analyst pitch memo** with every
-specific claim cited by evidence-row ID. The Mangrove case-study
-deliverables are now achievable. Web UI, expanded skill catalogue,
-and additional ingestion sources (Yahoo, Oslo NewsWeb, IR pages,
-transcripts) are on the runway.
+pull a daily Yahoo Finance snapshot (price, analyst consensus, news)
+via `yfinance`, write every fetched chunk + every tool call into the
+SQLite evidence ledger, and produce a **structured analyst pitch memo**
+that cites both fundamentals and market context by evidence-row ID.
+Web UI, more memo types, and additional ingestion sources (Oslo
+NewsWeb, IR pages, transcripts) are on the runway.
 
 ## Quickstart
 
@@ -57,7 +57,8 @@ pytest tests/
 | 3. Agent reads a document | done | `compass summarize SOC <path>` — agent reads a filing with the Read tool, observed by a PreToolUse hook, returns a grounded one-paragraph PM-grade summary |
 | 4. Evidence ledger | done | `compass evidence list/show/audit` — SQLite at `data/compass.db`; every fetched doc chunked into rows; every tool call audited |
 | 5+6. First skill + pitch memo end-to-end | done | `compass research SOC --type pitch` — agent reads the corpus, consults `skills/pitch-memo/SKILL.md`, and writes a structured Markdown pitch memo to `data/tickers/SOC_US/memos/pitch/<date>.md` with `[ev#N]` citations into the evidence ledger |
-| 7+ | planned | More ingestion sources (Yahoo, Oslo NewsWeb, IR pages, transcripts), more memo types, web UI |
+| 7. Yahoo Finance ingestion | done | `compass snapshot SOC` — fetches a daily Yahoo snapshot (price, 52-week range, analyst consensus, financials, news) via `yfinance` into `corpus/snapshots/yahoo/<date>.md`; pitch memo now cites both fundamentals and market context |
+| 8+ | planned | More memo types (earnings-reaction, maintenance-update, morning-brief), more sources (Oslo NewsWeb, IR pages, transcripts), web UI |
 
 ## Design
 

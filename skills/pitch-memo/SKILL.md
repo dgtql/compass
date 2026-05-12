@@ -65,12 +65,13 @@ maturities) that could move the name in the next 6–12 months.
 
 ## How to Use This Skill
 
-1. Read the document(s) provided in the prompt (`primary.md` files). Use `Read` with `offset` and `limit` for efficient paging on large filings.
-2. Build a draft of the memo in your scratch reasoning, structured per the section template above.
-3. For each specific claim, identify the line range you read it from. Look up the matching `evidence.id` in the citation map provided in the prompt — the line range you read maps directly to one or more evidence rows.
-4. Format the citation as `[ev#N]` at the end of the sentence carrying the claim. Multiple sources per sentence are fine: `[ev#12, ev#15]`.
-5. Write the final memo to the path provided in the prompt using the `Write` tool. Do not echo the memo back as conversational text — the file is the artifact.
-6. After writing, respond briefly with: the output path, the count of citations used, and any sections you had difficulty grounding.
+1. Read every document the prompt lists. EDGAR filings (`primary.md`) carry the fundamentals — business, financials, risks. Market snapshots (`snapshots/<source>/<date>.md`) carry the current price, 52-week range, analyst consensus, and recent news headlines — use these for the Catalysts and Thesis sections especially, and for any forward-looking framing. Use `Read` with `offset` and `limit` for efficient paging on large filings.
+2. When the market snapshot's analyst consensus disagrees with the fundamentals (e.g., "strong_buy" target alongside a going-concern qualification), surface that disagreement explicitly in the Thesis — it's the most useful single insight a PM can carry into a meeting.
+3. Build a draft of the memo in your scratch reasoning, structured per the section template above.
+4. For each specific claim, identify the line range you read it from. Look up the matching `evidence.id` in the citation map provided in the prompt — the line range you read maps directly to one or more evidence rows.
+5. Format the citation as `[ev#N]` at the end of the sentence carrying the claim. Multiple sources per sentence are fine: `[ev#12, ev#15]`.
+6. Write the final memo to the path provided in the prompt using the `Write` tool. Do not echo the memo back as conversational text — the file is the artifact.
+7. After writing, respond briefly with: the output path, the count of citations used, and any sections you had difficulty grounding.
 
 ## Common Failure Modes
 

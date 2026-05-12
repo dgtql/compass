@@ -374,6 +374,8 @@ data/tickers/SOC_US/
 
 **Verified end-to-end on 2026-05-12:** `compass research SOC --type pitch` ran in ~4.5 minutes and produced [a full pitch memo](../../data/tickers/SOC_US/memos/pitch/) on Sable Offshore — Thesis, Business, Recent Financials, Risks, Catalysts — with 8+ distinct `[ev#N]` citations spanning the business overview, the pipeline litigation, the $922 M debt maturity wall, the OS&T capital plan, the criminal complaint, and the going-concern qualification. This is the first artifact the project can show a PM.
 
+**Slice 7 note — Yahoo Finance ingestion.** `YahooSource` (`compass/ingest/yahoo.py`) wraps `yfinance` to pull a daily *snapshot* — different shape from EDGAR's static filings, but rendered as the same Markdown-with-evidence-rows abstraction so downstream skills consume it uniformly. Snapshots land at `corpus/snapshots/yahoo/<YYYY-MM-DD>.md` (one per day; same-day re-runs overwrite). The CLI is a separate verb (`compass snapshot <TICKER>`) since "form type" has no Yahoo analog; future sources can each get their own verb (`compass transcripts`, `compass news`) or eventually consolidate into `compass ingest <TICKER>`. `research()` was extended to pull in the most recent snapshot per source alongside EDGAR filings, so the pitch memo can cite current price, 52-week range, analyst consensus, and recent news headlines next to the 10-K's fundamentals. The integrated SOC pitch memo now explicitly contrasts the strong-buy analyst consensus (`targetMeanPrice=$27, ~98% implied upside`) against the auditor's going-concern qualification — the most useful single observation a PM can carry into a meeting on this name.
+
 ### System architecture
 
 ```mermaid

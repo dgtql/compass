@@ -18,6 +18,7 @@ from compass.agent import (
 )
 from compass.db import get_evidence, list_evidence_for_ticker, recent_audit
 from compass.ingest.edgar import EdgarConfigError, EdgarSource
+from compass.ingest.yahoo import YahooSource
 
 # Pick up ANTHROPIC_API_KEY (and friends) from a local .env if present.
 # Has no effect if the variables are already set or the file doesn't exist.
@@ -145,6 +146,36 @@ def summarize(
         sys.exit(1)
     typer.echo()
     typer.echo(text)
+
+
+@app.command()
+def snapshot(
+    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
+) -> None:
+    """Pull a Yahoo Finance market snapshot for a ticker into its workspace.
+
+    Slice 7 entry point. Writes
+    ``data/tickers/<TICKER>_<EXCH>/corpus/snapshots/yahoo/<YYYY-MM-DD>.md``
+    with price, analyst consensus, recent financials, and top news
+    headlines, and chunks the snapshot into the evidence ledger so memo
+    skills can cite Yahoo data alongside EDGAR filings.
+    """
+    try:
+        docs = YahooSource().fetch(ticker)
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+
+    if not docs:
+        typer.secho(
+            f"No Yahoo data returned for {ticker.upper()}.",
+            fg=typer.colors.YELLOW,
+        )
+        return
+
+    typer.echo(f"Yahoo snapshot for {ticker.upper()}:")
+    for doc in docs:
+        typer.echo(f"  {doc.source_id}  →  {doc.local_path}")
 
 
 @app.command()
