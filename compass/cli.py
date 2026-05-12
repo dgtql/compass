@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from compass import __version__
 from compass.agent import DEFAULT_MODEL, ask as agent_ask
+from compass.ingest.edgar import EdgarConfigError, EdgarSource
 
 # Pick up ANTHROPIC_API_KEY (and friends) from a local .env if present.
 # Has no effect if the variables are already set or the file doesn't exist.
@@ -66,6 +67,43 @@ def ask(
         typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
         sys.exit(1)
     typer.echo(answer)
+
+
+@app.command()
+def fetch(
+    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
+    form: str = typer.Argument(..., help="SEC form type (e.g. 10-K, 10-Q, 8-K)."),
+    limit: int = typer.Option(
+        1,
+        "--limit",
+        "-n",
+        help="Number of most-recent filings to fetch.",
+    ),
+) -> None:
+    """Fetch SEC filings for a ticker into its workspace.
+
+    Slice 2 entry point. Files land under
+    ``data/tickers/<TICKER>_<EXCH>/corpus/sec-edgar-filings/<TICKER>/<FORM>/``.
+    Requires COMPASS_SEC_USER_NAME and COMPASS_SEC_USER_EMAIL.
+    """
+    try:
+        docs = EdgarSource().fetch(ticker, form_type=form, limit=limit)
+    except EdgarConfigError as exc:
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(2)
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+
+    if not docs:
+        typer.secho(
+            f"No {form} filings found for {ticker}.", fg=typer.colors.YELLOW
+        )
+        return
+
+    typer.echo(f"Fetched {len(docs)} {form} filing(s) for {ticker}:")
+    for doc in docs:
+        typer.echo(f"  {doc.source_id}  →  {doc.local_path}")
 
 
 if __name__ == "__main__":

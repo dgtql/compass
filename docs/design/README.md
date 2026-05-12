@@ -314,7 +314,8 @@ data/tickers/SOC_US/
 ├── dossier.json                    # generated plan: thesis, key questions
 ├── tasks.json                      # generated task list
 ├── corpus/                         # the evidence base
-│   ├── filings/                    # 10-K, 10-Q, 8-K, S-1
+│   ├── sec-edgar-filings/          # SEC filings; layout from sec-edgar-downloader
+│   │   └── <TICKER>/<FORM>/<ACC>/  # full-submission.txt + primary-document.*
 │   ├── transcripts/                # earnings calls
 │   ├── press_releases/
 │   ├── news/
@@ -332,6 +333,8 @@ data/tickers/SOC_US/
 ```
 
 **Memos as versioned files, not DB rows.** PMs forward memos. The audit trail of "what did the agent say on May 12 vs. August 15" is just `ls memos/pitch/`. The DB only holds the evidence ledger and audit log; the memos themselves are derived file artifacts.
+
+**Slice 2 note — actual SEC filings layout.** The originally-sketched `corpus/filings/` directory was replaced with the layout `sec-edgar-downloader` emits natively: `corpus/sec-edgar-filings/<TICKER>/<FORM>/<ACC>/`. The library uses directory presence as its "already downloaded?" check, so post-processing files into a flattened layout would force re-downloads on every fetch. When we add Yahoo / Oslo / IR scraper ingestion (Slices 7–9) we'll consolidate by introducing a top-level `corpus/manifest.json` that points at heterogeneous source-specific subtrees rather than forcing all sources into one shape.
 
 ### System architecture
 
