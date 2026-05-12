@@ -51,6 +51,12 @@ dmypy.json
 node_modules/
 .vite/
 *.local
+*.tsbuildinfo
+
+# We commit the built frontend (compass/static/) so `pip install` is
+# self-sufficient, but skip source maps — they're large and only useful
+# alongside the original sources, which live in web/.
+compass/static/**/*.map
 
 # ===== Editors / OS =====
 .vscode/

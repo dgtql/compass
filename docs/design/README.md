@@ -407,6 +407,20 @@ Live verified on 2026-05-12: started `compass serve --port 8766`, POSTed a snaps
 - *Not persistent tasks.* Restarting `compass serve` clears the in-memory task list. Fetched docs and generated memos survive — they're on disk. Only the *task history* is ephemeral.
 - *Not parallel agent runs.* Two `research` tasks against the same ticker on the same day would race on the memo path (`<date>.md`). The UI doesn't prevent it; the simpler fix when needed is a per-ticker queue, not memo versioning.
 
+**Slice 10 note — React + Tailwind + shadcn redesign.** Reverted the Slice 8 vanilla-stack decision in favor of the original design-doc choice (React + Vite + Tailwind), informed by the Dr. Claw UI reference under `background/code_analysis_want_to_use/09-ui-design-reference.md`. Same backend; the frontend now lives at `web/` and builds into `compass/static/`. `compass serve` is unchanged — FastAPI keeps serving from `compass/static/`, just with React assets instead of vanilla.
+
+Stack adopted from the reference:
+- **React 18 + Vite 6 + TypeScript** under `web/`
+- **Tailwind 3.4** with HSL-via-CSS-variable design tokens (light + dark)
+- **`class-variance-authority` + `clsx` + `tailwind-merge`** combined into a `cn()` helper
+- **`lucide-react`** for icons
+- **shadcn-style primitives** (Button, Input, Badge, Card) under `web/src/components/ui/` — built via `cva` + `cn`, not vendored from a CLI
+- **Dark mode** via a ThemeProvider context that writes the `.dark` class on `<html>` and persists choice to `localStorage`
+
+Layout: 280px sidebar (Compass logo, Projects list = tickers, Add-ticker input, Tasks panel) + main pane with a tab bar (Dashboard / Memos / Audit) + tab content. The Dashboard tab is the first-class "start a project" surface — each ticker's card has the four action buttons (Fetch 10-K, Fetch 10-Q, Yahoo snapshot, Generate pitch memo) as primary calls to action plus a Latest-memo card and an All-memos list. The Memos tab is a port of the slice-8 three-pane layout (memos list / viewer / evidence panel) with the cyan-blue ev-tag styling. The Audit tab is a placeholder (deferred to a later slice that builds a proper audit UI).
+
+Build pipeline: `cd web && npm run build` outputs the bundle into `compass/static/` (overwriting the previous vanilla files). The bundle (~235 KB JS, ~37 KB CSS, ~74 KB gzipped JS) is committed to the repo so `pip install` + `compass serve` works without Node installed; source maps are gitignored. Frontend source lives in `web/`; only contributors editing the UI need Node + npm.
+
 ### System architecture
 
 ```mermaid

@@ -6,22 +6,21 @@ Compass produces the work a buy-side analyst would: pitch memos, maintenance
 updates, earnings reactions, and real-time alerts on covered names — grounded
 in primary sources, scalable to any number of tickers, available 24/7.
 
-**Status: pre-alpha.** Slices 1–9 of the
+**Status: pre-alpha.** Slices 1–10 of the
 [build plan](docs/design/README.md#7-build-plan) shipped: the agent can
 answer a prompt, ingest SEC filings as clean Markdown via `edgartools`,
 pull a daily Yahoo Finance snapshot (price, analyst consensus, news)
 via `yfinance`, write every fetched chunk + every tool call into the
 SQLite evidence ledger, produce a **structured analyst pitch memo**
 that cites both fundamentals and market context by evidence-row ID,
-and run as an **interactive web workbench**: add tickers, click "Run"
-to fetch filings / pull snapshots / generate memos, watch tool calls
-stream live into a tasks panel, click any `[ev#N]` citation to see the
-source chunk. More memo types and ingestion sources (Oslo NewsWeb, IR
-pages, transcripts) are on the runway.
+and run as a **React + Tailwind workbench** (shadcn-flavored design,
+cyan-blue accent, light + dark mode) where projects, tasks, and memos
+are first-class. More memo types and ingestion sources (Oslo NewsWeb,
+IR pages, transcripts) are on the runway.
 
 ## Quickstart
 
-Requires Python ≥ 3.10.
+Requires Python ≥ 3.10. The frontend is pre-built and committed; you only need Node + npm if you want to rebuild it (`cd web && npm install && npm run build`).
 
 ```bash
 git clone https://github.com/<your-username>/compass
@@ -62,8 +61,9 @@ pytest tests/
 | 5+6. First skill + pitch memo end-to-end | done | `compass research SOC --type pitch` — agent reads the corpus, consults `skills/pitch-memo/SKILL.md`, and writes a structured Markdown pitch memo to `data/tickers/SOC_US/memos/pitch/<date>.md` with `[ev#N]` citations into the evidence ledger |
 | 7. Yahoo Finance ingestion | done | `compass snapshot SOC` — fetches a daily Yahoo snapshot (price, 52-week range, analyst consensus, financials, news) via `yfinance` into `corpus/snapshots/yahoo/<date>.md`; pitch memo now cites both fundamentals and market context |
 | 8. Web UI (read-only) | done | `compass serve` — FastAPI + vanilla-JS SPA at `http://localhost:8000`. Three-pane layout: tickers/memos list, memo viewer with clickable `[ev#N]` tags, evidence side panel showing the cited chunk with source link |
-| 9. Interactive workbench | done | The UI now drives actions: add a ticker via the sidebar input, click "Fetch 10-K" / "Yahoo snapshot" / "Generate pitch memo" to start a background task, watch the agent's tool calls stream into the Tasks panel live, see new memos appear without page reload |
-| 10+ | planned | More memo types (earnings-reaction, maintenance-update, morning-brief), more sources (Oslo NewsWeb, IR pages, transcripts), agent-autonomous skill discovery, WebSocket push instead of polling |
+| 9. Interactive workbench (vanilla) | done | The UI now drives actions: add a ticker via the sidebar input, click "Fetch 10-K" / "Yahoo snapshot" / "Generate pitch memo" to start a background task, watch the agent's tool calls stream into the Tasks panel live, see new memos appear without page reload |
+| 10. React + shadcn redesign | done | Full migration to React + Vite + Tailwind 3.4 + shadcn-style primitives. Dr. Claw-inspired design system (cyan-blue primary, glass nav, dark mode toggle). Sidebar with Projects, Main content with tabs (Dashboard / Memos / Audit), Dashboard tab with per-project cards + primary action buttons. Frontend source lives in `web/`; `npm run build` outputs the bundle to `compass/static/` which FastAPI serves |
+| 11+ | planned | More memo types (earnings-reaction, maintenance-update, morning-brief), more sources (Oslo NewsWeb, IR pages, transcripts), agent-autonomous skill discovery, WebSocket push instead of polling, full audit-tab UI |
 
 ## Design
 
