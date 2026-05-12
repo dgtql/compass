@@ -357,7 +357,22 @@ data/tickers/SOC_US/
 
 **CLI surface:** `compass evidence list <TICKER>` lists recent chunks (id, form, line range, hash); `compass evidence show <ID>` prints one chunk's content; `compass evidence audit` lists recent tool calls. Audit-DB failures inside the hook are caught and logged — they can never break the agent loop.
 
-**Deferred to later slices:** session/run modeling (link audit rows to a single `compass summarize` invocation), citation validation (Slice 6's `citation-audit` skill), full-text search via FTS5 (only when the catalogue is large enough to need it).
+**Deferred to later slices:** session/run modeling (link audit rows to a single `compass summarize` invocation), citation validation (separate `citation-audit` skill), full-text search via FTS5 (only when the catalogue is large enough to need it).
+
+**Slice 5 + 6 note (compressed) — first skill + first end-to-end memo.** Slice 5 in the original plan was "stand up the skills infrastructure" as a separate slice from "ship the first memo." We collapsed them: building infrastructure-in-the-abstract was plumbing, not product, and the agent-reads-a-SKILL.md pattern turns out to be light enough to bundle. What landed:
+
+- **`skills/pitch-memo/SKILL.md`** — the first production skill. Frontmatter (`name`, `description`, `allowed-tools: Read Write`) plus a structured body covering when-to-use, non-negotiables (every claim cited, no recommendations, no ungrounded inference), required memo structure (Thesis / Business / Recent Financials / Risks / Catalysts / Sources), citation rules, and common failure modes. The shape mirrors Anthropic's [equity-research plugin](https://github.com/anthropics/financial-services/blob/main/plugins/vertical-plugins/equity-research) so future skills slot into a recognizable format.
+- **`compass research <TICKER> --type pitch`** — new CLI command. `compass.agent.research()` builds a prompt that includes the full `SKILL.md` content + a compact `ev#N → line range` citation table (derived from `evidence`) + paths to all fetched filings + the exact output path. Tools enabled: `Read` (for filings) and `Write` (for the memo). `max_turns=40` budget (40 turns = 1 read-cycle + ~5–15 actual reads + planning + the Write).
+- **Citation mechanism (lite).** Instead of standing up an MCP server or a custom tool, the agent gets the citation table inline in the prompt. Each Read returns lines; the agent looks up `ev#N` for any cited fact. Verified post-hoc: every `[ev#N]` in the SOC pitch memo points at an evidence-row id that the agent's audit log shows it actually read.
+- **Memo lives on disk, not in the DB.** `data/tickers/<TICKER>/memos/<type>/<YYYY-MM-DD>.md` is the artifact. The DB is the audit trail; the file is the deliverable. PMs forward files.
+
+**What this slice deliberately is not:**
+
+- *Agent-autonomous skill discovery.* The skill is loaded by `research()` via filename convention (`{memo_type}-memo/SKILL.md`), not by the agent reading `.claude/skills/` on its own and matching frontmatter descriptions. That's a later slice when the catalogue is big enough to justify the loader complexity.
+- *Citation validation.* We don't yet verify that the chunk an `[ev#N]` cites actually contains the claimed fact. A `citation-audit` skill would post-process memos and strip ungrounded claims; tracked for a later slice.
+- *Multi-source corpus.* The pitch memo currently reads only EDGAR filings (10-K minimum, future 10-Q / 8-K when present). Yahoo prices, Oslo Børs filings, IR press releases, and earnings transcripts arrive in Slices 7+.
+
+**Verified end-to-end on 2026-05-12:** `compass research SOC --type pitch` ran in ~4.5 minutes and produced [a full pitch memo](../../data/tickers/SOC_US/memos/pitch/) on Sable Offshore — Thesis, Business, Recent Financials, Risks, Catalysts — with 8+ distinct `[ev#N]` citations spanning the business overview, the pipeline litigation, the $922 M debt maturity wall, the OS&T capital plan, the criminal complaint, and the going-concern qualification. This is the first artifact the project can show a PM.
 
 ### System architecture
 

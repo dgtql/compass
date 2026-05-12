@@ -10,7 +10,12 @@ import typer
 from dotenv import load_dotenv
 
 from compass import __version__
-from compass.agent import DEFAULT_MODEL, ask as agent_ask, summarize as agent_summarize
+from compass.agent import (
+    DEFAULT_MODEL,
+    ask as agent_ask,
+    research as agent_research,
+    summarize as agent_summarize,
+)
 from compass.db import get_evidence, list_evidence_for_ticker, recent_audit
 from compass.ingest.edgar import EdgarConfigError, EdgarSource
 
@@ -140,6 +145,45 @@ def summarize(
         sys.exit(1)
     typer.echo()
     typer.echo(text)
+
+
+@app.command()
+def research(
+    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
+    type: str = typer.Option(
+        "pitch",
+        "--type",
+        "-t",
+        help="Memo type. Resolves to skills/<type>-memo/SKILL.md.",
+    ),
+    model: str = typer.Option(
+        DEFAULT_MODEL,
+        "--model",
+        "-m",
+        help="Model ID to use.",
+    ),
+) -> None:
+    """Produce an analyst memo for a ticker using a Compass skill.
+
+    Slice 6 entry point. Reads every fetched filing under the ticker's
+    workspace, follows the corresponding `skills/<type>-memo/SKILL.md`,
+    and writes the memo to `data/tickers/<TICKER>/memos/<type>/<date>.md`.
+    Every specific claim cites an `evidence.id` from the ledger.
+
+    Run `compass fetch <TICKER> 10-K` first to populate the corpus.
+    """
+    try:
+        memo_path = asyncio.run(
+            agent_research(ticker, memo_type=type, model=model)
+        )
+    except FileNotFoundError as exc:
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(2)
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+    typer.echo()
+    typer.echo(f"Memo written: {memo_path}")
 
 
 # --- Slice 4: evidence ledger inspection -----------------------------------

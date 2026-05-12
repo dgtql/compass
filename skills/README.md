@@ -25,11 +25,11 @@ time. The agent discovers them through its own `Read` tool — `CLAUDE.md`
 instructs the agent to consult `.claude/skills/` and read the relevant
 `SKILL.md` when its `description:` frontmatter matches the current task.
 
-Production skills: *none authored yet.*
+Production skills:
+
+- **`pitch-memo`** *(Slice 6, lite invocation)* — produces an analyst pitch memo on a covered ticker. `compass.agent.research()` loads this skill by filename convention and embeds the SKILL.md body inline in the prompt. Outputs a structured Markdown memo at `data/tickers/<TICKER>/memos/pitch/<YYYY-MM-DD>.md` with `[ev#N]` citations into the evidence ledger. When agent-autonomous skill discovery lands, this folder slots in unchanged.
 
 The first attempt — `parse-edgar-filing` for HTML preprocessing — was retired in Slice 2.5 when we adopted [edgartools](https://github.com/dgunning/edgartools) (Anthropic-blessed) for both filing fetch and Markdown conversion. The skill folder became redundant because edgartools' `Filing.markdown()` already produces the clean output the skill was reaching for. See the Slice 2.5 / 3.5 notes in the [design doc](../docs/design/README.md) for full context.
-
-The real production skill catalogue arrives in Slice 5 once the skill-discovery infrastructure (workspace `.claude/skills/` symlinks, `CLAUDE.md` template, agent loop reads `SKILL.md`) is in place.
 
 Planned (to be authored — placeholder list, will evolve):
 
