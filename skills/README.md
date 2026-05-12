@@ -25,7 +25,13 @@ time. The agent discovers them through its own `Read` tool — `CLAUDE.md`
 instructs the agent to consult `.claude/skills/` and read the relevant
 `SKILL.md` when its `description:` frontmatter matches the current task.
 
-Production skills (to be authored — placeholder list, will evolve):
+Production skills: *none authored yet.*
+
+The first attempt — `parse-edgar-filing` for HTML preprocessing — was retired in Slice 2.5 when we adopted [edgartools](https://github.com/dgunning/edgartools) (Anthropic-blessed) for both filing fetch and Markdown conversion. The skill folder became redundant because edgartools' `Filing.markdown()` already produces the clean output the skill was reaching for. See the Slice 2.5 / 3.5 notes in the [design doc](../docs/design/README.md) for full context.
+
+The real production skill catalogue arrives in Slice 5 once the skill-discovery infrastructure (workspace `.claude/skills/` symlinks, `CLAUDE.md` template, agent loop reads `SKILL.md`) is in place.
+
+Planned (to be authored — placeholder list, will evolve):
 
 - `research-planner` — interactive Q&A → generates `dossier.json` + `tasks.json` for a ticker
 - `ingest-and-triage` — pulls primary sources, produces the missing-context report

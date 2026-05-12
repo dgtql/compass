@@ -6,9 +6,12 @@ Compass produces the work a buy-side analyst would: pitch memos, maintenance
 updates, earnings reactions, and real-time alerts on covered names — grounded
 in primary sources, scalable to any number of tickers, available 24/7.
 
-**Status: pre-alpha.** Currently at Slice 1 of the
-[build plan](docs/design/README.md#7-build-plan) — the agent can answer a
-prompt. Ingestion, skills, memos, evidence ledger, and UI are on the runway.
+**Status: pre-alpha.** Slices 1–3 of the
+[build plan](docs/design/README.md#7-build-plan) shipped: the agent can
+answer a prompt, ingest SEC filings as clean Markdown via `edgartools`,
+and produce a grounded one-paragraph summary of a real 10-K. The
+evidence ledger, real skills system, memo pipeline, and UI are on the
+runway.
 
 ## Quickstart
 
@@ -47,8 +50,9 @@ pytest tests/
 | Slice | Status | What it does |
 |---|---|---|
 | 1. Hello, agent | done | `compass ask` — minimal CLI that talks to Claude |
-| 2. Ingest one document | planned | SEC EDGAR fetch for 10-Ks |
-| 3+ | planned | See the [build plan](docs/design/README.md#7-build-plan) |
+| 2. Ingest one document | done | `compass fetch SOC 10-K` — pulls the latest 10-K into `data/tickers/SOC_US/corpus/filings/10-K/<accession>/primary.md` as clean Markdown via `edgartools` |
+| 3. Agent reads a document | done | `compass summarize SOC <path>` — agent reads a filing with the Read tool, observed by a PreToolUse hook, returns a grounded one-paragraph PM-grade summary |
+| 4+ | planned | See the [build plan](docs/design/README.md#7-build-plan) — evidence ledger is next |
 
 ## Design
 

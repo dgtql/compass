@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from pathlib import Path
 
 import typer
 from dotenv import load_dotenv
 
 from compass import __version__
-from compass.agent import DEFAULT_MODEL, ask as agent_ask
+from compass.agent import DEFAULT_MODEL, ask as agent_ask, summarize as agent_summarize
 from compass.ingest.edgar import EdgarConfigError, EdgarSource
 
 # Pick up ANTHROPIC_API_KEY (and friends) from a local .env if present.
@@ -104,6 +105,39 @@ def fetch(
     typer.echo(f"Fetched {len(docs)} {form} filing(s) for {ticker}:")
     for doc in docs:
         typer.echo(f"  {doc.source_id}  →  {doc.local_path}")
+
+
+@app.command()
+def summarize(
+    ticker: str = typer.Argument(..., help="Ticker for context (e.g. SOC)."),
+    path: Path = typer.Argument(
+        ...,
+        help="Path to the document file to summarize (HTML or text).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    model: str = typer.Option(
+        DEFAULT_MODEL,
+        "--model",
+        "-m",
+        help="Model ID to use.",
+    ),
+) -> None:
+    """Have the agent read a document and print a one-paragraph summary.
+
+    Slice 3 entry point. The agent uses the Read tool to load the file;
+    every tool call streams to stdout via a PreToolUse hook (Slice 4
+    rewires this hook to write SQLite evidence-ledger rows).
+    """
+    try:
+        text = asyncio.run(agent_summarize(path, ticker=ticker, model=model))
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+    typer.echo()
+    typer.echo(text)
 
 
 if __name__ == "__main__":

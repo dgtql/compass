@@ -156,7 +156,7 @@ to port:
 
 - **Markdown-as-prompt skills.** Each skill is a folder with `SKILL.md` + references. Agent reads on demand. Token-efficient, lazy-loaded, composable.
 - **JSON pipeline state.** `company_dossier.json` (the plan), `research_tasks.json` (the steps). State on disk. No workflow engine.
-- **`can_use_tool` callback.** Permission gate AND the place where evidence ledger entries get auto-logged on every Read / WebFetch.
+- **`PreToolUse` hook for observability; `can_use_tool` for policy.** The `PreToolUse` hook fires on every tool call regardless of permission state — this is where evidence-ledger rows get written. `can_use_tool` is the SDK's replacement for the interactive permission prompt and only fires for tool calls that aren't pre-allowed; we reserve it for policy decisions on ambiguous calls in later slices.
 - **CLAUDE.md system-prompt template.** Per-company template that sets the agent's role (analyst), house style, citation rules.
 - **For-loop auto-runner.** Sequential task execution. JSON file is source of truth.
 - **WebSocket streaming.** Agent output streams to UI as produced. The same channel carries task-state events emitted by the auto-research runner — when a task flips `pending → in-progress → done`, the Pipeline view updates live without polling. This is what makes the agent's work visible to the PM instead of opaque.
@@ -183,7 +183,7 @@ evidence(
 ```
 
 Every retrieved chunk gets a row. Every claim in generated memos must cite a
-ledger row by ID. The `can_use_tool` gate auto-logs on Read / WebFetch. A
+ledger row by ID. The `PreToolUse` hook auto-logs on Read / WebFetch. A
 post-generation validator strips any claim missing citations and replaces with
 `[UNGROUNDED]`.
 
@@ -314,8 +314,8 @@ data/tickers/SOC_US/
 ├── dossier.json                    # generated plan: thesis, key questions
 ├── tasks.json                      # generated task list
 ├── corpus/                         # the evidence base
-│   ├── sec-edgar-filings/          # SEC filings; layout from sec-edgar-downloader
-│   │   └── <TICKER>/<FORM>/<ACC>/  # full-submission.txt + primary-document.*
+│   ├── filings/                    # SEC filings (edgartools-fetched, see Slice 2.5)
+│   │   └── <FORM>/<ACC>/           # primary.md (clean Markdown) + metadata.json
 │   ├── transcripts/                # earnings calls
 │   ├── press_releases/
 │   ├── news/
@@ -334,7 +334,19 @@ data/tickers/SOC_US/
 
 **Memos as versioned files, not DB rows.** PMs forward memos. The audit trail of "what did the agent say on May 12 vs. August 15" is just `ls memos/pitch/`. The DB only holds the evidence ledger and audit log; the memos themselves are derived file artifacts.
 
-**Slice 2 note — actual SEC filings layout.** The originally-sketched `corpus/filings/` directory was replaced with the layout `sec-edgar-downloader` emits natively: `corpus/sec-edgar-filings/<TICKER>/<FORM>/<ACC>/`. The library uses directory presence as its "already downloaded?" check, so post-processing files into a flattened layout would force re-downloads on every fetch. When we add Yahoo / Oslo / IR scraper ingestion (Slices 7–9) we'll consolidate by introducing a top-level `corpus/manifest.json` that points at heterogeneous source-specific subtrees rather than forcing all sources into one shape.
+**Slice 2.5 note — edgartools replaces `sec-edgar-downloader` + custom HTML cleaner.** Real-world testing of `compass summarize` on a 1.9 MB primary-document.html exposed that EDGAR HTML is structurally hostile to the Read tool (very long inline-styled lines, an XBRL `display:none` preamble of ~1000+ lines of namespace gibberish, no breakable whitespace near the document start). A custom BeautifulSoup pre-processor (Slice 3.5) partially fixed this. We then ripped both `sec-edgar-downloader` and the custom cleaner out in favor of [edgartools](https://github.com/dgunning/edgartools) — the Anthropic-blessed Python library that handles fetching, XBRL parsing, and Markdown conversion in one place. Net result:
+
+- `EdgarSource.fetch()` now writes `data/tickers/<TICKER>_<EXCH>/corpus/filings/<FORM>/<ACCESSION>/primary.md` (clean Markdown — `###` headings, `|...|` tables) + `metadata.json` alongside.
+- Slice 2's CLI surface is unchanged (`compass fetch SOC 10-K`).
+- The `skills/parse-edgar-filing/` skill folder was retired — `edgartools` makes the HTML preprocessing step unnecessary at this layer.
+- Structured section accessors (`tenk.business`, `tenk.risk_factors`, `tenk.management_discussion`, `tenk.financials`) are now available to later slices (skill catalogue, evidence-ledger chunking, pitch-memo composition).
+
+**Slice 3 note — PreToolUse over can_use_tool, HTML-first reading.** Two findings from wiring the agent up to read a document:
+
+1. The build-plan slice originally named `can_use_tool` as the auto-logger for the evidence ledger, but the SDK only invokes `can_use_tool` for tool calls that would otherwise prompt the user — pre-allowed tools bypass it entirely. The correct observability primitive is a `PreToolUse` hook, which fires on every tool call regardless of permission state. The architecture decisions section above has been corrected.
+2. The slice also originally mentioned Anthropic's `pdf` skill, but SEC primary documents (10-K, 10-Q, 8-K) are HTML. We deferred the PDF skill to when we add a source that actually emits PDFs (likely the IR scraper in Slice 7+). The agent reads HTML directly via the Read tool.
+
+**Slice 3.5 note (superseded by Slice 2.5).** A first attempt at the HTML preprocessing problem introduced a `skills/parse-edgar-filing/` folder (`SKILL.md` + `scripts/extract_text.py` using BeautifulSoup) to strip raw EDGAR HTML before the agent read it. This shipped briefly but was retired the same day in favor of adopting `edgartools` wholesale (see Slice 2.5 above) — the upstream library already emits clean Markdown, so the custom skill became dead weight. The retired pattern is preserved here for historical context: `compass.agent.summarize()` shelled out to the script via `subprocess`, `add_dirs` granted Read access, and `max_turns=20` bounded the loop. The architectural lesson worth keeping: **published Claude SEC skills assume input is already clean text — the cleaning happens upstream of the skill layer**, in an MCP server / Python library / paid data provider. Compass now relies on `edgartools` for that cleaning step.
 
 ### System architecture
 
