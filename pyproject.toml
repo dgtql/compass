@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "compass-research"
+version = "0.1.0"
+description = "Compass — your AI analyst team. Analyst-grade research at AI speed and cost."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Di Zhu", email = "zhudi2825@gmail.com" }]
+keywords = ["llm", "claude", "investment-research", "agent", "analyst"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+    "typer>=0.12.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.scripts]
+compass = "compass.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/zhudi/compass"
+Documentation = "https://github.com/zhudi/compass/tree/main/docs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["compass"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
