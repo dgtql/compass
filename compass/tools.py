@@ -28,24 +28,30 @@ HookFn = Callable[
     Awaitable[dict[str, Any]],
 ]
 
+EventFn = Callable[[dict[str, Any]], None]
+
 
 def make_tool_logger(
     started_at: float,
     *,
     session_id: str | None = None,
+    on_event: EventFn | None = None,
 ) -> HookFn:
-    """Return a PreToolUse hook that streams to stderr AND audits to SQLite.
+    """Return a PreToolUse hook that streams to stderr AND audits to SQLite
+    AND (optionally) fires a callback the API layer can buffer for live UI.
 
-    The hook closes over ``started_at`` (a ``time.monotonic()`` value)
-    so each agent run can stamp its own progress without a global. The
-    SDK declares the input as ``PreToolUseHookInput`` but at runtime
-    delivers a dict (JSON over the CLI subprocess), so we read it both
-    ways. Stderr output keeps stdout clean for the final answer; the
-    SQLite audit row is what survives the session.
+    ``on_event`` receives a dict per tool call::
 
-    Slice 4: every tool call writes one row to ``audit`` in compass.db.
-    For Read calls we also extract ``file_path`` + ``offset`` + ``limit``
-    into typed columns so later queries can join against ``evidence``.
+        {
+            "ts": <wall-clock unix time>,
+            "type": "tool",
+            "elapsed": <seconds since ``started_at``>,
+            "tool_name": "Read",
+            "tool_input": {...},
+            "preview": "Read file=…/foo offset=200 limit=300",
+        }
+
+    The hook itself is unchanged for CLI usage (``on_event=None``).
     """
 
     async def hook(
@@ -56,8 +62,9 @@ def make_tool_logger(
         tool_name = inp["tool_name"] if isinstance(inp, dict) else inp.tool_name
         tool_input = inp["tool_input"] if isinstance(inp, dict) else inp.tool_input
         elapsed = time.monotonic() - started_at
+        preview = _format_args(tool_input)
         print(
-            f"[{elapsed:6.1f}s] [tool] {tool_name} {_format_args(tool_input)}",
+            f"[{elapsed:6.1f}s] [tool] {tool_name} {preview}",
             flush=True,
             file=sys.stderr,
         )
@@ -88,9 +95,23 @@ def make_tool_logger(
                 session_id=session_id,
             )
         except Exception as exc:  # noqa: BLE001
-            # An audit-DB failure must never break the agent loop. Log it
-            # and continue — the user sees the agent's output either way.
             print(f"[audit] insert failed: {exc}", file=sys.stderr, flush=True)
+
+        if on_event is not None:
+            try:
+                on_event(
+                    {
+                        "ts": time.time(),
+                        "type": "tool",
+                        "elapsed": elapsed,
+                        "tool_name": str(tool_name),
+                        "tool_input": tool_input if isinstance(tool_input, dict) else {"value": tool_input},
+                        "preview": f"{tool_name} {preview}",
+                    }
+                )
+            except Exception as exc:  # noqa: BLE001
+                # Event delivery must never break the agent loop either.
+                print(f"[event] callback failed: {exc}", file=sys.stderr, flush=True)
         return {}
 
     return hook

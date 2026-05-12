@@ -389,6 +389,24 @@ API endpoints (read-only in Slice 8; WebSocket streaming for live `compass resea
 
 End-to-end verified: tests/test_api_smoke.py runs the FastAPI app under `TestClient`; live `compass serve` was probed with `curl` against all four endpoints (200s, expected shapes, citation tags parsed into integers). Pytest: 17 passed.
 
+**Slice 9 note — interactive workbench.** The slice-8 read-only UI got an action layer: a "Run a task" panel + a live Tasks list in the left sidebar. Three new endpoints back it:
+
+- `POST /api/tickers {ticker}` — materialize a workspace from the browser. Idempotent.
+- `POST /api/tasks {ticker, type, params}` — queue + start a background task; returns immediately with `status: "queued"`. Task types: `fetch_filing`, `snapshot`, `research`.
+- `GET /api/tasks[?limit=N]` and `GET /api/tasks/{id}` — list/detail; tasks carry an `events` list the SPA polls.
+
+Background execution uses `asyncio.create_task` so long-running work (especially `research`, ~4 min) doesn't block requests. Synchronous network calls (`EdgarSource.fetch`, `YahooSource.fetch`) run on the default thread-pool executor so they don't pin the event loop. The `compass.tools.make_tool_logger` hook was extended to accept an optional `on_event` callback; the API layer passes one that appends each tool call into the task's `events` list, which is what the SPA streams into the Tasks panel.
+
+Task storage is **in-memory only** — a process restart loses task history. Fine for slice 9; persistence (SQLite, probably reusing `compass.db`) lands when sessions or multi-user arrive.
+
+Live verified on 2026-05-12: started `compass serve --port 8766`, POSTed a snapshot task for SOC, observed `status: queued → done` transition within ~3s with two recorded events and a structured `result` pointing at the produced snapshot file on disk. Pytest: 20 passed (3 new task/ticker tests).
+
+**What slice 9 deliberately is not** (worth flagging so the design doesn't drift):
+
+- *Not WebSockets.* The SPA polls `/api/tasks` every 1.5s while any task is queued/running. Push-based events come when polling actually hurts (many concurrent tasks, or pipeline-view-style real-time across the watchlist).
+- *Not persistent tasks.* Restarting `compass serve` clears the in-memory task list. Fetched docs and generated memos survive — they're on disk. Only the *task history* is ephemeral.
+- *Not parallel agent runs.* Two `research` tasks against the same ticker on the same day would race on the memo path (`<date>.md`). The UI doesn't prevent it; the simpler fix when needed is a per-ticker queue, not memo versioning.
+
 ### System architecture
 
 ```mermaid

@@ -30,7 +30,7 @@ from claude_agent_sdk import (
 )
 
 from compass.db import list_evidence_for_ticker
-from compass.tools import make_tool_logger
+from compass.tools import EventFn, make_tool_logger
 from compass.workspace import ensure_workspace, workspace_dir
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
@@ -132,6 +132,7 @@ async def research(
     *,
     memo_type: str = "pitch",
     model: str = DEFAULT_MODEL,
+    on_event: "EventFn | None" = None,
 ) -> Path:
     """Produce an analyst memo for ``ticker`` using the ``<memo_type>-memo`` skill.
 
@@ -141,6 +142,11 @@ async def research(
     are by evidence-row id (`[ev#N]`); a compact line-range → evidence-id
     map is included in the prompt so the agent can convert Read offsets
     into citations without an extra tool call.
+
+    ``on_event`` is an optional callback the API layer uses to mirror the
+    agent's stderr stream into a task's event log for live UI updates.
+    Receives ``{type: 'tool'|'say'|'start'|'done', ts, elapsed, ...}``
+    dicts. Errors in the callback are swallowed; they never break the run.
 
     Returns the path of the written memo. ``FileNotFoundError`` if the
     ticker has no fetched filings, or if the skill doesn't exist.
@@ -192,14 +198,17 @@ async def research(
     )
 
     started_at = time.monotonic()
-    print(
-        f"[   0.0s] Researching {ticker.upper()} ({memo_type}-memo) with model "
-        f"{model}; {len(primary_paths)} filing(s) in corpus; expect ~60–180s.",
-        flush=True,
-        file=sys.stderr,
+    startup_msg = (
+        f"Researching {ticker.upper()} ({memo_type}-memo) with model {model}; "
+        f"{len(primary_paths)} filing(s) in corpus; expect ~60–180s."
     )
+    print(f"[   0.0s] {startup_msg}", flush=True, file=sys.stderr)
+    if on_event is not None:
+        try:
+            on_event({"ts": time.time(), "type": "start", "elapsed": 0.0, "message": startup_msg})
+        except Exception:  # noqa: BLE001
+            pass
 
-    # Filing dirs + memo dir + skills dir all need to be reachable.
     add_dirs = [str(workspace), str(_SKILLS_DIR)]
 
     options = ClaudeAgentOptions(
@@ -208,7 +217,9 @@ async def research(
         allowed_tools=["Read", "Write"],
         add_dirs=add_dirs,
         hooks={
-            "PreToolUse": [HookMatcher(hooks=[make_tool_logger(started_at)])],
+            "PreToolUse": [
+                HookMatcher(hooks=[make_tool_logger(started_at, on_event=on_event)])
+            ],
         },
         # Bigger budget than summarize() — research wants to page through
         # multiple filings + write the memo, all of which are turns.
@@ -216,19 +227,26 @@ async def research(
     )
 
     async for message in query(prompt=prompt, options=options):
-        # We don't accumulate text here — the artifact is the memo file
-        # written via the Write tool, not the assistant's chatter.
         if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock) and block.text.strip():
-                    # Stream agent commentary to stderr so we can see what
-                    # it's thinking between tool calls.
                     elapsed_now = time.monotonic() - started_at
+                    preview = block.text.strip()[:160]
                     print(
-                        f"[{elapsed_now:6.1f}s] [say] {block.text.strip()[:120]}",
+                        f"[{elapsed_now:6.1f}s] [say] {preview}",
                         flush=True,
                         file=sys.stderr,
                     )
+                    if on_event is not None:
+                        try:
+                            on_event({
+                                "ts": time.time(),
+                                "type": "say",
+                                "elapsed": elapsed_now,
+                                "message": preview,
+                            })
+                        except Exception:  # noqa: BLE001
+                            pass
 
     elapsed = time.monotonic() - started_at
     print(f"[{elapsed:6.1f}s] done.", flush=True, file=sys.stderr)
@@ -238,6 +256,11 @@ async def research(
             f"agent did not write the memo file at {memo_path}. Check the "
             f"audit log (`compass evidence audit`) for clues."
         )
+    if on_event is not None:
+        try:
+            on_event({"ts": time.time(), "type": "done", "elapsed": elapsed, "message": f"memo: {memo_path}"})
+        except Exception:  # noqa: BLE001
+            pass
     return memo_path
 
 

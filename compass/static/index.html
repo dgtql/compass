@@ -41,20 +41,105 @@
     .prose th, .prose td { border: 1px solid #d1d5db; padding: 4px 8px; }
     .prose th    { background: #f9fafb; font-weight: 600; }
     .prose em    { color: #6b7280; }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .badge-queued  { background: #f3f4f6; color: #4b5563; }
+    .badge-running { background: #fef3c7; color: #92400e; }
+    .badge-done    { background: #dcfce7; color: #166534; }
+    .badge-error   { background: #fee2e2; color: #991b1b; }
+
+    .task-event {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: #4b5563;
+      padding: 1px 0;
+    }
+    .task-event.t-tool  { color: #1e40af; }
+    .task-event.t-say   { color: #6b21a8; }
+    .task-event.t-error { color: #b91c1c; }
+    .task-event.t-done  { color: #166534; font-weight: 600; }
+
+    .scrollable-events {
+      max-height: 11rem;
+      overflow-y: auto;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 4px 6px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 0.8em;
+      height: 0.8em;
+      border: 2px solid #fbbf24;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -1px;
+      margin-right: 4px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="h-screen bg-gray-50 text-gray-900">
-  <div class="h-full grid grid-cols-[14rem_minmax(0,1fr)_22rem]">
-    <!-- LEFT: tickers + memos sidebar -->
-    <aside class="border-r border-gray-200 bg-white overflow-y-auto">
+  <div class="h-full grid grid-cols-[18rem_minmax(0,1fr)_22rem]">
+    <!-- LEFT: tickers + memos + tasks -->
+    <aside class="border-r border-gray-200 bg-white overflow-y-auto flex flex-col">
       <div class="px-4 py-4 border-b border-gray-200">
         <h1 class="text-lg font-bold text-indigo-700">Compass</h1>
         <p class="text-xs text-gray-500">Your AI analyst desk</p>
       </div>
-      <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">Tickers</div>
+
+      <!-- Tickers -->
+      <div class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">Tickers</div>
       <ul id="ticker-list" class="text-sm"></ul>
-      <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold border-t border-gray-200">Memos</div>
-      <ul id="memo-list" class="text-sm pb-4"></ul>
+      <form id="add-ticker-form" class="px-4 py-2 flex gap-1">
+        <input id="add-ticker-input" type="text" placeholder="Add ticker (e.g. AAPL)"
+               class="flex-1 text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-indigo-400" />
+        <button class="px-2 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">+</button>
+      </form>
+
+      <!-- Memos -->
+      <div class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500 font-semibold border-t border-gray-200">Memos</div>
+      <ul id="memo-list" class="text-sm"></ul>
+
+      <!-- Run a task -->
+      <div class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500 font-semibold border-t border-gray-200">Run a task</div>
+      <div id="run-task-panel" class="px-4 py-2 space-y-2">
+        <div id="run-task-target" class="text-xs text-gray-500">(pick a ticker)</div>
+        <div class="grid grid-cols-1 gap-1">
+          <button data-task-type="fetch_filing" data-form="10-K"
+                  class="run-task-btn text-left text-xs px-2 py-1 bg-gray-100 hover:bg-indigo-100 rounded">
+            Fetch 10-K
+          </button>
+          <button data-task-type="fetch_filing" data-form="10-Q"
+                  class="run-task-btn text-left text-xs px-2 py-1 bg-gray-100 hover:bg-indigo-100 rounded">
+            Fetch 10-Q
+          </button>
+          <button data-task-type="snapshot"
+                  class="run-task-btn text-left text-xs px-2 py-1 bg-gray-100 hover:bg-indigo-100 rounded">
+            Yahoo snapshot
+          </button>
+          <button data-task-type="research" data-memo-type="pitch"
+                  class="run-task-btn text-left text-xs px-2 py-1 bg-indigo-600 text-white hover:bg-indigo-700 rounded">
+            Generate pitch memo (~4 min)
+          </button>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500 font-semibold border-t border-gray-200">Tasks</div>
+      <ul id="task-list" class="text-sm flex-1 overflow-y-auto pb-4"></ul>
     </aside>
 
     <!-- CENTER: memo viewer -->
