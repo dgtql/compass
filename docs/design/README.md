@@ -376,6 +376,19 @@ data/tickers/SOC_US/
 
 **Slice 7 note — Yahoo Finance ingestion.** `YahooSource` (`compass/ingest/yahoo.py`) wraps `yfinance` to pull a daily *snapshot* — different shape from EDGAR's static filings, but rendered as the same Markdown-with-evidence-rows abstraction so downstream skills consume it uniformly. Snapshots land at `corpus/snapshots/yahoo/<YYYY-MM-DD>.md` (one per day; same-day re-runs overwrite). The CLI is a separate verb (`compass snapshot <TICKER>`) since "form type" has no Yahoo analog; future sources can each get their own verb (`compass transcripts`, `compass news`) or eventually consolidate into `compass ingest <TICKER>`. `research()` was extended to pull in the most recent snapshot per source alongside EDGAR filings, so the pitch memo can cite current price, 52-week range, analyst consensus, and recent news headlines next to the 10-K's fundamentals. The integrated SOC pitch memo now explicitly contrasts the strong-buy analyst consensus (`targetMeanPrice=$27, ~98% implied upside`) against the auditor's going-concern qualification — the most useful single observation a PM can carry into a meeting on this name.
 
+**Slice 8 note — web UI, vanilla stack (deviation from the design doc's React + Vite + Tailwind).** Shipped a minimum-viable UI that demonstrates the evidence-ledger payoff: every `[ev#N]` in a memo is a clickable button that pops the source chunk into a side panel. Three-pane layout: tickers list (left), memo viewer (center), evidence panel (right). `compass serve` starts uvicorn at `http://127.0.0.1:8000` with FastAPI serving both the JSON API and the static SPA.
+
+The originally-planned React + Vite + Tailwind stack was deferred — at the MVP scope (single page, no routing, no state library, no shared components yet), the React scaffold's ~2 hours of upfront setup outweighed its benefit. Instead: `compass/static/index.html` (Tailwind CDN + marked.js CDN), `compass/static/app.js` (~200 LOC vanilla JS), served via FastAPI's `StaticFiles`. When the UI grows past one page (Coverage Dashboard, Pipeline view, Morning brief — Slices 10–12), the React migration is straightforward: the JSON API surface stays put, and the existing single page becomes a single component in the new tree.
+
+API endpoints (read-only in Slice 8; WebSocket streaming for live `compass research` runs is deferred):
+
+- `GET /api/tickers` — workspaces under `data/tickers/`, with memo counts
+- `GET /api/tickers/{ticker}/memos` — memos for a ticker
+- `GET /api/memos/{ticker}/{type}/{date}` — memo markdown + parsed citation ids
+- `GET /api/evidence/{id}` — one evidence-ledger row with source link
+
+End-to-end verified: tests/test_api_smoke.py runs the FastAPI app under `TestClient`; live `compass serve` was probed with `curl` against all four endpoints (200s, expected shapes, citation tags parsed into integers). Pytest: 17 passed.
+
 ### System architecture
 
 ```mermaid

@@ -149,6 +149,26 @@ def summarize(
 
 
 @app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", help="Interface to bind."),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to listen on."),
+    reload: bool = typer.Option(
+        False, "--reload", help="Auto-reload on code changes (dev only)."
+    ),
+) -> None:
+    """Start the Compass web UI on http://<host>:<port>.
+
+    Slice 8 entry point. Serves the FastAPI app + the static SPA from
+    ``compass/static/``. The UI is a memo viewer with clickable
+    ``[ev#N]`` citations that show the source chunk in a side panel.
+    """
+    import uvicorn
+
+    typer.echo(f"Compass UI starting at http://{host}:{port}")
+    uvicorn.run("compass.api:app", host=host, port=port, reload=reload)
+
+
+@app.command()
 def snapshot(
     ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
 ) -> None:

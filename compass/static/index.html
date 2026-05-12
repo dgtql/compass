@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Compass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    .ev-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.75em;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0 1px;
+      border: 1px solid #c7d2fe;
+      transition: background 80ms ease, border-color 80ms ease;
+    }
+    .ev-tag:hover     { background: #c7d2fe; border-color: #a5b4fc; }
+    .ev-tag.is-active { background: #4f46e5; color: white; border-color: #4f46e5; }
+    .prose pre {
+      background: #f3f4f6;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    .prose code  { font-size: 0.92em; }
+    .prose h1    { font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; }
+    .prose h2    { font-size: 1.15rem; font-weight: 600; margin-top: 1.25rem; border-top: 1px solid #e5e7eb; padding-top: 1rem; }
+    .prose h3    { font-size: 1rem;   font-weight: 600; margin-top: 0.75rem; }
+    .prose p     { margin: 0.5rem 0; line-height: 1.6; }
+    .prose ul    { list-style: disc; margin-left: 1.25rem; }
+    .prose ol    { list-style: decimal; margin-left: 1.25rem; }
+    .prose table { border-collapse: collapse; margin: 0.75rem 0; font-size: 0.85rem; }
+    .prose th, .prose td { border: 1px solid #d1d5db; padding: 4px 8px; }
+    .prose th    { background: #f9fafb; font-weight: 600; }
+    .prose em    { color: #6b7280; }
+  </style>
+</head>
+<body class="h-screen bg-gray-50 text-gray-900">
+  <div class="h-full grid grid-cols-[14rem_minmax(0,1fr)_22rem]">
+    <!-- LEFT: tickers + memos sidebar -->
+    <aside class="border-r border-gray-200 bg-white overflow-y-auto">
+      <div class="px-4 py-4 border-b border-gray-200">
+        <h1 class="text-lg font-bold text-indigo-700">Compass</h1>
+        <p class="text-xs text-gray-500">Your AI analyst desk</p>
+      </div>
+      <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">Tickers</div>
+      <ul id="ticker-list" class="text-sm"></ul>
+      <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold border-t border-gray-200">Memos</div>
+      <ul id="memo-list" class="text-sm pb-4"></ul>
+    </aside>
+
+    <!-- CENTER: memo viewer -->
+    <main class="overflow-y-auto">
+      <div id="memo-header" class="px-8 py-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div id="memo-title" class="text-sm text-gray-500">Select a memo</div>
+        <div id="memo-meta" class="text-xs text-gray-400 mt-1"></div>
+      </div>
+      <article id="memo-body" class="prose px-8 py-6 max-w-3xl"></article>
+    </main>
+
+    <!-- RIGHT: evidence panel -->
+    <aside class="border-l border-gray-200 bg-white overflow-y-auto">
+      <div class="px-4 py-4 border-b border-gray-200 sticky top-0 bg-white">
+        <div class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Evidence</div>
+        <div id="evidence-title" class="text-sm font-medium mt-1">Click any [ev#N] to see the source</div>
+      </div>
+      <div id="evidence-body" class="px-4 py-4 text-sm leading-relaxed text-gray-700"></div>
+    </aside>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
