@@ -19,6 +19,10 @@ master-agent / per-analyst voice.
 
 from __future__ import annotations
 
+import os
+import shutil
+from pathlib import Path
+
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
@@ -127,11 +131,24 @@ async def generate_reply(
 
     chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
 
+    # Skip the SDK's pre-call version probe — on some Windows setups it
+    # hangs or fails during the FastAPI uvicorn worker startup, giving
+    # the same empty 'Failed to start Claude Code: .' error we used to
+    # hit. The probe is just a deprecation warning anyway.
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
     options_kwargs: dict = {
         "model": chosen_model,
         "system_prompt": build_system_prompt(owner_key),
         "max_turns": max_turns,
     }
+    # When the SDK's own lookup misses the `claude` binary, hand it the
+    # resolved path explicitly. The CLI inherits the user's shell PATH,
+    # but the uvicorn worker sometimes doesn't — pre-resolving here
+    # bridges the gap.
+    cli_path = _resolve_claude_cli()
+    if cli_path:
+        options_kwargs["cli_path"] = cli_path
     if (thinking or "").lower() == "extended":
         # Adaptive thinking — the SDK picks the depth; cheaper than a
         # fixed-budget enable block and behaves sensibly across models.
@@ -156,6 +173,40 @@ async def generate_reply(
             ) from exc
         raise
     return "".join(text_parts).strip()
+
+
+def _resolve_claude_cli() -> str | None:
+    """Return an explicit path to the ``claude`` CLI, or None if absent.
+
+    Probes ``shutil.which`` first (covers both PowerShell-style PATH and
+    PATHEXT-resolved names), then a few well-known Windows install
+    locations as fallbacks. Setting this explicitly on
+    ``ClaudeAgentOptions(cli_path=...)`` bypasses the SDK's internal
+    lookup, which is where the 'Failed to start Claude Code' empty
+    errors come from when the worker process's PATH differs from the
+    parent shell's.
+    """
+    for name in ("claude", "claude.exe", "claude.cmd"):
+        resolved = shutil.which(name)
+        if resolved:
+            return resolved
+
+    candidates: list[Path] = [
+        Path.home() / ".local" / "bin" / "claude.exe",
+        Path.home() / ".local" / "bin" / "claude",
+    ]
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        candidates.append(Path(appdata) / "npm" / "claude.cmd")
+        candidates.append(Path(appdata) / "npm" / "claude")
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        candidates.append(Path(local) / "Programs" / "claude" / "claude.exe")
+
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return None
 
 
 def _build_prompt_from_history(session: Session) -> str:
