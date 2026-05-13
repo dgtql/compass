@@ -36908,1296 +36908,1287 @@
       "ticker": "WIA",
       "name": "WESTERN ASSET INFLATION-LINKED INCOME FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 64463,
       "ticker": "SLNH",
       "name": "Soluna Holdings, Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1932770,
       "ticker": "HERE",
       "name": "Here Group Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1637715,
       "ticker": "OKUR",
       "name": "OnKure Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1619856,
       "ticker": "CRBU",
       "name": "Caribou Biosciences, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1776909,
       "ticker": "CURI",
       "name": "CuriosityStream Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Broadcasting",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1703647,
       "ticker": "KRRO",
       "name": "Korro Bio, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1725123,
       "ticker": "CANG",
       "name": "Cango Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1615063,
       "ticker": "INSE",
       "name": "Inspired Entertainment, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Gambling",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1595097,
       "ticker": "CRBP",
       "name": "Corbus Pharmaceuticals Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1786286,
       "ticker": "DPRO",
       "name": "Draganfly Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1452477,
       "ticker": "SEVN",
       "name": "Seven Hills Realty Trust",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1007587,
       "ticker": "KVHI",
       "name": "KVH INDUSTRIES INC \\DE\\",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 858706,
       "ticker": "GF",
       "name": "NEW GERMANY FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 704440,
       "ticker": "KRMD",
       "name": "KORU Medical Systems, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1289340,
       "ticker": "STXS",
       "name": "Stereotaxis, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 831655,
       "ticker": "MPV",
       "name": "BARINGS PARTICIPATION INVESTORS",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1430306,
       "ticker": "TNXP",
       "name": "Tonix Pharmaceuticals Holding Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1645873,
       "ticker": "MDV",
       "name": "MODIV INDUSTRIAL, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1687932,
       "ticker": "JILL",
       "name": "J.Jill, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1228509,
       "ticker": "EHI",
       "name": "WESTERN ASSET GLOBAL HIGH INCOME FUND INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1061353,
       "ticker": "DHY",
       "name": "CREDIT SUISSE HIGH YIELD CREDIT FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 58361,
       "ticker": "LEE",
       "name": "LEE ENTERPRISES, Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Publishing",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1605301,
       "ticker": "CBFV",
       "name": "CB Financial Services, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1792267,
       "ticker": "BNR",
       "name": "Burning Rock Biotech Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1819516,
       "ticker": "UP",
       "name": "Wheels Up Experience Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Airports & Air Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1259429,
       "ticker": "OXSQ",
       "name": "Oxford Square Capital Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2087446,
       "ticker": "PAAC",
       "name": "Proem Acquisition Corp. I",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 50471,
       "ticker": "TRAK",
       "name": "ReposiTrak, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 768899,
       "ticker": "TBI",
       "name": "TrueBlue, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Staffing & Employment Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 95574,
       "ticker": "SGC",
       "name": "SUPERIOR GROUP OF COMPANIES, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Manufacturing",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1438231,
       "ticker": "DMRC",
       "name": "Digimarc CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1576885,
       "ticker": "ABOS",
       "name": "Acumen Pharmaceuticals, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1070680,
       "ticker": "CFBK",
       "name": "CF BANKSHARES INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 924719,
       "ticker": "SMID",
       "name": "SMITH MIDLAND CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Building Materials",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1751783,
       "ticker": "RBKB",
       "name": "Rhinebeck Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1245648,
       "ticker": "FLC",
       "name": "FLAHERTY & CRUMRINE TOTAL RETURN FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1861657,
       "ticker": "CNTN",
       "name": "Canton Strategic Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1833769,
       "ticker": "HYPR",
       "name": "Hyperfine, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1070296,
       "ticker": "FCAP",
       "name": "FIRST CAPITAL INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1631761,
       "ticker": "YRD",
       "name": "Yiren Digital Ltd.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1478454,
       "ticker": "EBMT",
       "name": "Eagle Bancorp Montana, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1228454,
       "ticker": "BCBP",
       "name": "BCB BANCORP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1987363,
       "ticker": "WTF",
       "name": "Waton Financial Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1560672,
       "ticker": "EARN",
       "name": "Ellington Credit Co",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1574085,
       "ticker": "BHR",
       "name": "Braemar Hotels & Resorts Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Hotel & Motel",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2047148,
       "ticker": "CTW",
       "name": "CTW Cayman",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Electronic Gaming & Multimedia",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2076163,
       "ticker": "BRR",
       "name": "ProCap Financial, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1723069,
       "ticker": "TLSA",
       "name": "Tiziana Life Sciences Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1947244,
       "ticker": "USGO",
       "name": "U.S. GoldMining Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1057861,
       "ticker": "DHF",
       "name": "BNY MELLON HIGH YIELD STRATEGIES FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1852767,
       "ticker": "MRT",
       "name": "Marti Technologies, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1505952,
       "ticker": "DOMO",
       "name": "DOMO, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1899830,
       "ticker": "PERF",
       "name": "Perfect Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1845437,
       "ticker": "NPWR",
       "name": "NET Power Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "cap_bucket": "micro"
     },
     {
       "cik": 921671,
       "ticker": "GGT",
       "name": "GABELLI MULTIMEDIA TRUST INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2047177,
       "ticker": "CHEC",
       "name": "Chenghe Acquisition III Co.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2006468,
       "ticker": "NUTR",
       "name": "NUSATRIP Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1880438,
       "ticker": "ANTX",
       "name": "AN2 Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1006837,
       "ticker": "VATE",
       "name": "INNOVATE Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1421642,
       "ticker": "MSLE",
       "name": "Satellos Bioscience Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 714256,
       "ticker": "SMTI",
       "name": "Sanara MedTech Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1828937,
       "ticker": "FOA",
       "name": "Finance of America Companies Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2019793,
       "ticker": "SAFX",
       "name": "XCF Global, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Utilities",
+      "industry": "Utilities - Renewable",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1941131,
       "ticker": "TORO",
       "name": "TORO CORP.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "cap_bucket": "micro"
     },
     {
       "cik": 793040,
       "ticker": "ECF",
       "name": "ELLSWORTH GROWTH & INCOME FUND LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1612940,
       "ticker": "PRQR",
       "name": "ProQR Therapeutics N.V.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2007599,
       "ticker": "LAWR",
       "name": "Robot Consulting Co., Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1486298,
       "ticker": "BSL",
       "name": "Blackstone Senior Floating Rate 2027 Term Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 5094,
       "ticker": "VBF",
       "name": "Invesco Bond Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1659494,
       "ticker": "COE",
       "name": "51Talk Online Education Group",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1006281,
       "ticker": "PLX",
       "name": "Protalix BioTherapeutics, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1858848,
       "ticker": "TNYA",
       "name": "Tenaya Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 96536,
       "ticker": "TAYD",
       "name": "TAYLOR DEVICES, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1693577,
       "ticker": "MNSB",
       "name": "MainStreet Bancshares, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1867066,
       "ticker": "DERM",
       "name": "Journey Medical Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1302387,
       "ticker": "BVFL",
       "name": "BV Financial, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2035644,
       "ticker": "RANG",
       "name": "Range Capital Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1772921,
       "ticker": "ONEW",
       "name": "OneWater Marine Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1552198,
       "ticker": "WHF",
       "name": "WhiteHorse Finance, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 909494,
       "ticker": "TCX",
       "name": "TUCOWS INC /PA/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1642380,
       "ticker": "IMDX",
       "name": "Insight Molecular Diagnostics Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1878897,
       "ticker": "DOUG",
       "name": "Douglas Elliman Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1600641,
       "ticker": "DIBS",
       "name": "1stdibs.com, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2108164,
-      "ticker": "PONO",
-      "name": "Pono Capital Four, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1828588,
       "ticker": "HNVR",
       "name": "Hanover Bancorp, Inc. /MD",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1501103,
       "ticker": "EDF",
       "name": "Virtus Stone Harbor Emerging Markets Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1140411,
       "ticker": "PCQ",
       "name": "PIMCO CALIFORNIA MUNICIPAL INCOME FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1745114,
       "ticker": "MOLN",
       "name": "MOLECULAR PARTNERS AG",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1556739,
       "ticker": "THRY",
       "name": "Thryv Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 788920,
       "ticker": "PDEX",
       "name": "PRO DEX INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1597835,
       "ticker": "CMCM",
       "name": "Cheetah Mobile Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1873923,
       "ticker": "ONL",
       "name": "Orion Properties Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
+      "cap_bucket": "micro"
     },
     {
       "cik": 883265,
       "ticker": "VTN",
       "name": "Invesco Trust for Investment Grade New York Municipals",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2054876,
       "ticker": "NMP",
       "name": "NMP Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1437925,
       "ticker": "MRDN",
       "name": "Meridian Holdings Inc./NV",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Electronic Gaming & Multimedia",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1140102,
       "ticker": "HQI",
       "name": "HireQuest, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Staffing & Employment Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1299969,
       "ticker": "CHCI",
       "name": "Comstock Holding Companies, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1855457,
       "ticker": "KORE",
       "name": "KORE Group Holdings, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1413855,
       "ticker": "AIFU",
       "name": "AIFU Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1625414,
       "ticker": "BZUN",
       "name": "Baozun Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1683553,
       "ticker": "SPRB",
       "name": "SPRUCE BIOSCIENCES, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1954488,
       "ticker": "MENS",
       "name": "Jyong Biotech Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 818850,
       "ticker": "NNY",
       "name": "NUVEEN NEW YORK MUNICIPAL VALUE FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1468327,
       "ticker": "RENT",
       "name": "Rent the Runway, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2075816,
       "ticker": "EMIS",
       "name": "Emmis Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1040896,
       "ticker": "IDN",
       "name": "Intellicheck, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1141688,
       "ticker": "LARK",
       "name": "LANDMARK BANCORP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1176309,
       "ticker": "ORMP",
       "name": "ORAMED PHARMACEUTICALS INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1503274,
       "ticker": "QTRX",
       "name": "Quanterix Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1914605,
       "ticker": "ECBK",
       "name": "ECB Bancorp, Inc. /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2043508,
       "ticker": "LKSP",
       "name": "Lake Superior Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1332551,
       "ticker": "ACR",
       "name": "ACRES Commercial Realty Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
+      "cap_bucket": "micro"
     },
     {
       "cik": 34067,
       "ticker": "BOOM",
       "name": "DMC Global Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Conglomerates",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2023153,
       "ticker": "HTLM",
       "name": "HomesToLife Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2079106,
       "ticker": "LAFA",
       "name": "LaFayette Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1074828,
       "ticker": "USBC",
       "name": "USBC, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2028735,
       "ticker": "SPEG",
       "name": "Silver Pegasus Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 892992,
       "ticker": "NAZ",
       "name": "NUVEEN ARIZONA QUALITY MUNICIPAL INCOME FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2098,
       "ticker": "ACU",
       "name": "ACME UNITED CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1290900,
       "ticker": "CVGI",
       "name": "Commercial Vehicle Group, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2081536,
       "ticker": "WPAC",
       "name": "White Pearl Acquisition Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1868640,
       "ticker": "RDZN",
       "name": "Roadzen Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1575793,
       "ticker": "WATT",
       "name": "Energous Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1832871,
       "ticker": "BMN",
       "name": "BlackRock 2037 Municipal Target Term Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1859795,
       "ticker": "NVX",
       "name": "NOVONIX Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1701541,
       "ticker": "BDTX",
       "name": "Black Diamond Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 830622,
       "ticker": "PIM",
       "name": "PUTNAM MASTER INTERMEDIATE INCOME TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1098972,
       "ticker": "AGEN",
       "name": "AGENUS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1708688,
       "ticker": "IFRX",
       "name": "InflaRx N.V.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1320854,
       "ticker": "RAIL",
       "name": "FreightCar America, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Railroads",
+      "cap_bucket": "micro"
     },
     {
       "cik": 897802,
       "ticker": "SPE",
       "name": "SPECIAL OPPORTUNITIES FUND, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2091484,
       "ticker": "GLED",
       "name": "GalaxyEdge Acquisition Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1838163,
       "ticker": "BNAI",
       "name": "Brand Engagement Network Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1792781,
       "ticker": "CURV",
       "name": "Torrid Holdings Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1578987,
       "ticker": "BANX",
       "name": "ArrowMark Financial Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 830487,
       "ticker": "MHF",
       "name": "WESTERN ASSET MUNICIPAL HIGH INCOME FUND INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1845123,
       "ticker": "ANNA",
       "name": "AleAnna, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1777393,
       "ticker": "CHPT",
       "name": "ChargePoint Holdings, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1316463,
       "ticker": "GLQ",
       "name": "Clough Global Equity Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1838987,
       "ticker": "SPWR",
       "name": "SunPower Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Solar",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1894693,
       "ticker": "SVRE",
       "name": "SaverOne 2014 Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments",
+      "cap_bucket": "micro"
     },
     {
       "cik": 740664,
       "ticker": "RFIL",
       "name": "R F INDUSTRIES LTD",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1133416,
       "ticker": "GALT",
       "name": "GALECTIN THERAPEUTICS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2025774,
@@ -38206,1447 +38197,1447 @@
       "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
-      "cap_bucket": null
+      "cap_bucket": "micro"
     },
     {
       "cik": 1628063,
       "ticker": "SRG",
       "name": "Seritage Growth Properties",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2063816,
       "ticker": "INAC",
       "name": "Indigo Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1937891,
       "ticker": "AMCI",
       "name": "AMC Robotics Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 868578,
       "ticker": "PFD",
       "name": "FLAHERTY & CRUMRINE PREFERRED & INCOME FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2075336,
       "ticker": "YCY",
       "name": "AA Mission Acquisition Corp. II",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1866757,
       "ticker": "BRLT",
       "name": "Brilliant Earth Group, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Luxury Goods",
+      "cap_bucket": "micro"
     },
     {
       "cik": 904112,
       "ticker": "MSD",
       "name": "MORGAN STANLEY EMERGING MARKETS DEBT FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2089536,
       "ticker": "CEPS",
       "name": "Cantor Equity Partners VI, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 6207,
       "ticker": "AXR",
       "name": "AMREP CORP.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate - Development",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1702123,
       "ticker": "CRDL",
       "name": "Cardiol Therapeutics Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1332943,
       "ticker": "IGA",
       "name": "Voya Global Advantage & Premium Opportunity Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1767837,
       "ticker": "RMBI",
       "name": "Richmond Mutual Bancorporation, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1165002,
       "ticker": "WHG",
       "name": "WESTWOOD HOLDINGS GROUP INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1540684,
       "ticker": "ATLX",
       "name": "Atlas Lithium Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1537435,
       "ticker": "TGEN",
       "name": "TECOGEN INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1075880,
       "ticker": "KZIA",
       "name": "KAZIA THERAPEUTICS LTD",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1762417,
       "ticker": "DOYU",
       "name": "DouYu International Holdings Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2027265,
       "ticker": "MB",
       "name": "MASTERBEEF GROUP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "cap_bucket": "micro"
     },
     {
       "cik": 39092,
       "ticker": "FRD",
       "name": "FRIEDMAN INDUSTRIES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Steel",
+      "cap_bucket": "micro"
     },
     {
       "cik": 891038,
       "ticker": "MPA",
       "name": "BLACKROCK MUNIYIELD PENNSYLVANIA QUALITY FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1835654,
       "ticker": "INVZ",
       "name": "Innoviz Technologies Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2085485,
       "ticker": "TRAD",
       "name": "APEX Tech Acquisition Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1701108,
       "ticker": "SPRO",
       "name": "Spero Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1280776,
       "ticker": "IMUX",
       "name": "IMMUNIC, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1287498,
       "ticker": "EVG",
       "name": "Eaton Vance Short Duration Diversified Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1084765,
       "ticker": "RGP",
       "name": "RESOURCES CONNECTION, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1408534,
       "ticker": "FGBI",
       "name": "First Guaranty Bancshares, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2097288,
       "ticker": "BHAV",
       "name": "BHAV Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1472326,
       "ticker": "GRO",
       "name": "Brazil Potash Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1794783,
       "ticker": "SLQT",
       "name": "SelectQuote, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1753368,
       "ticker": "SANG",
       "name": "Sangoma Technologies Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2005569,
       "ticker": "EMPG",
       "name": "Empro Group Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Distribution",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2088103,
       "ticker": "XFLH",
       "name": "XFLH Capital Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 9521,
       "ticker": "BCV",
       "name": "BANCROFT FUND LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 883975,
       "ticker": "MBOT",
       "name": "Microbot Medical Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1836754,
       "ticker": "LGCY",
       "name": "Legacy Education Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 810766,
       "ticker": "CIK",
       "name": "CREDIT SUISSE ASSET MANAGEMENT INCOME FUND, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2030834,
       "ticker": "ONEG",
       "name": "OneConstruction Group Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1578453,
       "ticker": "DLNG",
       "name": "Dynagas LNG Partners LP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2098669,
       "ticker": "UAC",
       "name": "United Acquisition Corp. I",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1227636,
       "ticker": "STIM",
       "name": "Neuronetics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1839799,
       "ticker": "GAMB",
       "name": "Gambling.com Group Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Gambling",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1835268,
       "ticker": "CNTB",
       "name": "Connect Biopharma Holdings Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1504234,
       "ticker": "BGX",
       "name": "Blackstone Long-Short Credit Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1808665,
       "ticker": "ASRT",
       "name": "Assertio Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1496749,
       "ticker": "HEQ",
       "name": "John Hancock Diversified Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1497186,
       "ticker": "HYI",
       "name": "Western Asset High Yield Opportunity Fund Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1524025,
       "ticker": "TLYS",
       "name": "TILLY'S, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1951276,
       "ticker": "SRBK",
       "name": "SR Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 95953,
       "ticker": "ACNT",
       "name": "ASCENT INDUSTRIES CO.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Chemicals",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2091712,
       "ticker": "RFAM",
       "name": "RF Acquisition Corp III",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1984124,
       "ticker": "LUD",
       "name": "Luda Technology Group Ltd",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Steel",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2038439,
       "ticker": "VWAV",
       "name": "VisionWave Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1098146,
       "ticker": "PNBK",
       "name": "PATRIOT NATIONAL BANCORP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1823406,
       "ticker": "AFBI",
       "name": "Affinity Bancshares, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1649096,
       "ticker": "CLPR",
       "name": "Clipper Realty Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1391437,
       "ticker": "GRX",
       "name": "Gabelli Healthcare & WellnessRx Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1498382,
       "ticker": "HURA",
       "name": "TuHURA Biosciences, Inc./NV",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 874396,
       "ticker": "LCUT",
       "name": "LIFETIME BRANDS, INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Furnishings, Fixtures & Appliances",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1829794,
       "ticker": "EMPD",
       "name": "Empery Digital Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2083143,
       "ticker": "SCPQ",
       "name": "Social Commerce Partners Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1983736,
       "ticker": "GOAI",
       "name": "Eva Live Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 767405,
       "ticker": "SBFG",
       "name": "SB FINANCIAL GROUP, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1816708,
       "ticker": "OWLT",
       "name": "Owlet, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1013880,
       "ticker": "TTEC",
       "name": "TTEC Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1598599,
       "ticker": "IPHA",
       "name": "Innate Pharma SA",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1655923,
       "ticker": "ACOG",
       "name": "Alpha Cognition Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1504545,
       "ticker": "BWG",
       "name": "BrandywineGLOBAL-Global Income Opportunities Fund Inc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1997403,
       "ticker": "ZENA",
       "name": "ZenaTech, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1417663,
       "ticker": "SNWV",
       "name": "SANUWAVE Health, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2049717,
       "ticker": "JMG",
       "name": "JM Group Ltd",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2037400,
       "ticker": "CAAS",
       "name": "China Automotive Systems, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 894871,
       "ticker": "AREN",
       "name": "Arena Group Holdings, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
     },
     {
       "cik": 31107,
       "ticker": "EML",
       "name": "EASTERN CO",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Tools & Accessories",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1598981,
       "ticker": "SKYX",
       "name": "SKYX Platforms Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1746466,
       "ticker": "EQ",
       "name": "Equillium, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1482541,
       "ticker": "BNC",
       "name": "CEA Industries Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Farm & Heavy Construction Machinery",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1438893,
       "ticker": "GNT",
       "name": "GAMCO Natural Resources, Gold & Income Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1946573,
       "ticker": "NAKA",
       "name": "Nakamoto Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1762303,
       "ticker": "RCEL",
       "name": "AVITA Medical, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 919864,
       "ticker": "FNWD",
       "name": "Finward Bancorp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 860489,
       "ticker": "CEE",
       "name": "CENTRAL & EASTERN EUROPE FUND, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1077688,
       "ticker": "HOFT",
       "name": "HOOKER FURNISHINGS Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Furnishings, Fixtures & Appliances",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1662684,
       "ticker": "KULR",
       "name": "KULR Technology Group, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1795251,
       "ticker": "NNOX",
       "name": "Nano-X Imaging Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 759866,
       "ticker": "JHS",
       "name": "JOHN HANCOCK INCOME SECURITIES TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1334325,
       "ticker": "CODA",
       "name": "Coda Octopus Group, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1364954,
       "ticker": "CHGG",
       "name": "CHEGG, INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1325702,
       "ticker": "MX",
       "name": "MAGNACHIP SEMICONDUCTOR Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1891101,
       "ticker": "BRCC",
       "name": "BRC Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
     },
     {
       "cik": 897419,
       "ticker": "NMT",
       "name": "NUVEEN MASSACHUSETTS QUALITY MUNICIPAL INCOME FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1496292,
       "ticker": "IHD",
       "name": "Voya Emerging Markets High Dividend Equity Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1641489,
       "ticker": "VTVT",
       "name": "vTv Therapeutics Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1231457,
       "ticker": "GNLX",
       "name": "GENELUX Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1754068,
       "ticker": "KLRS",
       "name": "Kalaris Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1041934,
       "ticker": "EDAP",
       "name": "EDAP TMS SA",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Distribution",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1448431,
       "ticker": "OPRX",
       "name": "OptimizeRx Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Health Information Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1289868,
       "ticker": "MCN",
       "name": "XAI Madison Equity Premium Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1059142,
       "ticker": "GHI",
       "name": "Greystone Housing Impact Investors LP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Mortgage Finance",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1478102,
       "ticker": "DMO",
       "name": "Western Asset Mortgage Opportunity Fund Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1285650,
       "ticker": "CGO",
       "name": "CALAMOS GLOBAL TOTAL RETURN FUND",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1649744,
       "ticker": "DLTH",
       "name": "DULUTH HOLDINGS INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1163792,
       "ticker": "WEA",
       "name": "WESTERN ASSET PREMIER BOND FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1612630,
       "ticker": "JYNT",
       "name": "JOINT Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1857190,
       "ticker": "NYXH",
       "name": "Nyxoah SA",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1870833,
       "ticker": "RMMZ",
       "name": "RiverNorth Managed Duration Municipal Income Fund II, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1724755,
       "ticker": "GHG",
       "name": "GreenTree Hospitality Group Ltd.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Lodging",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1805526,
       "ticker": "DFDV",
       "name": "DeFi Development Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2059653,
       "ticker": "LSBK",
       "name": "Lake Shore Bancorp, Inc. /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1585855,
       "ticker": "GGZ",
       "name": "Gabelli Global Small & Mid Cap Value Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1835597,
       "ticker": "PEPG",
       "name": "PepGen Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2028355,
       "ticker": "IPEX",
       "name": "Inflection Point Acquisition Corp. V",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1582982,
       "ticker": "CCLD",
       "name": "CareCloud, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Health Information Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1936804,
       "ticker": "SDA",
       "name": "SunCar Technology Group Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2017526,
       "ticker": "PCSC",
       "name": "Perceptive Capital Solutions Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 895574,
       "ticker": "VFL",
       "name": "abrdn National Municipal Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 918541,
       "ticker": "NNBR",
       "name": "NN INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Conglomerates",
+      "cap_bucket": "micro"
     },
     {
       "cik": 10329,
       "ticker": "BSET",
       "name": "BASSETT FURNITURE INDUSTRIES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Furnishings, Fixtures & Appliances",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1679268,
       "ticker": "TUSK",
       "name": "MAMMOTH ENERGY SERVICES, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Conglomerates",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2020385,
       "ticker": "TAVI",
       "name": "Tavia Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1865107,
       "ticker": "AKA",
       "name": "A.K.A. BRANDS HOLDING CORP.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1354866,
       "ticker": "BYRN",
       "name": "Byrna Technologies Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1425355,
       "ticker": "SUIG",
       "name": "SUI Group Holdings Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 779336,
       "ticker": "IAF",
       "name": "ABRDN AUSTRALIA EQUITY FUND, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2079720,
       "ticker": "BUDA",
       "name": "BUDA JUICE, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "cap_bucket": "micro"
     },
     {
       "cik": 882071,
       "ticker": "PFO",
       "name": "Flaherty & Crumrine PREFERRED & INCOME OPPORTUNITY FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2093507,
       "ticker": "GLND",
       "name": "Greenland Energy Co",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1884516,
       "ticker": "DTI",
       "name": "Drilling Tools International Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1705843,
       "ticker": "CBUS",
       "name": "Cibus, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1526475,
       "ticker": "NICM",
       "name": "NICOLA MINING INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 719135,
       "ticker": "APYX",
       "name": "Apyx Medical Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1805521,
       "ticker": "FFAI",
       "name": "FARADAY FUTURE INTELLIGENT ELECTRIC INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1674335,
       "ticker": "JELD",
       "name": "JELD-WEN Holding, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1784970,
       "ticker": "NXTT",
       "name": "Next Technology Holding Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1023313,
       "ticker": "FORR",
       "name": "FORRESTER RESEARCH, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 355019,
       "ticker": "FONR",
       "name": "FONAR CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1610853,
       "ticker": "HSDT",
       "name": "Solana Co",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2047455,
       "ticker": "QSEA",
       "name": "Quartzsea Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1282957,
       "ticker": "GLU",
       "name": "GABELLI GLOBAL UTILITY & INCOME TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1630627,
       "ticker": "TMCI",
       "name": "TREACE MEDICAL CONCEPTS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1566610,
       "ticker": "TONX",
       "name": "TON Strategy Co",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1808997,
       "ticker": "AOUT",
       "name": "American Outdoor Brands, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1001115,
       "ticker": "GEOS",
       "name": "GEOSPACE TECHNOLOGIES CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 862861,
       "ticker": "AIFC",
       "name": "AI Financial Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2024459,
       "ticker": "CHAR",
       "name": "Charlton Aria Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1865506,
       "ticker": "ZEO",
       "name": "Zeo Energy Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Solar",
+      "cap_bucket": "micro"
     },
     {
       "cik": 910329,
       "ticker": "MED",
       "name": "MEDIFAST INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Personal Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2073153,
       "ticker": "HYNE",
       "name": "Hoyne Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 732026,
       "ticker": "TRT",
       "name": "TRIO-TECH INTERNATIONAL",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1692427,
       "ticker": "NCSM",
       "name": "NCS Multistage Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1162896,
       "ticker": "PROP",
       "name": "Prairie Operating Co.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1818093,
       "ticker": "SKIN",
       "name": "SkinHealth Systems Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1495320,
       "ticker": "VRA",
       "name": "Vera Bradley, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Footwear & Accessories",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1856725,
       "ticker": "RANI",
       "name": "Rani Therapeutics Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 759828,
       "ticker": "JHI",
       "name": "JOHN HANCOCK INVESTORS TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1036044,
       "ticker": "INVE",
       "name": "Identiv, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1697851,
       "ticker": "REKR",
       "name": "Rekor Systems, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 845606,
       "ticker": "CXE",
       "name": "MFS HIGH INCOME MUNICIPAL TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2070900,
       "ticker": "QUMS",
       "name": "Quantumsphere Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2030829,
       "ticker": "PGAC",
       "name": "PANTAGES CAPITAL ACQUISITION Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2077709,
@@ -39655,655 +39646,655 @@
       "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
-      "cap_bucket": null
+      "cap_bucket": "micro"
     },
     {
       "cik": 1629210,
       "ticker": "PZG",
       "name": "Paramount Gold Nevada Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Gold",
+      "cap_bucket": "micro"
     },
     {
       "cik": 75398,
       "ticker": "PAI",
       "name": "Western Asset Investment Grade Income Fund Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1941536,
       "ticker": "BAER",
       "name": "Bridger Aerospace Group Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Security & Protection Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1266806,
       "ticker": "VANI",
       "name": "Vivani Medical, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1636422,
       "ticker": "HCAT",
       "name": "Health Catalyst, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Health Information Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1572616,
       "ticker": "GUTS",
       "name": "FRACTYL HEALTH, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2047235,
       "ticker": "WSBK",
       "name": "Winchester Bancorp, Inc./MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1439725,
       "ticker": "BDSX",
       "name": "BIODESIX INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "cap_bucket": "micro"
     },
     {
       "cik": 890119,
       "ticker": "NIM",
       "name": "NUVEEN SELECT MATURITIES MUNICIPAL FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1774857,
       "ticker": "AARD",
       "name": "Aardvark Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1380106,
       "ticker": "RPID",
       "name": "RAPID MICRO BIOSYSTEMS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1455365,
       "ticker": "CGTX",
       "name": "COGNITION THERAPEUTICS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1857853,
       "ticker": "COOK",
       "name": "Traeger, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Furnishings, Fixtures & Appliances",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1840199,
       "ticker": "WALD",
       "name": "Waldencast plc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1476840,
       "ticker": "EXFY",
       "name": "Expensify, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1337068,
       "ticker": "MGYR",
       "name": "Magyar Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1213037,
       "ticker": "CRDF",
       "name": "Cardiff Oncology, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 799165,
       "ticker": "DWSN",
       "name": "DAWSON GEOPHYSICAL CO",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1614806,
       "ticker": "RPT",
       "name": "Rithm Property Trust Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1279014,
       "ticker": "ERH",
       "name": "ALLSPRING UTILITIES & HIGH INCOME FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1393883,
       "ticker": "DHX",
       "name": "DHI GROUP, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1400438,
       "ticker": "LGO",
       "name": "Largo Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1606242,
       "ticker": "VTIX",
       "name": "Virtuix Holdings Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1889983,
       "ticker": "KVAC",
       "name": "Keen Vision Acquisition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 830271,
       "ticker": "NMI",
       "name": "NUVEEN MUNICIPAL INCOME FUND INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1499832,
       "ticker": "TSQ",
       "name": "Townsquare Media, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 709283,
       "ticker": "QMCO",
       "name": "QUANTUM CORP /DE/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1782223,
       "ticker": "PYXS",
       "name": "Pyxis Oncology, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2023016,
       "ticker": "TTRX",
       "name": "Turn Therapeutics Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 55529,
       "ticker": "KEQU",
       "name": "KEWAUNEE SCIENTIFIC CORP /DE/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Furnishings, Fixtures & Appliances",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1158172,
       "ticker": "SCOR",
       "name": "COMSCORE, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 875657,
       "ticker": "ULBI",
       "name": "ULTRALIFE CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1748137,
       "ticker": "NEOV",
       "name": "NeoVolta Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1726445,
       "ticker": "SEER",
       "name": "Seer, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 706863,
       "ticker": "UNB",
       "name": "UNION BANKSHARES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1660334,
       "ticker": "VRCA",
       "name": "Verrica Pharmaceuticals Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 105319,
       "ticker": "WW",
       "name": "WW INTERNATIONAL, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "cap_bucket": "micro"
     },
     {
       "cik": 8146,
       "ticker": "ALOT",
       "name": "AstroNova, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1936224,
       "ticker": "SRFM",
       "name": "SURF AIR MOBILITY INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Airlines",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1861795,
       "ticker": "DH",
       "name": "Definitive Healthcare Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Health Information Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1514597,
       "ticker": "FURY",
       "name": "FURY GOLD MINES LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "cap_bucket": "micro"
     },
     {
       "cik": 23197,
       "ticker": "CMTL",
       "name": "COMTECH TELECOMMUNICATIONS CORP /DE/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1010470,
       "ticker": "PROV",
       "name": "PROVIDENT FINANCIAL HOLDINGS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 315374,
       "ticker": "HURC",
       "name": "HURCO COMPANIES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1840439,
       "ticker": "BMEA",
       "name": "Biomea Fusion, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1851961,
       "ticker": "GCTS",
       "name": "GCT Semiconductor Holding, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1129928,
       "ticker": "ONCY",
       "name": "ONCOLYTICS BIOTECH INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1393584,
       "ticker": "AMWL",
       "name": "American Well Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Health Information Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 882300,
       "ticker": "SBI",
       "name": "WESTERN ASSET INTERMEDIATE MUNI FUND INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1930021,
       "ticker": "HOVR",
       "name": "New Horizon Aircraft Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1275101,
       "ticker": "BOTJ",
       "name": "BANK OF THE JAMES FINANCIAL GROUP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1549966,
       "ticker": "SAMG",
       "name": "Silvercrest Asset Management Group Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1801661,
       "ticker": "SKLZ",
       "name": "Skillz Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Electronic Gaming & Multimedia",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1982518,
       "ticker": "SDHC",
       "name": "Smith Douglas Homes Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate - Development",
+      "cap_bucket": "micro"
     },
     {
       "cik": 810943,
       "ticker": "PCF",
       "name": "HIGH INCOME SECURITIES FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1318025,
       "ticker": "PGP",
       "name": "PIMCO Global StocksPLUS & Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1041368,
       "ticker": "RVSB",
       "name": "RIVERVIEW BANCORP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1515156,
       "ticker": "ARQ",
       "name": "Arq, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Pollution & Treatment Controls",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1605888,
       "ticker": "ATLN",
       "name": "ATLANTIC INTERNATIONAL CORP.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Staffing & Employment Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1997711,
       "ticker": "LPA",
       "name": "Logistic Properties of the Americas",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate - Development",
+      "cap_bucket": "micro"
     },
     {
       "cik": 16859,
       "ticker": "SRL",
       "name": "Scully Royalty Ltd.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1872529,
       "ticker": "MDXH",
       "name": "MDxHealth SA",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1906364,
       "ticker": "FGMC",
       "name": "FG Merger II Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2026514,
       "ticker": "NAMM",
       "name": "Namib Minerals",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Gold",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1927719,
       "ticker": "CRGO",
       "name": "Freightos Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1979414,
       "ticker": "NTHI",
       "name": "NEONC TECHNOLOGIES HOLDINGS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1436229,
       "ticker": "BTCS",
       "name": "BTCS Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
     },
     {
       "cik": 799850,
       "ticker": "CRMT",
       "name": "AMERICAS CARMART INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1861841,
       "ticker": "ARBE",
       "name": "Arbe Robotics Ltd.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1429764,
       "ticker": "BLNK",
       "name": "Blink Charging Co.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2024460,
       "ticker": "CHPG",
       "name": "ChampionsGate Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1787414,
       "ticker": "BSBK",
       "name": "Bogota Financial Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 813623,
@@ -40312,43 +40303,43 @@
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
-      "cap_bucket": null
+      "cap_bucket": "micro"
     },
     {
       "cik": 715446,
       "ticker": "ANIX",
       "name": "Anixa Biosciences Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2012706,
       "ticker": "SUNS",
       "name": "Sunrise Realty Trust, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1133311,
       "ticker": "TZOO",
       "name": "TRAVELZOO",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1993431,
       "ticker": "MCRP",
       "name": "Micropolis AI Robotics",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1786471,
@@ -40357,150 +40348,159 @@
       "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
-      "cap_bucket": null
+      "cap_bucket": "micro"
     },
     {
       "cik": 1479419,
       "ticker": "KALA",
       "name": "KALA BIO, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 913277,
       "ticker": "CLAR",
       "name": "Clarus Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1835022,
       "ticker": "COYA",
       "name": "Coya Therapeutics, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2009312,
       "ticker": "AGH",
       "name": "Aureus Greenway Holdings Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1956648,
       "ticker": "NOEM",
       "name": "CO2 Energy Transition Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1953366,
       "ticker": "STHO",
       "name": "Star Holdings",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
     },
     {
       "cik": 2019505,
       "ticker": "HIT",
       "name": "Health In Tech, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
     },
     {
       "cik": 90168,
       "ticker": "SIF",
       "name": "SIFCO INDUSTRIES INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1372807,
       "ticker": "BCIC",
       "name": "BCP Investment Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1374339,
       "ticker": "PMN",
       "name": "ProMIS Neurosciences Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1719406,
       "ticker": "NRXP",
       "name": "NRX Pharmaceuticals, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
     },
     {
       "cik": 887396,
       "ticker": "EP",
       "name": "EMPIRE PETROLEUM CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1472215,
       "ticker": "JLS",
       "name": "Nuveen Mortgage & Income Fund/MA/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1884046,
       "ticker": "SPKL",
       "name": "Spark I Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1541119,
       "ticker": "SFBC",
       "name": "Sound Financial Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "micro"
     },
     {
       "cik": 1680873,
       "ticker": "HFFG",
       "name": "HF Foods Group Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Consumer Defensive",
+      "industry": "Food Distribution",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2108164,
+      "ticker": "PONO",
+      "name": "Pono Capital Four, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
       "cap_bucket": null
     },
     {
