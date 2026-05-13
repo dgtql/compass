@@ -7087,15 +7087,6 @@
       "cap_bucket": "large"
     },
     {
-      "cik": 1404655,
-      "ticker": "HUBS",
-      "name": "HUBSPOT INC",
-      "exchange": "NYSE",
-      "sector": "Technology",
-      "industry": "Software - Application",
-      "cap_bucket": "mid"
-    },
-    {
       "cik": 1567094,
       "ticker": "CNH",
       "name": "CNH Industrial N.V.",
@@ -7564,15 +7555,6 @@
       "cap_bucket": "large"
     },
     {
-      "cik": 1069258,
-      "ticker": "KTOS",
-      "name": "KRATOS DEFENSE & SECURITY SOLUTIONS, INC.",
-      "exchange": "NASDAQ",
-      "sector": "Industrials",
-      "industry": "Aerospace & Defense",
-      "cap_bucket": "mid"
-    },
-    {
       "cik": 897723,
       "ticker": "SANM",
       "name": "SANMINA CORP",
@@ -7636,15 +7618,6 @@
       "cap_bucket": "large"
     },
     {
-      "cik": 1671933,
-      "ticker": "TTD",
-      "name": "Trade Desk, Inc.",
-      "exchange": "NASDAQ",
-      "sector": "Communication Services",
-      "industry": "Advertising Agencies",
-      "cap_bucket": "mid"
-    },
-    {
       "cik": 1267238,
       "ticker": "AIZ",
       "name": "ASSURANT, INC.",
@@ -7658,450 +7631,477 @@
       "ticker": "VICR",
       "name": "VICOR CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "cap_bucket": "large"
     },
     {
       "cik": 1582961,
       "ticker": "DOCN",
       "name": "DigitalOcean Holdings, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "large"
     },
     {
       "cik": 1859392,
       "ticker": "GLXY",
       "name": "Galaxy Digital Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "large"
     },
     {
       "cik": 48465,
       "ticker": "HRL",
       "name": "HORMEL FOODS CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "large"
     },
     {
       "cik": 1579241,
       "ticker": "ALLE",
       "name": "Allegion plc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Security & Protection Services",
+      "cap_bucket": "large"
     },
     {
       "cik": 16058,
       "ticker": "CACI",
       "name": "CACI INTERNATIONAL INC /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "cap_bucket": "large"
     },
     {
       "cik": 1858985,
       "ticker": "ONON",
       "name": "On Holding AG",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Footwear & Accessories",
+      "cap_bucket": "large"
     },
     {
       "cik": 765880,
       "ticker": "DOC",
       "name": "HEALTHPEAK PROPERTIES, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Healthcare Facilities",
+      "cap_bucket": "large"
     },
     {
       "cik": 1355444,
       "ticker": "EMBJ",
       "name": "EMBRAER S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "large"
     },
     {
       "cik": 109563,
       "ticker": "AIT",
       "name": "APPLIED INDUSTRIAL TECHNOLOGIES INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Industrial Distribution",
+      "cap_bucket": "large"
     },
     {
       "cik": 1739104,
       "ticker": "ELAN",
       "name": "Elanco Animal Health Inc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "large"
     },
     {
       "cik": 939767,
       "ticker": "EXEL",
       "name": "EXELIXIS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "large"
     },
     {
       "cik": 1135951,
       "ticker": "RDY",
       "name": "DR REDDYS LABORATORIES LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "large"
     },
     {
       "cik": 1219601,
       "ticker": "CCK",
       "name": "CROWN HOLDINGS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Packaging & Containers",
+      "cap_bucket": "large"
     },
     {
       "cik": 1588823,
       "ticker": "TFII",
       "name": "TFI International Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 779152,
-      "ticker": "JKHY",
-      "name": "JACK HENRY & ASSOCIATES INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Trucking",
+      "cap_bucket": "large"
     },
     {
       "cik": 922621,
       "ticker": "ERIE",
       "name": "ERIE INDEMNITY CO",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "cap_bucket": "large"
     },
     {
       "cik": 877212,
       "ticker": "ZBRA",
       "name": "ZEBRA TECHNOLOGIES CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "cap_bucket": "large"
     },
     {
       "cik": 1286681,
       "ticker": "DPZ",
       "name": "DOMINOS PIZZA INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "cap_bucket": "large"
     },
     {
       "cik": 1083301,
       "ticker": "WULF",
       "name": "TERAWULF INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "large"
     },
     {
       "cik": 350894,
       "ticker": "SEIC",
       "name": "SEI INVESTMENTS CO",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "large"
     },
     {
       "cik": 1604028,
       "ticker": "WMS",
       "name": "ADVANCED DRAINAGE SYSTEMS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "cap_bucket": "large"
     },
     {
       "cik": 1573516,
       "ticker": "MUSA",
       "name": "Murphy USA Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "large"
     },
     {
       "cik": 1756607,
       "ticker": "EQX",
       "name": "Equinox Gold Corp.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 868857,
-      "ticker": "ACM",
-      "name": "AECOM",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Gold",
+      "cap_bucket": "large"
     },
     {
       "cik": 1042046,
       "ticker": "AFG",
       "name": "AMERICAN FINANCIAL GROUP INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "cap_bucket": "large"
     },
     {
       "cik": 89089,
       "ticker": "SCI",
       "name": "SERVICE CORP INTERNATIONAL",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Personal Services",
+      "cap_bucket": "large"
     },
     {
       "cik": 1019849,
       "ticker": "PAG",
       "name": "PENSKE AUTOMOTIVE GROUP, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "cap_bucket": "large"
     },
     {
       "cik": 1177702,
       "ticker": "SAIA",
       "name": "SAIA INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1174922,
-      "ticker": "WYNN",
-      "name": "WYNN RESORTS LTD",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1411207,
-      "ticker": "ALSN",
-      "name": "Allison Transmission Holdings Inc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Trucking",
+      "cap_bucket": "large"
     },
     {
       "cik": 78128,
       "ticker": "WTRG",
       "name": "Essential Utilities, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Water",
+      "cap_bucket": "large"
     },
     {
       "cik": 1061894,
       "ticker": "GIL",
       "name": "Gildan Activewear Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Manufacturing",
+      "cap_bucket": "large"
     },
     {
       "cik": 1048477,
       "ticker": "BMRN",
       "name": "BIOMARIN PHARMACEUTICAL INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "large"
     },
     {
       "cik": 879407,
       "ticker": "ARWR",
       "name": "ARROWHEAD PHARMACEUTICALS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1326380,
-      "ticker": "GME",
-      "name": "GameStop Corp.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "large"
     },
     {
       "cik": 889331,
       "ticker": "LFUS",
       "name": "LITTELFUSE INC /DE",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1617640,
-      "ticker": "ZG",
-      "name": "ZILLOW GROUP, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "cap_bucket": "large"
     },
     {
       "cik": 1592386,
       "ticker": "VIRT",
       "name": "Virtu Financial, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "large"
     },
     {
       "cik": 49600,
       "ticker": "EGP",
       "name": "EASTGROUP PROPERTIES INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
+      "cap_bucket": "large"
     },
     {
       "cik": 1833756,
       "ticker": "DRS",
       "name": "Leonardo DRS, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "large"
     },
     {
       "cik": 1125376,
       "ticker": "ENSG",
       "name": "ENSIGN GROUP, INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "cap_bucket": "large"
     },
     {
       "cik": 785161,
       "ticker": "EHC",
       "name": "Encompass Health Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "cap_bucket": "large"
     },
     {
       "cik": 909327,
       "ticker": "SUZ",
       "name": "Suzano S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1579878,
-      "ticker": "FIG",
-      "name": "Figma, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Basic Materials",
+      "industry": "Paper & Paper Products",
+      "cap_bucket": "large"
     },
     {
       "cik": 1302215,
       "ticker": "HLI",
       "name": "HOULIHAN LOKEY, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "large"
     },
     {
       "cik": 1366868,
       "ticker": "GSAT",
       "name": "Globalstar, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1039399,
-      "ticker": "FORM",
-      "name": "FORMFACTOR INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 91388,
-      "ticker": "SFD",
-      "name": "SMITHFIELD FOODS INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "large"
     },
     {
       "cik": 21076,
       "ticker": "CLX",
       "name": "CLOROX CO /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1404655,
+      "ticker": "HUBS",
+      "name": "HUBSPOT INC",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1069258,
+      "ticker": "KTOS",
+      "name": "KRATOS DEFENSE & SECURITY SOLUTIONS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1671933,
+      "ticker": "TTD",
+      "name": "Trade Desk, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 779152,
+      "ticker": "JKHY",
+      "name": "JACK HENRY & ASSOCIATES INC",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 868857,
+      "ticker": "ACM",
+      "name": "AECOM",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1174922,
+      "ticker": "WYNN",
+      "name": "WYNN RESORTS LTD",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Resorts & Casinos",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1411207,
+      "ticker": "ALSN",
+      "name": "Allison Transmission Holdings Inc",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1326380,
+      "ticker": "GME",
+      "name": "GameStop Corp.",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1617640,
+      "ticker": "ZG",
+      "name": "ZILLOW GROUP, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1579878,
+      "ticker": "FIG",
+      "name": "Figma, Inc.",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1039399,
+      "ticker": "FORM",
+      "name": "FORMFACTOR INC",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 91388,
+      "ticker": "SFD",
+      "name": "SMITHFIELD FOODS INC",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "mid"
     },
     {
       "cik": 1623925,
