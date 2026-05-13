@@ -19,11 +19,15 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   createAnalyst,
+  getMyUniverse,
   getSectors,
   getUniverse,
   type ApiAnalyst,
   type ApiTicker,
+  type ApiWatchlistEntry,
 } from '@/lib/api';
+
+type SuggestedTicker = { ticker: string; name: string };
 
 type Props = {
   open: boolean;
@@ -40,7 +44,11 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
   const [coverage, setCoverage] = useState<Set<string>>(new Set());
 
   const [sectors, setSectors] = useState<string[]>([]);
-  const [suggested, setSuggested] = useState<ApiTicker[]>([]);
+  // My-universe (fetched once on open) — filtered by sector below.
+  const [myUniverse, setMyUniverse] = useState<ApiWatchlistEntry[]>([]);
+  // Top universe matches for the selected sector — used as fallback /
+  // "more names" suggestions below the My-universe group.
+  const [universeMatches, setUniverseMatches] = useState<ApiTicker[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
   const [suggestedError, setSuggestedError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,15 +62,18 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
     setSector(null);
     setPersona('');
     setCoverage(new Set());
-    setSuggested([]);
+    setUniverseMatches([]);
     setError(null);
     getSectors().then(setSectors).catch(() => setSectors([]));
+    getMyUniverse()
+      .then((wl) => setMyUniverse(wl.tickers))
+      .catch(() => setMyUniverse([]));
   }, [open]);
 
-  // Fetch suggested tickers whenever the sector changes.
+  // Fetch the broader-universe matches when sector changes.
   useEffect(() => {
     if (!sector) {
-      setSuggested([]);
+      setUniverseMatches([]);
       setSuggestedLoading(false);
       setSuggestedError(null);
       return;
@@ -73,16 +84,33 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
     getUniverse({ sector, limit: 20 })
       .then((u) => {
         if (cancelled) return;
-        setSuggested(u.tickers);
+        setUniverseMatches(u.tickers);
       })
       .catch((err: Error) => {
         if (cancelled) return;
-        setSuggested([]);
+        setUniverseMatches([]);
         setSuggestedError(err.message);
       })
       .finally(() => { if (!cancelled) setSuggestedLoading(false); });
     return () => { cancelled = true; };
   }, [sector]);
+
+  // My-universe matches in the selected sector (book first).
+  const myUniverseMatches: SuggestedTicker[] = useMemo(() => {
+    if (!sector) return [];
+    return myUniverse
+      .filter((t) => (t.sector ?? '') === sector)
+      .map((t) => ({ ticker: t.ticker, name: t.name ?? t.ticker }));
+  }, [myUniverse, sector]);
+
+  // Universe-only matches (exclude tickers that are already in My universe
+  // — they'll be shown in the top group).
+  const universeOnlyMatches: SuggestedTicker[] = useMemo(() => {
+    const inBook = new Set(myUniverse.map((t) => t.ticker));
+    return universeMatches
+      .filter((t) => !inBook.has(t.ticker))
+      .map((t) => ({ ticker: t.ticker, name: t.name }));
+  }, [universeMatches, myUniverse]);
 
   const canSubmit = useMemo(
     () => !!name.trim() && !!sector && !submitting,
@@ -192,38 +220,72 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
           </div>
           {!sector ? (
             <div className="text-xs text-muted-foreground italic border border-dashed border-border rounded-md p-3">
-              Pick a sector to see suggested tickers from the universe.
+              Pick a sector to see suggested tickers from your book and the universe.
             </div>
           ) : (
-            <div className="flex flex-wrap gap-1.5 p-3 border border-border rounded-md max-h-32 overflow-y-auto scrollbar-thin">
-              {suggestedLoading && (
-                <span className="text-[11px] text-muted-foreground italic">Loading suggestions…</span>
-              )}
-              {!suggestedLoading && suggestedError && (
-                <span className="text-[11px] text-rose-500 italic">Couldn't load: {suggestedError}</span>
-              )}
-              {!suggestedLoading && !suggestedError && suggested.length === 0 && (
-                <span className="text-[11px] text-muted-foreground italic">No suggestions for this sector. You can type tickers in by adding them from the Tickers page.</span>
-              )}
-              {suggested.map((t) => {
-                const selected = coverage.has(t.ticker);
-                return (
-                  <button
-                    key={t.ticker}
-                    onClick={() => toggle(t.ticker)}
-                    disabled={submitting}
-                    className={cn(
-                      'text-xs font-mono px-2 py-1 rounded-md border transition-colors',
-                      selected
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card border-border hover:bg-accent',
+            <div className="border border-border rounded-md p-3 max-h-56 overflow-y-auto scrollbar-thin space-y-3">
+              {/* Group 1: from My universe (the PM's curated book) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    From your book
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{myUniverseMatches.length}</span>
+                </div>
+                {myUniverseMatches.length === 0 ? (
+                  <span className="text-[11px] text-muted-foreground italic">
+                    No tickers in My universe match this sector yet. Add some from the Tickers page.
+                  </span>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {myUniverseMatches.map((t) => (
+                      <TickerPill
+                        key={t.ticker}
+                        ticker={t.ticker}
+                        name={t.name}
+                        selected={coverage.has(t.ticker)}
+                        onToggle={() => toggle(t.ticker)}
+                        disabled={submitting}
+                        accent
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Group 2: from the broader universe (top matches, excluding My-uni) */}
+              {(suggestedLoading || suggestedError || universeOnlyMatches.length > 0) && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                      More from the universe
+                    </span>
+                    {!suggestedLoading && !suggestedError && (
+                      <span className="text-[10px] text-muted-foreground">{universeOnlyMatches.length}</span>
                     )}
-                    title={t.name}
-                  >
-                    {t.ticker}
-                  </button>
-                );
-              })}
+                  </div>
+                  {suggestedLoading && (
+                    <span className="text-[11px] text-muted-foreground italic">Loading…</span>
+                  )}
+                  {!suggestedLoading && suggestedError && (
+                    <span className="text-[11px] text-rose-500 italic">Couldn't load: {suggestedError}</span>
+                  )}
+                  {!suggestedLoading && !suggestedError && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {universeOnlyMatches.map((t) => (
+                        <TickerPill
+                          key={t.ticker}
+                          ticker={t.ticker}
+                          name={t.name}
+                          selected={coverage.has(t.ticker)}
+                          onToggle={() => toggle(t.ticker)}
+                          disabled={submitting}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {coverage.size > 0 && (
@@ -279,5 +341,42 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
         </div>
       </div>
     </Dialog>
+  );
+}
+
+function TickerPill({
+  ticker,
+  name,
+  selected,
+  onToggle,
+  disabled,
+  accent,
+}: {
+  ticker: string;
+  name: string;
+  selected: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+  /** When true, render with a star + amber tint to mark it as already in
+   *  the PM's My universe. */
+  accent?: boolean;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      disabled={disabled}
+      title={name}
+      className={cn(
+        'text-xs font-mono px-2 py-1 rounded-md border transition-colors',
+        selected
+          ? 'bg-primary text-primary-foreground border-primary'
+          : accent
+            ? 'bg-amber-500/10 border-amber-500/40 hover:bg-amber-500/20'
+            : 'bg-card border-border hover:bg-accent',
+      )}
+    >
+      {accent && <span className="mr-0.5">★</span>}
+      {ticker}
+    </button>
   );
 }
