@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { mockSessions } from '@/mocks/data';
-import type { ChatSession, MasterAgentMessage } from '@/types/domain';
+import { mockAnalystSubtasks, mockSessions } from '@/mocks/data';
+import { InlineTodoList } from '@/components/chat/InlineTodoList';
+import { TaskProgressPill } from '@/components/chat/TaskProgressPill';
+import { AskUserQuestionPanel } from '@/components/chat/AskUserQuestionPanel';
+import { OnboardingBanner } from '@/components/chat/OnboardingBanner';
+import type { AskAnswers, ChatSession, MasterAgentMessage } from '@/types/domain';
 
 export type ChatModel = 'claude-sonnet-4-6' | 'claude-haiku-4-5' | 'claude-opus-4-7';
 export type ThinkingMode = 'standard' | 'extended';
@@ -56,10 +60,31 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
   }, [ownerKey, initialSessions]);
 
   const active = sessions.find((s) => s.id === activeId);
+  const subtasks = mockAnalystSubtasks[ownerKey] ?? [];
+  const nextSubtask =
+    subtasks.find((t) => t.status === 'in-progress') ??
+    subtasks.find((t) => t.status === 'pending') ??
+    null;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [active?.messages.length, activeId]);
+
+  function handleAskSubmit(qid: string, answers: AskAnswers) {
+    if (!active) return;
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id !== active.id
+          ? s
+          : {
+              ...s,
+              messages: s.messages.map((m) =>
+                m.ask?.requestId === qid ? { ...m, answers } : m,
+              ),
+            },
+      ),
+    );
+  }
 
   function newSession() {
     const fresh: ChatSession = {
@@ -185,18 +210,39 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
           ref={scrollRef}
           className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4 max-w-3xl w-full mx-auto"
         >
-          {(!active || active.messages.length === 0) && (
+          {!active && (
             <div className="text-sm text-muted-foreground italic mt-12 text-center">
-              {active ? 'Start the conversation.' : 'Pick a session, or start a new one.'}
+              Pick a session, or start a new one.
             </div>
           )}
+          {active && active.messages.length === 0 && (
+            <OnboardingBanner
+              title="New session"
+              body="Drop a question, paste a snippet, or pick a Quick task on the right. The analyst will pick it up from there."
+              cta="Try: morning thesis sweep"
+              template="Run a 1-minute thesis sweep across your covered names. For each: is the thesis intact, what's the single most important data point this week, and is there an action item?"
+              onInject={(t) => setInput(t)}
+            />
+          )}
           {active?.messages.map((m) => (
-            <Bubble key={m.id} msg={m} counterparty={counterparty} />
+            <Bubble
+              key={m.id}
+              msg={m}
+              counterparty={counterparty}
+              onAskSubmit={handleAskSubmit}
+            />
           ))}
         </div>
 
         <div className="border-t border-border bg-background/80 px-4 py-3">
           <div className="max-w-3xl mx-auto space-y-2">
+            {subtasks.length > 0 && (
+              <TaskProgressPill
+                tasks={subtasks}
+                nextTask={nextSubtask}
+                onStartTask={(prompt) => prompt && setInput(prompt)}
+              />
+            )}
             <Textarea
               placeholder={placeholder ?? 'Ask anything. Shift+Enter for newline.'}
               value={input}
@@ -259,9 +305,11 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
 function Bubble({
   msg,
   counterparty,
+  onAskSubmit,
 }: {
   msg: MasterAgentMessage;
   counterparty: CounterpartyAvatar;
+  onAskSubmit: (requestId: string, answers: AskAnswers) => void;
 }) {
   const isPM = msg.role === 'pm';
   return (
@@ -271,15 +319,28 @@ function Bubble({
       ) : (
         <Avatar initials={counterparty.initials} color={counterparty.color} size="sm" />
       )}
-      <div
-        className={cn(
-          'rounded-lg px-4 py-3 max-w-[80%] text-sm leading-relaxed border',
-          isPM
-            ? 'bg-primary text-primary-foreground border-primary'
-            : 'bg-card text-card-foreground border-border',
+      <div className="flex-1 min-w-0 max-w-[85%]">
+        <div
+          className={cn(
+            'rounded-lg px-4 py-3 text-sm leading-relaxed border',
+            isPM
+              ? 'bg-primary text-primary-foreground border-primary inline-block'
+              : 'bg-card text-card-foreground border-border',
+          )}
+        >
+          <div className="whitespace-pre-line">{msg.text}</div>
+          {!isPM && msg.todos && msg.todos.length > 0 && (
+            <InlineTodoList todos={msg.todos} />
+          )}
+        </div>
+        {!isPM && msg.ask && (
+          <AskUserQuestionPanel
+            requestId={msg.ask.requestId}
+            questions={msg.ask.questions}
+            answers={msg.answers}
+            onSubmit={onAskSubmit}
+          />
         )}
-      >
-        <div className="whitespace-pre-line">{msg.text}</div>
       </div>
     </div>
   );

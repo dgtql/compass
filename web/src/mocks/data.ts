@@ -9,6 +9,7 @@
 import type {
   Analyst,
   AnalystMemo,
+  AnalystSubtask,
   AnalystTask,
   ChatSession,
   DataInventoryRow,
@@ -294,8 +295,41 @@ function makeSession(
 }
 
 export const mockSessions: ChatSession[] = [
-  makeSession('s-maria-1', 'maria-chen', 'AVGO vs NVDA networking', '2026-05-12T09:16:00Z',
-    mockAnalystConversations['maria-chen']!),
+  // Maria’s first session — agent ends by asking the PM a clarifying question
+  makeSession('s-maria-1', 'maria-chen', 'AVGO vs NVDA networking', '2026-05-12T09:16:00Z', [
+    ...mockAnalystConversations['maria-chen']!,
+    {
+      id: 'maria-ask-1',
+      role: 'master',
+      text: 'Before I write the one-pager — quick clarification on scope:',
+      ts: '2026-05-12T09:16:30Z',
+      ask: {
+        requestId: 'ask-maria-1',
+        questions: [
+          {
+            question: 'Which framing do you want for the bull/bear lines?',
+            header: 'Framing',
+            multiSelect: false,
+            options: [
+              { label: 'PM-facing thesis lines (action-oriented)', description: 'Short, specific, suitable for an IC meeting.' },
+              { label: 'Sell-side comp tear-down', description: 'Tables with multiples vs peers, less narrative.' },
+              { label: 'Quant signal extraction', description: 'KPIs and leading indicators only; no prose.' },
+            ],
+          },
+          {
+            question: 'How many comps to include in the AVGO vs NVDA table?',
+            header: 'Scope',
+            multiSelect: false,
+            options: [
+              { label: 'Just AVGO + NVDA' },
+              { label: 'Add ASML + MRVL' },
+              { label: 'Full semis basket (8 names)' },
+            ],
+          },
+        ],
+      },
+    },
+  ]),
   makeSession('s-maria-2', 'maria-chen', 'NVDA Q1 read-through', '2026-05-11T18:42:00Z', [
     { id: 'sm2-1', role: 'pm', text: 'Quick pre-call read on NVDA tonight?', ts: '2026-05-11T18:40:00Z' },
     { id: 'sm2-2', role: 'master',
@@ -309,8 +343,23 @@ export const mockSessions: ChatSession[] = [
       ts: '2026-05-09T11:12:00Z' },
   ]),
 
-  makeSession('s-david-1', 'david-park', 'SOC catalyst map', '2026-05-12T08:34:30Z',
-    mockAnalystConversations['david-park']!),
+  // David’s first session has a rich todo list mid-conversation (inline)
+  makeSession('s-david-1', 'david-park', 'SOC catalyst map', '2026-05-12T08:34:30Z', [
+    ...mockAnalystConversations['david-park']!,
+    {
+      id: 'david-todos-1',
+      role: 'master',
+      text: "Got it. Here's the plan to size what happens if #1 goes against them:",
+      ts: '2026-05-12T08:35:00Z',
+      todos: [
+        { id: 't1', content: 'Re-fetch SOC 10-K + 10-Q to confirm liquidity math',     status: 'completed',   priority: 'high' },
+        { id: 't2', content: 'Run worst-case operating-cash-burn under no-revenue path', status: 'in_progress', priority: 'high' },
+        { id: 't3', content: 'Pull bond / term-loan secondary marks (if any)',          status: 'pending',     priority: 'medium' },
+        { id: 't4', content: 'Draft 30-day position memo with two scenarios',           status: 'pending',     priority: 'high' },
+        { id: 't5', content: 'Flag to PM if liquidity bridge breaks before Q3',         status: 'pending',     priority: 'medium' },
+      ],
+    },
+  ]),
   makeSession('s-david-2', 'david-park', 'OXY Permian decline curves', '2026-05-10T14:22:00Z', [
     { id: 'sd2-1', role: 'pm', text: "Are OXY's Permian decline curves still tracking?", ts: '2026-05-10T14:20:00Z' },
     { id: 'sd2-2', role: 'master',
@@ -457,6 +506,31 @@ export const mockDataInventory: DataInventoryRow[] = [
   { category: 'news',       count: 0,  lastUpdated: null,         tickers: [] },
   { category: 'ir-pages',   count: 0,  lastUpdated: null,         tickers: [] },
 ];
+
+// ---------------------------------------------------------------------------
+// Per-analyst session subtasks (for the TaskProgressPill above the composer)
+// ---------------------------------------------------------------------------
+
+/**
+ * When an analyst is mid-research, their session has an associated set of
+ * subtasks (fetch → analyze → compose → deliver). The pill above the chat
+ * composer shows progress through these. Keyed by analyst slug for now.
+ */
+export const mockAnalystSubtasks: Record<string, AnalystSubtask[]> = {
+  'david-park': [
+    { id: 'd-st-1', title: 'Re-fetch SOC 10-K + 10-Q',                                status: 'done',        whyNext: 'Already pulled; confirms current liquidity math.' },
+    { id: 'd-st-2', title: 'Run worst-case operating-cash-burn',                       status: 'in-progress', whyNext: 'In flight — modeling no-revenue path through Q3.', nextActionPrompt: 'Continue the burn-rate model with March 2027 maturity stress.' },
+    { id: 'd-st-3', title: 'Pull term-loan secondary marks',                           status: 'pending',     whyNext: 'Quotes from the desk will set the recovery anchor for the bear case.', nextActionPrompt: 'Check whether the Exxon term loan has any secondary print this week.' },
+    { id: 'd-st-4', title: 'Draft 30-day position memo (two scenarios)',               status: 'pending',     whyNext: 'Synthesis of the above — the deliverable.', nextActionPrompt: 'Outline the two-scenario position memo: pipeline restart vs OS&T path.' },
+    { id: 'd-st-5', title: 'Flag to PM if liquidity bridge breaks before Q3',          status: 'pending' },
+  ],
+  'maria-chen': [
+    { id: 'm-st-1', title: 'Pull NVDA + AVGO comps tear-down',                         status: 'done' },
+    { id: 'm-st-2', title: 'Confirm AVGO networking attach in customer transcripts',   status: 'in-progress', whyNext: 'Hyperscaler earnings calls — pulling MSFT/META call transcripts.', nextActionPrompt: 'Search MSFT/META Q1 calls for AVGO networking mentions.' },
+    { id: 'm-st-3', title: 'Write the AI-networking one-pager',                        status: 'pending' },
+    { id: 'm-st-4', title: 'Add structural-bad-list for NVDA networking ramp',          status: 'pending',     whyNext: 'The PM asked for names beyond NVDA where AVGO ramp is structurally bad.' },
+  ],
+};
 
 export const mockDataItems: DataItem[] = [
   { category: 'filings',   ticker: 'SOC',  type: '10-K',     date: '2026-02-27', size: '580 KB' },

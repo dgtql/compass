@@ -79,11 +79,44 @@ export type KnowledgeNote = {
   linkCount: number;
 };
 
+export type RichTodo = {
+  id?: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  priority?: 'low' | 'medium' | 'high';
+};
+
+export type AskQuestion = {
+  question: string;
+  header?: string;
+  multiSelect?: boolean;
+  options: { label: string; description?: string }[];
+};
+
+/** Used by AskUserQuestionPanel + recorded back to the conversation when answered. */
+export type AskAnswers = Record<string, string>;
+
 export type MasterAgentMessage = {
   id: string;
   role: 'pm' | 'master';
   text: string;
   ts: string;
+  /**
+   * Optional rich content rendered inline with the message bubble. The
+   * spec from `09/10-…` reference docs has several of these; we adopt
+   * the ones that fit the PM/analyst chat shape.
+   */
+  todos?: RichTodo[];
+  ask?: { requestId: string; questions: AskQuestion[] };
+  answers?: AskAnswers; // when the PM has responded to an ask
+};
+
+export type AnalystSubtask = {
+  id: string;
+  title: string;
+  status: 'pending' | 'in-progress' | 'done' | 'review' | 'deferred' | 'cancelled';
+  whyNext?: string;
+  nextActionPrompt?: string;
 };
 
 export type ChatSession = {
