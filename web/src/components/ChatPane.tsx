@@ -16,12 +16,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
+  X, AlertTriangle,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Dialog } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
   createChatSession,
@@ -105,6 +107,11 @@ export function ChatPane({
   const [model, setModel] = useState<ChatModel>('claude-sonnet-4-6');
   const [thinking, setThinking] = useState<ThinkingMode>('standard');
   const [sending, setSending] = useState(false);
+  /** Pending task-type selection from the welcome chips. Becomes the task
+   *  title when the PM hits Send (and is cleared once the task is created). */
+  const [selectedChip, setSelectedChip] = useState<string | null>(null);
+  /** Delete-task confirmation dialog target (null = closed). */
+  const [pendingDeleteTask, setPendingDeleteTask] = useState<ApiChatTask | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch chats for this owner whenever the owner key changes. Owner key
@@ -198,17 +205,16 @@ export function ChatPane({
     }
   }
 
-  async function handleDeleteTask(taskId: string) {
-    const t = tasks.find((x) => x.id === taskId);
+  async function confirmDeleteTask() {
+    const t = pendingDeleteTask;
     if (!t) return;
-    const confirmed = window.confirm(`Delete task "${t.title}" and its sessions?`);
-    if (!confirmed) return;
+    setPendingDeleteTask(null);
     // Optimistic
-    setTasks((prev) => prev.filter((x) => x.id !== taskId));
-    setSessions((prev) => prev.filter((s) => s.taskId !== taskId));
-    if (active?.taskId === taskId) setActiveId(null);
+    setTasks((prev) => prev.filter((x) => x.id !== t.id));
+    setSessions((prev) => prev.filter((s) => s.taskId !== t.id));
+    if (active?.taskId === t.id) setActiveId(null);
     try {
-      await deleteChatTask(ownerKey, taskId);
+      await deleteChatTask(ownerKey, t.id);
     } catch {
       refresh();
     }
@@ -226,15 +232,19 @@ export function ChatPane({
     const trimmed = text.trim();
     if (!trimmed) return;
     let sessionId = active?.id;
-    // If no session selected, create a fresh task + session named from text.
+    // If no session is selected yet, create a task + session. The task
+    // title prefers a selected chip ("Memo", "Morning brief", …) and
+    // falls back to a snippet of the user's first message.
     if (!sessionId) {
+      const taskTitle = selectedChip ?? trimmed.slice(0, 40);
       try {
-        const newT = await createChatTask(ownerKey, { title: trimmed.slice(0, 40) });
+        const newT = await createChatTask(ownerKey, { title: taskTitle });
         const newS = await createChatSession(ownerKey, { task_id: newT.id });
         setTasks((prev) => [newT, ...prev]);
         setSessions((prev) => [newS, ...prev]);
         setExpandedTaskIds((prev) => new Set([...prev, newT.id]));
         setActiveId(newS.id);
+        setSelectedChip(null);
         sessionId = newS.id;
       } catch {
         refresh();
@@ -253,17 +263,8 @@ export function ChatPane({
     }
   }
 
-  async function startTaskFromChip(title: string) {
-    try {
-      const t = await createChatTask(ownerKey, { title });
-      const s = await createChatSession(ownerKey, { task_id: t.id });
-      setTasks((prev) => [t, ...prev]);
-      setSessions((prev) => [s, ...prev]);
-      setExpandedTaskIds((prev) => new Set([...prev, t.id]));
-      setActiveId(s.id);
-    } catch {
-      refresh();
-    }
+  function toggleChip(label: string) {
+    setSelectedChip((prev) => (prev === label ? null : label));
   }
 
   return (
@@ -339,7 +340,7 @@ export function ChatPane({
                         <Plus className="w-3 h-3" />
                       </button>
                       <button
-                        onClick={() => handleDeleteTask(t.id)}
+                        onClick={() => setPendingDeleteTask(t)}
                         className="text-muted-foreground hover:text-rose-500 px-1"
                         title={`Delete task "${t.title}"`}
                       >
@@ -401,7 +402,8 @@ export function ChatPane({
             <WelcomePanel
               counterparty={counterparty}
               counterpartyName={counterpartyName}
-              onChip={(title) => startTaskFromChip(title)}
+              selectedChip={selectedChip}
+              onChip={toggleChip}
             />
           ) : active.messages.length === 0 ? (
             <div className="mt-12 text-center text-sm text-muted-foreground italic">
@@ -416,6 +418,22 @@ export function ChatPane({
 
         <div className="border-t border-border bg-background/80 px-4 py-3">
           <div className="max-w-3xl mx-auto space-y-2">
+            {/* Selected chip tag — only when a new (no session) task is being framed */}
+            {!active && selectedChip && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Task</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/30">
+                  {selectedChip}
+                  <button
+                    onClick={() => setSelectedChip(null)}
+                    className="hover:text-primary-foreground"
+                    title="Clear task type"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              </div>
+            )}
             <Textarea
               placeholder={placeholder ?? 'Ask anything. Shift+Enter for newline.'}
               value={input}
@@ -466,6 +484,39 @@ export function ChatPane({
         </div>
       </div>
 
+      {/* Delete-task confirm — styled, not a Chrome window.confirm */}
+      <Dialog
+        open={pendingDeleteTask !== null}
+        onClose={() => setPendingDeleteTask(null)}
+        title="Delete task?"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-full bg-rose-500/15 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
+            </div>
+            <div className="text-sm">
+              Delete <span className="font-semibold">{pendingDeleteTask?.title}</span> and all of its
+              sessions? This can't be undone.
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <Button variant="outline" size="sm" onClick={() => setPendingDeleteTask(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={confirmDeleteTask}
+              className="bg-rose-600 text-white hover:bg-rose-700 border-rose-700"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
       {hasRail && (
         <aside className="border-l border-border bg-background/40 overflow-y-auto scrollbar-thin flex flex-col">
           {resolvedRailTabs.length > 0 ? (
@@ -515,11 +566,13 @@ export function ChatPane({
 function WelcomePanel({
   counterparty,
   counterpartyName,
+  selectedChip,
   onChip,
 }: {
   counterparty: CounterpartyAvatar;
   counterpartyName?: string;
-  onChip: (title: string) => void;
+  selectedChip: string | null;
+  onChip: (label: string) => void;
 }) {
   const greeting = counterpartyName
     ? `Hey boss — what would you like ${counterpartyName} to work on?`
@@ -532,20 +585,28 @@ function WelcomePanel({
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{greeting}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Pick a task type to start, or just type below.
+          Pick a task type below (optional), then describe what you need in the composer.
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2 pt-2">
-        {TASK_TYPE_CHIPS.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => onChip(c.label)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground border border-border hover:bg-accent hover:border-primary/40 transition-colors"
-          >
-            {c.icon}
-            {c.label}
-          </button>
-        ))}
+        {TASK_TYPE_CHIPS.map((c) => {
+          const isSelected = selectedChip === c.label;
+          return (
+            <button
+              key={c.id}
+              onClick={() => onChip(c.label)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                isSelected
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-secondary-foreground border-border hover:bg-accent hover:border-primary/40',
+              )}
+            >
+              {c.icon}
+              {c.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
