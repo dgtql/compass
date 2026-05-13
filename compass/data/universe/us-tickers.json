@@ -33898,6 +33898,42 @@
       "cap_bucket": "small"
     },
     {
+      "cik": 870780,
+      "ticker": "NQP",
+      "name": "NUVEEN PENNSYLVANIA QUALITY MUNICIPAL INCOME FUND",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 25475,
+      "ticker": "CRD-B",
+      "name": "CRAWFORD & CO",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1756701,
+      "ticker": "LNKB",
+      "name": "LINKBANCORP, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1834253,
+      "ticker": "EM",
+      "name": "Smart Share Global Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Personal Services",
+      "cap_bucket": "small"
+    },
+    {
       "cik": 1689375,
       "ticker": "TRDA",
       "name": "Entrada Therapeutics, Inc.",
@@ -52870,6 +52906,168 @@
       "cap_bucket": "micro"
     },
     {
+      "cik": 1571776,
+      "ticker": "CHMI-PB",
+      "name": "Cherry Hill Mortgage Investment Corp",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1944885,
+      "ticker": "APLMW",
+      "name": "Apollomics Inc.",
+      "exchange": "NASDAQ",
+      "sector": null,
+      "industry": null,
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2028699,
+      "ticker": "ETHM",
+      "name": "Dynamix Corp",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 862861,
+      "ticker": "ALTS",
+      "name": "AI Financial Corp",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 716634,
+      "ticker": "RDIB",
+      "name": "READING INTERNATIONAL INC",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1759186,
+      "ticker": "COEP",
+      "name": "Z Squared Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1830188,
+      "ticker": "UHG",
+      "name": "United Homes Group, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Residential Construction",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1638097,
+      "ticker": "ENTX",
+      "name": "Entera Bio Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 797542,
+      "ticker": "VBIX",
+      "name": "Viewbix Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1918661,
+      "ticker": "ESHA",
+      "name": "ESH Acquisition Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1041657,
+      "ticker": "UONEK",
+      "name": "URBAN ONE, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Broadcasting",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1549084,
+      "ticker": "EKSO",
+      "name": "EKSO BIONICS HOLDINGS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 911216,
+      "ticker": "PTN",
+      "name": "PALATIN TECHNOLOGIES INC",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 899782,
+      "ticker": "NOM",
+      "name": "NUVEEN MISSOURI QUALITY MUNICIPAL INCOME FUND",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1218683,
+      "ticker": "MIGI",
+      "name": "Big Digital Energy, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1796898,
+      "ticker": "MAXN",
+      "name": "Maxeon Solar Technologies, Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Solar",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1086745,
+      "ticker": "SBLX",
+      "name": "Fabric.AI, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1787740,
+      "ticker": "TIVC",
+      "name": "Valion Bio, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
       "cik": 2108164,
       "ticker": "PONO",
       "name": "Pono Capital Four, Inc.",
@@ -54872,8 +55070,8 @@
       "ticker": "UMH-PD",
       "name": "UMH PROPERTIES, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
       "cap_bucket": null
     },
     {
@@ -54881,15 +55079,6 @@
       "ticker": "OXLCM",
       "name": "Oxford Lane Capital Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 870780,
-      "ticker": "NQP",
-      "name": "NUVEEN PENNSYLVANIA QUALITY MUNICIPAL INCOME FUND",
-      "exchange": "NYSE",
       "sector": null,
       "industry": null,
       "cap_bucket": null
@@ -54908,26 +55097,8 @@
       "ticker": "OXLCO",
       "name": "Oxford Lane Capital Corp.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 25475,
-      "ticker": "CRD-B",
-      "name": "CRAWFORD & CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1756701,
-      "ticker": "LNKB",
-      "name": "LINKBANCORP, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -54935,8 +55106,8 @@
       "ticker": "NCZ-PA",
       "name": "Virtus Convertible & Income Fund II",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -54944,44 +55115,8 @@
       "ticker": "DSX-PB",
       "name": "DIANA SHIPPING INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1834253,
-      "ticker": "EM",
-      "name": "Smart Share Global Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1571776,
-      "ticker": "CHMI-PB",
-      "name": "Cherry Hill Mortgage Investment Corp",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1944885,
-      "ticker": "APLMW",
-      "name": "Apollomics Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2028699,
-      "ticker": "ETHM",
-      "name": "Dynamix Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
       "cap_bucket": null
     },
     {
@@ -54989,8 +55124,8 @@
       "ticker": "CHMI-PA",
       "name": "Cherry Hill Mortgage Investment Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54998,8 +55133,8 @@
       "ticker": "LANDP",
       "name": "GLADSTONE LAND Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
       "cap_bucket": null
     },
     {
@@ -55016,35 +55151,8 @@
       "ticker": "SB-PC",
       "name": "SAFE BULKERS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 862861,
-      "ticker": "ALTS",
-      "name": "AI Financial Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 716634,
-      "ticker": "RDIB",
-      "name": "READING INTERNATIONAL INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1759186,
-      "ticker": "COEP",
-      "name": "Z Squared Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
       "cap_bucket": null
     },
     {
@@ -55070,17 +55178,8 @@
       "ticker": "GSL-PB",
       "name": "Global Ship Lease, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1830188,
-      "ticker": "UHG",
-      "name": "United Homes Group, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
       "cap_bucket": null
     },
     {
@@ -55088,8 +55187,8 @@
       "ticker": "FSHPU",
       "name": "Flag Ship Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
       "cap_bucket": null
     },
     {
@@ -55097,80 +55196,8 @@
       "ticker": "STRC",
       "name": "Strategy Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1638097,
-      "ticker": "ENTX",
-      "name": "Entera Bio Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 797542,
-      "ticker": "VBIX",
-      "name": "Viewbix Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1918661,
-      "ticker": "ESHA",
-      "name": "ESH Acquisition Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1041657,
-      "ticker": "UONEK",
-      "name": "URBAN ONE, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1549084,
-      "ticker": "EKSO",
-      "name": "EKSO BIONICS HOLDINGS, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 911216,
-      "ticker": "PTN",
-      "name": "PALATIN TECHNOLOGIES INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 899782,
-      "ticker": "NOM",
-      "name": "NUVEEN MISSOURI QUALITY MUNICIPAL INCOME FUND",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1218683,
-      "ticker": "MIGI",
-      "name": "Big Digital Energy, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Technology",
+      "industry": "Software - Application",
       "cap_bucket": null
     },
     {
@@ -55178,8 +55205,8 @@
       "ticker": "WVVIP",
       "name": "WILLAMETTE VALLEY VINEYARDS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Wineries & Distilleries",
       "cap_bucket": null
     },
     {
@@ -55187,17 +55214,8 @@
       "ticker": "WHLRD",
       "name": "Wheeler Real Estate Investment Trust, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1796898,
-      "ticker": "MAXN",
-      "name": "Maxeon Solar Technologies, Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -55219,30 +55237,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1086745,
-      "ticker": "SBLX",
-      "name": "Fabric.AI, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1787740,
-      "ticker": "TIVC",
-      "name": "Valion Bio, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1527541,
       "ticker": "WHLRP",
       "name": "Wheeler Real Estate Investment Trust, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -55286,8 +55286,8 @@
       "ticker": "ASB-PE",
       "name": "ASSOCIATED BANC-CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55295,8 +55295,8 @@
       "ticker": "ASB-PF",
       "name": "ASSOCIATED BANC-CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55367,8 +55367,8 @@
       "ticker": "JPM-PD",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55376,8 +55376,8 @@
       "ticker": "JPM-PJ",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55385,8 +55385,8 @@
       "ticker": "JPM-PK",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55394,8 +55394,8 @@
       "ticker": "JPM-PL",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55403,8 +55403,8 @@
       "ticker": "JPM-PM",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55421,8 +55421,8 @@
       "ticker": "CTO-PA",
       "name": "CTO Realty Growth, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Diversified",
       "cap_bucket": null
     },
     {
@@ -55439,8 +55439,8 @@
       "ticker": "FRT-PC",
       "name": "FEDERAL REALTY INVESTMENT TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -55448,8 +55448,8 @@
       "ticker": "FITBI",
       "name": "FIFTH THIRD BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55457,8 +55457,8 @@
       "ticker": "FITBM",
       "name": "FIFTH THIRD BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55466,8 +55466,8 @@
       "ticker": "FITBO",
       "name": "FIFTH THIRD BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55475,8 +55475,8 @@
       "ticker": "FITBP",
       "name": "FIFTH THIRD BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55484,8 +55484,8 @@
       "ticker": "USB-PQ",
       "name": "US BANCORP DE",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55493,8 +55493,8 @@
       "ticker": "USB-PR",
       "name": "US BANCORP DE",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55511,8 +55511,8 @@
       "ticker": "MTB-PH",
       "name": "M&T BANK CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55520,8 +55520,8 @@
       "ticker": "MTB-PJ",
       "name": "M&T BANK CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55529,8 +55529,8 @@
       "ticker": "MTB-PK",
       "name": "M&T BANK CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55538,8 +55538,8 @@
       "ticker": "FHN-PC",
       "name": "FIRST HORIZON CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55547,8 +55547,8 @@
       "ticker": "FHN-PE",
       "name": "FIRST HORIZON CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55556,8 +55556,8 @@
       "ticker": "FHN-PF",
       "name": "FIRST HORIZON CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55601,8 +55601,8 @@
       "ticker": "CFR-PB",
       "name": "CULLEN/FROST BANKERS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55619,8 +55619,8 @@
       "ticker": "BOH-PA",
       "name": "BANK OF HAWAII CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55637,8 +55637,8 @@
       "ticker": "HBANL",
       "name": "HUNTINGTON BANCSHARES INC /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55646,8 +55646,8 @@
       "ticker": "HBANM",
       "name": "HUNTINGTON BANCSHARES INC /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55655,8 +55655,8 @@
       "ticker": "HBANP",
       "name": "HUNTINGTON BANCSHARES INC /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55664,8 +55664,8 @@
       "ticker": "HBANZ",
       "name": "HUNTINGTON BANCSHARES INC /MD/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55673,8 +55673,8 @@
       "ticker": "LNC-PD",
       "name": "LINCOLN NATIONAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Insurance - Life",
       "cap_bucket": null
     },
     {
@@ -55682,8 +55682,8 @@
       "ticker": "SLNHP",
       "name": "Soluna Holdings, Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -55709,8 +55709,8 @@
       "ticker": "BAC-PE",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55718,8 +55718,8 @@
       "ticker": "BAC-PL",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55727,8 +55727,8 @@
       "ticker": "BAC-PM",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55736,8 +55736,8 @@
       "ticker": "BAC-PN",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55745,8 +55745,8 @@
       "ticker": "BAC-PO",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55754,8 +55754,8 @@
       "ticker": "BAC-PP",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55763,8 +55763,8 @@
       "ticker": "BAC-PQ",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55772,8 +55772,8 @@
       "ticker": "BAC-PS",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55781,8 +55781,8 @@
       "ticker": "BML-PH",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55790,8 +55790,8 @@
       "ticker": "BML-PJ",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55817,8 +55817,8 @@
       "ticker": "WFC-PA",
       "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55826,8 +55826,8 @@
       "ticker": "WFC-PD",
       "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55835,8 +55835,8 @@
       "ticker": "WFC-PZ",
       "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -55844,8 +55844,8 @@
       "ticker": "NTRSO",
       "name": "NORTHERN TRUST CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -55862,8 +55862,8 @@
       "ticker": "KEY-PJ",
       "name": "KEYCORP /NEW/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55871,8 +55871,8 @@
       "ticker": "KEY-PL",
       "name": "KEYCORP /NEW/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55943,8 +55943,8 @@
       "ticker": "SOMN",
       "name": "SOUTHERN CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -55952,8 +55952,8 @@
       "ticker": "TFC-PI",
       "name": "TRUIST FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55961,8 +55961,8 @@
       "ticker": "TFC-PO",
       "name": "TRUIST FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55970,8 +55970,8 @@
       "ticker": "TFC-PR",
       "name": "TRUIST FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55988,8 +55988,8 @@
       "ticker": "UMBFO",
       "name": "UMB FINANCIAL CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -55997,8 +55997,8 @@
       "ticker": "VSECU",
       "name": "VSE CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
       "cap_bucket": null
     },
     {
@@ -56015,8 +56015,8 @@
       "ticker": "ZIONP",
       "name": "ZIONS BANCORPORATION, NATIONAL ASSOCIATION /UT/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56024,8 +56024,8 @@
       "ticker": "WSBCO",
       "name": "WESBANCO INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56033,8 +56033,8 @@
       "ticker": "SIGIP",
       "name": "SELECTIVE INSURANCE GROUP INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
       "cap_bucket": null
     },
     {
@@ -56105,8 +56105,8 @@
       "ticker": "BUSEP",
       "name": "FIRST BUSEY CORP /NV/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56123,8 +56123,8 @@
       "ticker": "SCHW-PD",
       "name": "SCHWAB CHARLES CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -56132,8 +56132,8 @@
       "ticker": "SCHW-PJ",
       "name": "SCHWAB CHARLES CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -56150,8 +56150,8 @@
       "ticker": "AIRTP",
       "name": "AIR T INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Conglomerates",
       "cap_bucket": null
     },
     {
@@ -56168,8 +56168,8 @@
       "ticker": "FULTP",
       "name": "FULTON FINANCIAL CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56177,8 +56177,8 @@
       "ticker": "ONBPO",
       "name": "OLD NATIONAL BANCORP /IN/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56186,8 +56186,8 @@
       "ticker": "ONBPP",
       "name": "OLD NATIONAL BANCORP /IN/",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56195,8 +56195,8 @@
       "ticker": "FRMEP",
       "name": "FIRST MERCHANTS CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56204,8 +56204,8 @@
       "ticker": "CNOBP",
       "name": "ConnectOne Bancorp, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56213,8 +56213,8 @@
       "ticker": "VLYPN",
       "name": "VALLEY NATIONAL BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56231,8 +56231,8 @@
       "ticker": "SF-PC",
       "name": "STIFEL FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -56240,8 +56240,8 @@
       "ticker": "SF-PD",
       "name": "STIFEL FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -56249,8 +56249,8 @@
       "ticker": "CDZIP",
       "name": "CADIZ INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Water",
       "cap_bucket": null
     },
     {
@@ -56258,8 +56258,8 @@
       "ticker": "T-PA",
       "name": "AT&T INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
       "cap_bucket": null
     },
     {
@@ -56267,8 +56267,8 @@
       "ticker": "T-PC",
       "name": "AT&T INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
       "cap_bucket": null
     },
     {
@@ -56276,8 +56276,8 @@
       "ticker": "CCNEP",
       "name": "CNB FINANCIAL CORP/PA",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56312,8 +56312,8 @@
       "ticker": "NEE-PS",
       "name": "NEXTERA ENERGY INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -56321,8 +56321,8 @@
       "ticker": "NEE-PT",
       "name": "NEXTERA ENERGY INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -56339,8 +56339,8 @@
       "ticker": "NEE-PV",
       "name": "NEXTERA ENERGY INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -56357,8 +56357,8 @@
       "ticker": "CFG-PE",
       "name": "CITIZENS FINANCIAL GROUP INC/RI",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56366,8 +56366,8 @@
       "ticker": "CFG-PH",
       "name": "CITIZENS FINANCIAL GROUP INC/RI",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -56393,8 +56393,8 @@
       "ticker": "CDR-PB",
       "name": "CEDAR REALTY TRUST, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -56402,8 +56402,8 @@
       "ticker": "CDR-PC",
       "name": "CEDAR REALTY TRUST, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -56429,8 +56429,8 @@
       "ticker": "XOMAO",
       "name": "XOMA Royalty Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
       "cap_bucket": null
     },
     {
@@ -56438,8 +56438,8 @@
       "ticker": "XOMAP",
       "name": "XOMA Royalty Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
       "cap_bucket": null
     },
     {
@@ -56465,8 +56465,8 @@
       "ticker": "GAB-PH",
       "name": "GABELLI EQUITY TRUST INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
