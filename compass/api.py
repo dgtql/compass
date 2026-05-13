@@ -27,7 +27,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -521,6 +521,79 @@ def post_chat_session(owner_key: str, req: CreateChatSessionReq) -> dict:
 def delete_chat_session(owner_key: str, session_id: str) -> dict:
     chats_delete_session(owner_key, session_id)
     return {"owner_key": owner_key, "session_id": session_id}
+
+
+@app.post("/api/chats/{owner_key}/sessions/{session_id}/messages/stream")
+async def stream_chat_message(owner_key: str, session_id: str, req: AppendMessageReq):
+    """Streaming variant of /messages — emits Server-Sent Events.
+
+    Event shapes:
+        event: user_message
+        data: {"id": "...", "role": "pm", "text": "...", "ts": "..."}
+
+        event: delta
+        data: {"text": "...chunk..."}
+
+        event: done
+        data: {"session": {...full session payload with assistant reply...}}
+
+        event: error
+        data: {"error": "..."}
+    """
+    from compass.llm import stream_reply, OAuthUnavailable
+
+    # Persist the PM message up front so the UI can render it immediately
+    # off the first SSE event, and so the LLM call sees it in the history.
+    try:
+        session = chats_append_message(owner_key, session_id, role=req.role, text=req.text)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    last_user = next((m for m in reversed(session.messages) if m.role == req.role), None)
+
+    async def event_gen():
+        # 1. User-message event — UI uses this to replace its optimistic
+        #    placeholder with the server's canonical record.
+        if last_user is not None:
+            yield _sse("user_message", last_user.to_dict())
+
+        # 2. Stream deltas as the LLM produces them.
+        chunks: list[str] = []
+        try:
+            if req.role == "pm" and req.text.strip():
+                async for delta in stream_reply(
+                    owner_key, session,
+                    model=req.model,
+                    thinking=req.thinking,
+                ):
+                    chunks.append(delta)
+                    yield _sse("delta", {"text": delta})
+        except OAuthUnavailable as exc:
+            chunks.append(f"(Claude Code login needed — {exc})")
+            yield _sse("delta", {"text": chunks[-1]})
+        except Exception as exc:  # noqa: BLE001
+            chunks.append(f"(couldn't reach the LLM — {type(exc).__name__}: {exc})")
+            yield _sse("delta", {"text": chunks[-1]})
+
+        # 3. Persist the assistant reply (if any) and emit final session.
+        final_session = session
+        full_text = "".join(chunks).strip()
+        if full_text:
+            final_session = chats_append_message(
+                owner_key, session_id, role="master", text=full_text,
+            )
+        yield _sse("done", {"session": final_session.to_dict()})
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
+    )
+
+
+def _sse(event: str, data: dict) -> str:
+    import json as _json
+    return f"event: {event}\ndata: {_json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 @app.post("/api/chats/{owner_key}/sessions/{session_id}/messages")

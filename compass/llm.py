@@ -120,19 +120,10 @@ async def generate_reply(
     thinking: str | None = None,
     max_turns: int = 4,
 ) -> str:
-    """Return Claude's reply to the session's latest PM message.
+    """Non-streaming: return the full reply text once available.
 
-    Goes through ``claude-agent-sdk.query()``, which handles auth +
-    headers the way the CLI does.
-
-    Isolation note: we run the SDK call in a worker thread with its own
-    fresh ``asyncio`` loop (``asyncio.run`` inside ``asyncio.to_thread``).
-    Doing this avoids a Windows-specific failure mode where uvicorn's
-    running event loop + anyio's subprocess-spawning code path raises an
-    empty 'Failed to start Claude Code: .' from inside the FastAPI
-    handler — even though the same SDK call works fine when invoked
-    from a top-level ``asyncio.run`` (i.e. ``compass chat`` on the CLI).
-    Easiest reliable fix is to give the SDK its own loop.
+    Used by the CLI and by callers that don't want to plumb an async
+    iterator. The streaming version below is what the UI uses.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
@@ -148,15 +139,80 @@ async def generate_reply(
     )
 
 
+async def stream_reply(
+    owner_key: str,
+    session: Session,
+    *,
+    model: str | None = None,
+    thinking: str | None = None,
+    max_turns: int = 4,
+):
+    """Streaming variant — yields text deltas as they arrive from the SDK.
+
+    Internally runs the (sync) SDK iteration in a thread and pipes each
+    delta back through a thread-safe queue. The async caller awaits the
+    queue and yields deltas to its consumer (e.g. an SSE response).
+
+    Final yield is the empty string when done; exceptions surface to the
+    caller via the queue.
+    """
+    if not session.messages or session.messages[-1].role != "pm":
+        return
+
+    chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    use_extended = (thinking or "").lower() == "extended"
+
+    import asyncio
+    import queue
+    import threading
+
+    q: queue.Queue = queue.Queue()
+    SENTINEL = object()
+
+    def _on_delta(delta: str) -> None:
+        if delta:
+            q.put(delta)
+
+    def _runner() -> None:
+        try:
+            _generate_reply_sync(
+                owner_key, session, chosen_model, use_extended, max_turns,
+                on_delta=_on_delta,
+            )
+        except Exception as exc:  # noqa: BLE001 — surface to consumer
+            q.put(exc)
+        finally:
+            q.put(SENTINEL)
+
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
+
+    loop = asyncio.get_running_loop()
+    while True:
+        item = await loop.run_in_executor(None, q.get)
+        if item is SENTINEL:
+            return
+        if isinstance(item, BaseException):
+            raise item
+        yield item
+
+
 def _generate_reply_sync(
     owner_key: str,
     session: Session,
     model: str,
     extended_thinking: bool,
     max_turns: int,
+    *,
+    on_delta=None,
 ) -> str:
     """Sync wrapper — runs the async SDK call on a fresh asyncio loop in
     the worker thread, so it doesn't share state with uvicorn's loop.
+
+    ``on_delta`` is invoked with each new text chunk as it arrives, in
+    addition to being accumulated into the returned string. Pass it from
+    ``stream_reply`` to forward chunks to the UI; pass ``None`` for the
+    non-streaming case.
     """
     import asyncio
 
@@ -171,16 +227,12 @@ def _generate_reply_sync(
         "max_turns": max_turns,
         # Hard-disable Claude Code's auto-context loading so the analyst
         # voice isn't polluted with project CLAUDE.md / memory / settings.
-        # Without these, the CLI inherits whatever's in ~/.claude or the
-        # cwd, leaking 'today's date is …', repo plan notes, dev env
-        # quirks — none of which the analyst persona should ever see.
         "setting_sources": None,
         "skills": None,
         "agents": None,
-        # cwd defaults to the parent process's directory; setting an
-        # explicit harmless value avoids the CLI scanning the repo for a
-        # project-level CLAUDE.md.
         "cwd": str(Path.home()),
+        # Stream partial messages so we can forward deltas to the UI.
+        "include_partial_messages": True,
     }
     cli_path = _resolve_claude_cli()
     if cli_path:
@@ -193,12 +245,26 @@ def _generate_reply_sync(
 
     async def _run() -> str:
         text_parts: list[str] = []
+        last_emitted_len = 0
         async for message in query(prompt=prompt, options=options):
-            if isinstance(message, AssistantMessage):
-                for block in message.content:
-                    if isinstance(block, TextBlock):
-                        text_parts.append(block.text)
-        return "".join(text_parts).strip()
+            if not isinstance(message, AssistantMessage):
+                continue
+            # Reassemble the current message's running text (across all
+            # text blocks). Diff against what we've already emitted so
+            # each on_delta call carries only the *new* characters.
+            running = "".join(
+                b.text for b in message.content if isinstance(b, TextBlock)
+            )
+            if on_delta is not None and len(running) > last_emitted_len:
+                delta = running[last_emitted_len:]
+                last_emitted_len = len(running)
+                try:
+                    on_delta(delta)
+                except Exception:  # noqa: BLE001 — delta sink shouldn't break the loop
+                    pass
+            text_parts.append(running)
+        # Last value of `running` is the final text.
+        return (text_parts[-1] if text_parts else "").strip()
 
     try:
         return asyncio.run(_run())

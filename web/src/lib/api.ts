@@ -314,3 +314,88 @@ export function postChatMessage(
     body,
   );
 }
+
+export type ChatStreamHandlers = {
+  onUserMessage?: (msg: ApiChatMessage) => void;
+  onDelta?: (text: string) => void;
+  onDone?: (session: ApiChatSession) => void;
+  onError?: (err: Error) => void;
+};
+
+/** Streaming variant — POSTs to /messages/stream, parses SSE events,
+ *  and dispatches them to handlers. Returns a function the caller can
+ *  invoke to abort the stream mid-flight (e.g. on navigation). */
+export function streamChatMessage(
+  ownerKey: string,
+  sessionId: string,
+  body: {
+    role?: 'pm' | 'master';
+    text: string;
+    model?: string;
+    thinking?: 'standard' | 'extended';
+  },
+  handlers: ChatStreamHandlers,
+): () => void {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      const res = await fetch(
+        `/api/chats/${encodeURIComponent(ownerKey)}/sessions/${encodeURIComponent(sessionId)}/messages/stream`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+          body: JSON.stringify(body),
+          signal: ctrl.signal,
+        },
+      );
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        // Process complete SSE events (delimited by \n\n).
+        let idx: number;
+        while ((idx = buffer.indexOf('\n\n')) >= 0) {
+          const raw = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const ev = _parseSse(raw);
+          if (!ev) continue;
+          if (ev.event === 'user_message' && handlers.onUserMessage) {
+            handlers.onUserMessage(ev.data as ApiChatMessage);
+          } else if (ev.event === 'delta' && handlers.onDelta) {
+            handlers.onDelta((ev.data as { text: string }).text ?? '');
+          } else if (ev.event === 'done' && handlers.onDone) {
+            handlers.onDone((ev.data as { session: ApiChatSession }).session);
+          } else if (ev.event === 'error' && handlers.onError) {
+            handlers.onError(new Error((ev.data as { error: string }).error ?? 'error'));
+          }
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      handlers.onError?.(err instanceof Error ? err : new Error(String(err)));
+    }
+  })();
+  return () => ctrl.abort();
+}
+
+function _parseSse(raw: string): { event: string; data: unknown } | null {
+  let event = 'message';
+  const dataLines: string[] = [];
+  for (const line of raw.split('\n')) {
+    if (line.startsWith('event:')) event = line.slice(6).trim();
+    else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+  }
+  if (dataLines.length === 0) return null;
+  try {
+    return { event, data: JSON.parse(dataLines.join('\n')) };
+  } catch {
+    return null;
+  }
+}

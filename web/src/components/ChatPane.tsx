@@ -30,7 +30,7 @@ import {
   createChatTask,
   deleteChatTask,
   getChats,
-  postChatMessage,
+  streamChatMessage,
   type ApiChatMessage,
   type ApiChatSession,
   type ApiChatTask,
@@ -107,6 +107,9 @@ export function ChatPane({
   const [model, setModel] = useState<ChatModel>('claude-sonnet-4-6');
   const [thinking, setThinking] = useState<ThinkingMode>('standard');
   const [sending, setSending] = useState(false);
+  /** Optimistic in-flight assistant text being streamed back. While
+   *  non-null, renders as the bottom bubble; cleared on stream-done. */
+  const [streamingText, setStreamingText] = useState<string | null>(null);
   /** Pending task-type selection from the welcome chips. Becomes the task
    *  title when the PM hits Send (and is cleared once the task is created). */
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
@@ -253,19 +256,59 @@ export function ChatPane({
     }
     setInput('');
     setSending(true);
-    try {
-      const updated = await postChatMessage(ownerKey, sessionId!, {
-        role: 'pm',
-        text: trimmed,
-        model,
-        thinking,
-      });
-      setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-    } catch {
-      refresh();
-    } finally {
-      setSending(false);
-    }
+    setStreamingText('');  // empty → triggers "thinking..." bubble
+
+    // Optimistically render the PM's message in the active session so it
+    // shows up the moment they hit Send (instead of after the SDK reply
+    // round-trip). The server's persisted version arrives via the
+    // user_message SSE event and replaces this placeholder.
+    const optimisticPmMsg: ApiChatMessage = {
+      id: `pending-${Date.now()}`,
+      role: 'pm',
+      text: trimmed,
+      ts: new Date().toISOString(),
+    };
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id !== sessionId
+          ? s
+          : { ...s, messages: [...s.messages, optimisticPmMsg] },
+      ),
+    );
+
+    const sid = sessionId!;
+    streamChatMessage(
+      ownerKey, sid,
+      { role: 'pm', text: trimmed, model, thinking },
+      {
+        onUserMessage: (serverMsg) => {
+          // Replace the optimistic message with the server's record.
+          setSessions((prev) =>
+            prev.map((s) => {
+              if (s.id !== sid) return s;
+              const msgs = s.messages.filter((m) => m.id !== optimisticPmMsg.id);
+              return { ...s, messages: [...msgs, serverMsg] };
+            }),
+          );
+        },
+        onDelta: (chunk) => {
+          setStreamingText((prev) => (prev ?? '') + chunk);
+        },
+        onDone: (finalSession) => {
+          setSessions((prev) => prev.map((s) => (s.id === finalSession.id ? finalSession : s)));
+          setStreamingText(null);
+          setSending(false);
+        },
+        onError: () => {
+          // Server-side errors land as a master "(couldn't reach the LLM …)"
+          // message inside `done`. Treat raw transport errors by
+          // refreshing the session list.
+          setStreamingText(null);
+          setSending(false);
+          refresh();
+        },
+      },
+    );
   }
 
   function toggleChip(label: string) {
@@ -410,14 +453,23 @@ export function ChatPane({
               selectedChip={selectedChip}
               onChip={toggleChip}
             />
-          ) : active.messages.length === 0 ? (
+          ) : active.messages.length === 0 && streamingText === null ? (
             <div className="mt-12 text-center text-sm text-muted-foreground italic">
               Type to start. Shift+Enter for newline.
             </div>
           ) : (
-            active.messages.map((m) => (
-              <Bubble key={m.id} msg={m} counterparty={counterparty} />
-            ))
+            <>
+              {active.messages.map((m) => (
+                <Bubble key={m.id} msg={m} counterparty={counterparty} />
+              ))}
+              {streamingText !== null && (
+                <StreamingBubble
+                  counterparty={counterparty}
+                  counterpartyName={counterpartyName}
+                  text={streamingText}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -645,6 +697,63 @@ function Bubble({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Streaming bubble — rendered between the persisted assistant messages
+ * and the composer while a reply is in flight. Three visual states:
+ *
+ *   * Pre-first-token: animated dots + "<name> is thinking…"
+ *   * Mid-stream: the assistant's avatar + the accumulating text, with
+ *     a soft pulsing caret that signals "still arriving".
+ *   * Post-stream: this bubble unmounts and the persisted Bubble takes
+ *     over (managed by the parent when onDone fires).
+ */
+function StreamingBubble({
+  counterparty,
+  counterpartyName,
+  text,
+}: {
+  counterparty: CounterpartyAvatar;
+  counterpartyName?: string;
+  text: string;
+}) {
+  const showThinking = text.length === 0;
+  return (
+    <div className="flex gap-3">
+      <Avatar initials={counterparty.initials} color={counterparty.color} size="sm" />
+      <div className="flex-1 min-w-0 max-w-[85%]">
+        <div className="rounded-lg px-4 py-3 text-sm leading-relaxed border bg-card text-card-foreground border-border">
+          {showThinking ? (
+            <div className="flex items-center gap-1.5 text-muted-foreground italic">
+              <ThinkingDots />
+              <span className="text-xs">
+                {counterpartyName ? `${counterpartyName} is thinking…` : 'Thinking…'}
+              </span>
+            </div>
+          ) : (
+            <div className="whitespace-pre-line">
+              {text}
+              <span
+                className="ml-0.5 inline-block w-1.5 h-3.5 -mb-0.5 bg-primary/70 align-baseline animate-pulse rounded-sm"
+                aria-hidden
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThinkingDots() {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      <span className="w-1 h-1 rounded-full bg-current opacity-60 animate-bounce" style={{ animationDelay: '0ms' }} />
+      <span className="w-1 h-1 rounded-full bg-current opacity-60 animate-bounce" style={{ animationDelay: '150ms' }} />
+      <span className="w-1 h-1 rounded-full bg-current opacity-60 animate-bounce" style={{ animationDelay: '300ms' }} />
+    </span>
   );
 }
 
