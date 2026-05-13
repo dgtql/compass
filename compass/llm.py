@@ -1,17 +1,22 @@
 """Chat LLM wiring.
 
-Two auth paths, tried in order:
+Three auth paths, tried in order (cheapest / least flaky first):
 
-1. **API key** (``ANTHROPIC_API_KEY`` in env or ``.env``) — direct call
-   to the Anthropic Messages API via the official ``anthropic`` SDK.
-   Cleanest multi-turn shape, no extra binaries needed.
-2. **Claude Code OAuth** (the ``claude`` CLI logged in) — call through
-   ``claude-agent-sdk``, which spawns the ``claude`` CLI subprocess
-   under the hood. Free if you're already logged in; requires the
-   ``claude`` binary to be on the API process's PATH.
+1. **Claude Code OAuth** via the credentials file at
+   ``~/.claude/.credentials.json``. The Claude Code CLI wrote this when
+   you logged in (`claude /login`). We read it ourselves and pass the
+   access token to the ``anthropic`` SDK as a Bearer token — no
+   subprocess spawn, no PATH lookup, no version-shape mismatch between
+   the SDK and a native vs. npm-installed ``claude`` binary. This is
+   what dr-claw does, and is the same approach the JS
+   ``@anthropic-ai/claude-agent-sdk`` uses internally.
+2. **API key** (``ANTHROPIC_API_KEY``) — direct call to the Messages
+   API. Standard headless path.
+3. **claude-agent-sdk subprocess fallback** — spawns the ``claude``
+   CLI as a child process. Last-resort; on Windows it often hits
+   subprocess/path issues the OAuth-file path doesn't.
 
-If neither works the error bubbles up and is surfaced inline in the
-chat ("couldn't reach the LLM — …").
+If none works the error bubbles up and is surfaced inline in the chat.
 
 Per-owner system prompts shape the voice:
 
@@ -26,8 +31,10 @@ through the slice-18 dispatcher.
 
 from __future__ import annotations
 
+import json
 import os
-from functools import lru_cache
+import time
+from pathlib import Path
 
 from compass.analysts import get_analyst, list_analysts
 from compass.chats import Session
@@ -116,12 +123,9 @@ async def generate_reply(
 ) -> str:
     """Return Claude's reply to the session's latest PM message.
 
-    Tries the API-key path first (cleaner, fewer moving parts); falls back
-    to the Claude Code OAuth CLI when no key is set.
-
-    ``model`` defaults to ``DEFAULT_MODEL`` if not supplied. ``thinking``
-    is a hint string ("standard" | "extended"); extended thinking is
-    surfaced to the Messages API when the API-key path is in use.
+    Auth resolution order: Claude Code credentials file → API key →
+    subprocess fallback via claude-agent-sdk. See the module docstring
+    for why the file path is preferred.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
@@ -129,6 +133,13 @@ async def generate_reply(
     chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
     extended = (thinking or "").lower() == "extended"
 
+    oauth_token = _read_claude_code_oauth_token()
+    if oauth_token:
+        return _reply_via_messages_api(
+            owner_key, session,
+            model=chosen_model, max_tokens=max_tokens, extended_thinking=extended,
+            auth_token=oauth_token,
+        )
     if os.environ.get("ANTHROPIC_API_KEY"):
         return _reply_via_messages_api(
             owner_key, session,
@@ -137,13 +148,46 @@ async def generate_reply(
     return await _reply_via_agent_sdk(owner_key, session, model=chosen_model)
 
 
-# --- Path 1: anthropic SDK (API key) ----------------------------------------
+# --- Path 0: read OAuth token from Claude Code's credentials file ---------
 
 
-@lru_cache(maxsize=1)
-def _anthropic_client():
-    from anthropic import Anthropic
-    return Anthropic()
+def _read_claude_code_oauth_token() -> str | None:
+    """Return the OAuth access token written by ``claude /login``, or
+    None if missing / malformed / expired.
+
+    File location: ``~/.claude/.credentials.json``. Schema (per
+    docs/12-claude-auth-and-oauth.md)::
+
+        {
+          "claudeAiOauth": {
+            "accessToken":  "...",
+            "refreshToken": "...",
+            "expiresAt":    <unix ms>,
+            "scopes":       ["user:inference", ...]
+          },
+          "email": "..."
+        }
+    """
+    creds_path = Path.home() / ".claude" / ".credentials.json"
+    if not creds_path.exists():
+        return None
+    try:
+        data = json.loads(creds_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    oauth = (data or {}).get("claudeAiOauth") or {}
+    token = oauth.get("accessToken")
+    if not isinstance(token, str) or not token:
+        return None
+    expires_at = oauth.get("expiresAt")
+    # expiresAt is unix-milliseconds. Refuse a token that's already past
+    # its expiry — the user needs to re-login via `claude` to refresh.
+    if isinstance(expires_at, (int, float)) and expires_at <= time.time() * 1000:
+        return None
+    return token
+
+
+# --- Path 1 & 2: anthropic SDK (OAuth bearer token OR API key) ------------
 
 
 def _reply_via_messages_api(
@@ -153,7 +197,20 @@ def _reply_via_messages_api(
     model: str,
     max_tokens: int,
     extended_thinking: bool = False,
+    auth_token: str | None = None,
 ) -> str:
+    """Direct Messages-API call. When ``auth_token`` is provided, the
+    Anthropic SDK sends it as ``Authorization: Bearer ...`` — that's how
+    Claude Code OAuth tokens authenticate. Otherwise the SDK falls back
+    to ``ANTHROPIC_API_KEY`` from the env.
+    """
+    from anthropic import Anthropic
+
+    client_kwargs: dict = {}
+    if auth_token:
+        client_kwargs["auth_token"] = auth_token
+    client = Anthropic(**client_kwargs)
+
     history: list[dict[str, str]] = []
     for m in session.messages:
         text = (m.text or "").strip()
@@ -172,11 +229,11 @@ def _reply_via_messages_api(
         "max_tokens": max_tokens,
     }
     if extended_thinking:
-        # Enable extended thinking — budget half the response tokens for
-        # the chain-of-thought so the user-visible reply still fits.
+        # Enable extended thinking — budget some tokens for the chain-of-
+        # thought so the user-visible reply still fits.
         kwargs["max_tokens"] = max(max_tokens, 4096)
         kwargs["thinking"] = {"type": "enabled", "budget_tokens": 2048}
-    response = _anthropic_client().messages.create(**kwargs)
+    response = client.messages.create(**kwargs)
     parts: list[str] = []
     for block in response.content:
         t = getattr(block, "text", None)
