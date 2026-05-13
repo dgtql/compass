@@ -22,6 +22,7 @@ from compass.universe import (
     classify_non_equity,
     filter_tickers,
     load_universe,
+    normalize_sector,
     save_universe,
 )
 
@@ -246,6 +247,47 @@ def test_classify_non_equity(ticker, name, expected) -> None:
 def test_classify_non_equity_returns_other_for_blanks() -> None:
     assert classify_non_equity("AAPL", "") == "other"
     assert classify_non_equity("X", "Random Inc") == "other"
+
+
+# --- Yahoo → GICS sector normalization --------------------------------------
+
+
+@pytest.mark.parametrize("yahoo,expected", [
+    ("Technology",         "Information Technology"),
+    ("Healthcare",         "Health Care"),
+    ("Financial Services", "Financials"),
+    ("Consumer Cyclical",  "Consumer Discretionary"),
+    ("Consumer Defensive", "Consumer Staples"),
+    ("Basic Materials",    "Materials"),
+    # Identity for sectors that already match GICS.
+    ("Industrials",        "Industrials"),
+    ("Energy",             "Energy"),
+    ("Utilities",          "Utilities"),
+    ("Real Estate",        "Real Estate"),
+    ("Communication Services", "Communication Services"),
+    # Pass-through for unknown.
+    ("Something New",      "Something New"),
+    (None,                 None),
+    ("",                   None),
+])
+def test_normalize_sector(yahoo, expected) -> None:
+    assert normalize_sector(yahoo) == expected
+
+
+def test_normalize_sector_covers_every_yahoo_value_we_observe() -> None:
+    """Every Yahoo sector name we've actually seen in the seed must map to
+    one of the 11 GICS sectors — so the UI filter never silently 'no-ops'.
+    Update both the mapping AND this list when yfinance starts returning
+    a new sector name."""
+    observed_yahoo_sectors = {
+        "Technology", "Healthcare", "Financial Services", "Industrials",
+        "Consumer Cyclical", "Real Estate", "Basic Materials",
+        "Communication Services", "Energy", "Consumer Defensive", "Utilities",
+    }
+    for s in observed_yahoo_sectors:
+        assert normalize_sector(s) in GICS_SECTORS, (
+            f"Yahoo sector {s!r} doesn't normalize to a GICS sector"
+        )
 
 
 # --- search ranking ----------------------------------------------------------

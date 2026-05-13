@@ -188,6 +188,26 @@ _EXCHANGE_BUCKETS: dict[str, str] = {
 ALLOWED_EXCHANGES: tuple[str, ...] = ("NYSE", "NASDAQ", "AMEX")
 
 
+# yfinance returns sectors in Yahoo's taxonomy, which differs from GICS in
+# six cases. We canonicalize to GICS at enrichment time so the UI's sector
+# filter (sourced from GICS_SECTORS) actually matches the data.
+_YAHOO_TO_GICS: dict[str, str] = {
+    "Technology":           "Information Technology",
+    "Healthcare":           "Health Care",
+    "Financial Services":   "Financials",
+    "Consumer Cyclical":    "Consumer Discretionary",
+    "Consumer Defensive":   "Consumer Staples",
+    "Basic Materials":      "Materials",
+}
+
+
+def normalize_sector(yahoo_sector: str | None) -> str | None:
+    """Map Yahoo's sector name to its GICS equivalent. Unknowns pass through."""
+    if not yahoo_sector:
+        return None
+    return _YAHOO_TO_GICS.get(yahoo_sector, yahoo_sector)
+
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -366,10 +386,10 @@ def enrich_with_yfinance(
             info = yf.Ticker(t.ticker).info or {}
         except Exception:  # noqa: BLE001
             info = {}
-        sector = info.get("sector")
+        sector = normalize_sector(info.get("sector"))
         industry = info.get("industry")
         mcap = info.get("marketCap")
-        if sector:   t.sector = str(sector)
+        if sector:   t.sector = sector
         if industry: t.industry = str(industry)
         bucket = classify_cap(mcap)
         if bucket:
