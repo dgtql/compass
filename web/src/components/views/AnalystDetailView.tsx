@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { cn, fmtElapsed } from '@/lib/utils';
+import { ArrowRight } from 'lucide-react';
 import { ChatPane } from '@/components/ChatPane';
 import { SessionTasksRail } from '@/components/chat/SessionTasksRail';
+import { mockCoverages } from '@/mocks/pipeline';
 import {
   mockAnalysts,
   mockAnalystSubtasks,
@@ -17,6 +19,7 @@ import {
 
 type Props = {
   slug: string;
+  onOpenCoverage?: (ticker: string) => void;
 };
 
 type Tab = 'chat' | 'coverage' | 'memos' | 'tasks' | 'profile';
@@ -29,7 +32,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'profile', label: 'Profile' },
 ];
 
-export function AnalystDetailView({ slug }: Props) {
+export function AnalystDetailView({ slug, onOpenCoverage }: Props) {
   const [tab, setTab] = useState<Tab>('chat');
   const analyst = useMemo(() => mockAnalysts.find((a) => a.slug === slug), [slug]);
   const memos = useMemo(() => mockMemos.filter((m) => m.analystSlug === slug), [slug]);
@@ -150,38 +153,63 @@ export function AnalystDetailView({ slug }: Props) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Coverage universe</CardTitle>
-                <CardDescription>{coverage.length} names</CardDescription>
+                <CardDescription>
+                  {coverage.length} names · click a ticker with an active pipeline to open its
+                  research view.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {coverage.map((t) => (
-                    <div
-                      key={t.symbol}
-                      className="flex items-center justify-between border border-border rounded-md p-3 hover:bg-accent/30"
-                    >
-                      <div>
-                        <div className="text-sm font-medium">
-                          {t.symbol}{' '}
-                          <span className="text-muted-foreground font-normal">· {t.name}</span>
+                  {coverage.map((t) => {
+                    const hasPipeline = mockCoverages.some((c) => c.ticker === t.symbol);
+                    return (
+                      <button
+                        key={t.symbol}
+                        onClick={() =>
+                          hasPipeline && onOpenCoverage && onOpenCoverage(t.symbol)
+                        }
+                        disabled={!hasPipeline}
+                        className={cn(
+                          'text-left flex items-center justify-between border border-border rounded-md p-3 transition-all',
+                          hasPipeline
+                            ? 'hover:bg-accent/30 hover:border-primary/40 cursor-pointer'
+                            : 'opacity-80',
+                        )}
+                      >
+                        <div>
+                          <div className="text-sm font-medium flex items-center gap-2">
+                            {t.symbol}
+                            <span className="text-muted-foreground font-normal">· {t.name}</span>
+                            {hasPipeline && (
+                              <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                                pipeline
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{t.industry}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">{t.industry}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">${t.price.toFixed(2)}</div>
-                        <div
-                          className={cn(
-                            'text-xs',
-                            t.dayChangePct >= 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-rose-600 dark:text-rose-400'
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-sm font-medium">${t.price.toFixed(2)}</div>
+                            <div
+                              className={cn(
+                                'text-xs',
+                                t.dayChangePct >= 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-rose-600 dark:text-rose-400',
+                              )}
+                            >
+                              {t.dayChangePct >= 0 ? '+' : ''}
+                              {t.dayChangePct.toFixed(1)}%
+                            </div>
+                          </div>
+                          {hasPipeline && (
+                            <ArrowRight className="w-4 h-4 text-muted-foreground" />
                           )}
-                        >
-                          {t.dayChangePct >= 0 ? '+' : ''}
-                          {t.dayChangePct.toFixed(1)}%
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

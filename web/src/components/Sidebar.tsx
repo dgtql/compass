@@ -27,7 +27,8 @@ export type View =
   | { kind: 'knowledge' }
   | { kind: 'skills' }
   | { kind: 'data' }
-  | { kind: 'analyst-detail'; slug: string };
+  | { kind: 'analyst-detail'; slug: string }
+  | { kind: 'ticker-coverage'; ticker: string };
 
 type Props = {
   view: View;

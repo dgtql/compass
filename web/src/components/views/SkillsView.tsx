@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Library, FileText, BookOpen, BarChart3, Workflow, Plus } from 'lucide-react';
+import { Library, FileText, BookOpen, BarChart3, Workflow, Plus, GitBranch, LayoutGrid } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ const CATEGORY_LABEL: Record<Skill['category'], string> = {
   analysis: 'Analysis',
   ingestion: 'Ingestion',
   workflow: 'Workflow',
+  planner: 'Planner',
 };
 
 const CATEGORY_ICON: Record<Skill['category'], React.ComponentType<{ className?: string }>> = {
@@ -19,6 +20,7 @@ const CATEGORY_ICON: Record<Skill['category'], React.ComponentType<{ className?:
   analysis: BarChart3,
   ingestion: BookOpen,
   workflow: Workflow,
+  planner: LayoutGrid,
 };
 
 const STATUS_VARIANT: Record<Skill['status'], 'success' | 'secondary' | 'destructive'> = {
@@ -150,6 +152,40 @@ export function SkillsView() {
                       </span>
                     ))}
                   </div>
+
+                  {s.calls && s.calls.length > 0 && (
+                    <div className="border-t border-border pt-2">
+                      <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1 flex items-center gap-1">
+                        <GitBranch className="w-3 h-3" /> Stacks on
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {s.calls.map((c) => (
+                          <span
+                            key={c}
+                            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground border border-border"
+                          >
+                            → {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {s.stages && s.stages.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mr-1">
+                        Stages:
+                      </span>
+                      {s.stages.map((st) => (
+                        <span
+                          key={st}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 capitalize"
+                        >
+                          {st}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="mt-auto pt-2 border-t border-border flex items-center justify-between">
                     <div className="text-[10px] text-muted-foreground">

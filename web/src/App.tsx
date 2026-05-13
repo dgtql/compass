@@ -7,6 +7,7 @@ import { KnowledgeView } from '@/components/views/KnowledgeView';
 import { MasterAgentView } from '@/components/views/MasterAgentView';
 import { SkillsView } from '@/components/views/SkillsView';
 import { DataView } from '@/components/views/DataView';
+import { TickerCoverageView } from '@/components/views/TickerCoverageView';
 import { HireAnalystModal } from '@/components/HireAnalystModal';
 
 export function App() {
@@ -27,11 +28,17 @@ export function App() {
           />
         )}
         {view.kind === 'master-agent' && <MasterAgentView />}
-        {view.kind === 'analyst-detail' && <AnalystDetailView slug={view.slug} />}
+        {view.kind === 'analyst-detail' && (
+          <AnalystDetailView
+            slug={view.slug}
+            onOpenCoverage={(ticker) => setView({ kind: 'ticker-coverage', ticker })}
+          />
+        )}
         {view.kind === 'universe' && <UniverseView />}
         {view.kind === 'knowledge' && <KnowledgeView />}
         {view.kind === 'skills' && <SkillsView />}
         {view.kind === 'data' && <DataView />}
+        {view.kind === 'ticker-coverage' && <TickerCoverageView ticker={view.ticker} />}
       </main>
       <HireAnalystModal open={hireOpen} onClose={() => setHireOpen(false)} />
     </div>

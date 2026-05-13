@@ -119,6 +119,103 @@ export type AnalystSubtask = {
   nextActionPrompt?: string;
 };
 
+// ---------------------------------------------------------------------------
+// Pipeline pattern (slice 16) — per-ticker research engagement with stages
+// ---------------------------------------------------------------------------
+
+export type StageId = 'setup' | 'ingest' | 'analyze' | 'compose' | 'maintain';
+
+export type CoverageBriefKPI = {
+  name: string;
+  target: string;
+  current: string;
+  trend: 'up' | 'down' | 'flat';
+};
+
+export type CoverageBriefRisk = {
+  rank: number;
+  risk: string;
+  severity: 'high' | 'medium' | 'low';
+};
+
+export type CoverageBriefCatalyst = {
+  date: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+};
+
+/** The analyst's structured thesis on a covered name. */
+export type CoverageBrief = {
+  ticker: string;
+  thesisOneLiner: string;
+  thesisBody: string;
+  keyQuestions: string[];
+  kpis: CoverageBriefKPI[];
+  risks: CoverageBriefRisk[];
+  catalysts: CoverageBriefCatalyst[];
+  startStage: StageId;
+  mode: 'idea' | 'plan';
+  updatedAt: string;
+};
+
+export type PipelineTaskStatus =
+  | 'pending'
+  | 'in-progress'
+  | 'done'
+  | 'review'
+  | 'deferred'
+  | 'cancelled';
+
+export type PipelineTask = {
+  id: string;
+  stage: StageId;
+  title: string;
+  description?: string;
+  status: PipelineTaskStatus;
+  priority: 'high' | 'medium' | 'low';
+  taskType: string; // e.g. exploration, implementation, analysis, writing, review
+  suggestedSkills: string[]; // skill slugs
+  inputsNeeded?: string[]; // dot-paths into coverage_brief.json
+  /** When the task completes, this artifact is expected to exist. */
+  artifactPath?: string;
+  /** The complete instruction the PM clicks "Use in chat" with. */
+  nextActionPrompt?: string;
+  dependencies: string[];
+  requiresHumanApproval?: boolean;
+};
+
+export type ArtifactType =
+  | 'filing'
+  | 'snapshot'
+  | 'transcript'
+  | 'news'
+  | 'memo'
+  | 'analysis'
+  | 'brief'
+  | 'review';
+
+export type Artifact = {
+  /** Path relative to the engagement root. */
+  path: string;
+  stage: StageId;
+  type: ArtifactType;
+  /** Display name shown in the tree. */
+  name: string;
+  /** Which task produced this. */
+  taskId?: string;
+  size: string;
+  updatedAt: string;
+};
+
+/** A per-ticker engagement combining brief + tasks + artifacts. */
+export type TickerCoverage = {
+  ticker: string;
+  analystSlug: string;
+  brief: CoverageBrief;
+  tasks: PipelineTask[];
+  artifacts: Artifact[];
+};
+
 export type ChatSession = {
   id: string;
   /** Owner: analyst slug, or 'master' for the master agent's threads. */
@@ -136,7 +233,7 @@ export type SkillStatus = 'production' | 'planned' | 'retired';
 export type Skill = {
   slug: string;
   name: string;
-  category: 'memo' | 'analysis' | 'ingestion' | 'workflow';
+  category: 'memo' | 'analysis' | 'ingestion' | 'workflow' | 'planner';
   description: string;
   status: SkillStatus;
   /** When this skill takes a ticker / filing / date range / etc. */
@@ -145,6 +242,10 @@ export type Skill = {
   outputs: string[];
   /** Analyst slugs that have run this skill at least once. */
   usedBy: string[];
+  /** Skills this one invokes as sub-skills (skill stacking — slice 16). */
+  calls?: string[];
+  /** Which stages this skill is most useful in. */
+  stages?: StageId[];
 };
 
 export type DataCategory = 'filings' | 'snapshots' | 'transcripts' | 'news' | 'ir-pages';
