@@ -7,7 +7,6 @@ import { Avatar } from '@/components/ui/avatar';
 import { cn, fmtElapsed } from '@/lib/utils';
 import { ChatPane } from '@/components/ChatPane';
 import {
-  mockAnalystConversations,
   mockAnalysts,
   mockMemos,
   mockTasks,
@@ -37,11 +36,6 @@ export function AnalystDetailView({ slug }: Props) {
     () => mockUniverse.filter((t) => analyst?.coverage.includes(t.symbol)),
     [analyst]
   );
-  const conversation = useMemo(
-    () => mockAnalystConversations[slug] ?? [],
-    [slug]
-  );
-
   if (!analyst) {
     return <div className="p-8 text-sm text-muted-foreground">Analyst not found.</div>;
   }
@@ -107,11 +101,11 @@ export function AnalystDetailView({ slug }: Props) {
       <div className="flex-1 min-h-0">
         {tab === 'chat' && (
           <ChatPane
+            ownerKey={analyst.slug}
             counterparty={{
               initials: analyst.avatarInitials,
               color: analyst.avatarColor,
             }}
-            initialMessages={conversation}
             placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
             rightRail={<AnalystRightRail analyst={analyst} memos={memos} tasks={tasks} />}
           />

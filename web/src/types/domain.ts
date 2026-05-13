@@ -85,3 +85,49 @@ export type MasterAgentMessage = {
   text: string;
   ts: string;
 };
+
+export type ChatSession = {
+  id: string;
+  /** Owner: analyst slug, or 'master' for the master agent's threads. */
+  ownerKey: string;
+  title: string;
+  /** ISO date of the last message — drives the sort + "x minutes ago" rendering. */
+  lastMessageAt: string;
+  /** A one-line preview of the latest message for the sessions sidebar. */
+  preview: string;
+  messages: MasterAgentMessage[];
+};
+
+export type SkillStatus = 'production' | 'planned' | 'retired';
+
+export type Skill = {
+  slug: string;
+  name: string;
+  category: 'memo' | 'analysis' | 'ingestion' | 'workflow';
+  description: string;
+  status: SkillStatus;
+  /** When this skill takes a ticker / filing / date range / etc. */
+  inputs: string[];
+  /** What it produces (memo file, evidence row, JSON, …). */
+  outputs: string[];
+  /** Analyst slugs that have run this skill at least once. */
+  usedBy: string[];
+};
+
+export type DataCategory = 'filings' | 'snapshots' | 'transcripts' | 'news' | 'ir-pages';
+
+export type DataInventoryRow = {
+  category: DataCategory;
+  count: number;
+  lastUpdated: string | null;
+  /** Tickers (or sources) covered by items in this category. */
+  tickers: string[];
+};
+
+export type DataItem = {
+  category: DataCategory;
+  ticker: string;
+  type: string; // e.g. "10-K", "10-Q", "snapshot", "Q1 transcript"
+  date: string;
+  size: string; // e.g. "580 KB"
+};

@@ -1,15 +1,10 @@
-import { useState } from 'react';
 import { Sparkles, Brain } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { ChatPane } from '@/components/ChatPane';
-import { mockMasterMessages, mockSuggestedPrompts } from '@/mocks/data';
+import { mockSuggestedPrompts } from '@/mocks/data';
 
 export function MasterAgentView() {
-  // Selected suggested prompt feeds into ChatPane via initialInput later;
-  // for now we just keep the prompts list visible.
-  const [, setPromptHint] = useState<string | null>(null);
-
   return (
     <div className="h-full flex flex-col">
       <div className="px-6 pt-5 pb-3 border-b border-border bg-background/60">
@@ -26,8 +21,8 @@ export function MasterAgentView() {
 
       <div className="flex-1 min-h-0">
         <ChatPane
+          ownerKey="master"
           counterparty={{ initials: 'MA', color: 'cyan' }}
-          initialMessages={mockMasterMessages}
           placeholder="Ask the master agent anything — your pod, your memos, your notes."
           rightRail={
             <div className="p-4 space-y-4">
@@ -43,12 +38,9 @@ export function MasterAgentView() {
                   <ul className="space-y-1">
                     {mockSuggestedPrompts.map((p) => (
                       <li key={p}>
-                        <button
-                          onClick={() => setPromptHint(p)}
-                          className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors"
-                        >
+                        <div className="text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors cursor-pointer">
                           {p}
-                        </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
