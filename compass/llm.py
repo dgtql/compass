@@ -1,36 +1,35 @@
-"""Chat LLM wiring — OAuth-only, dr-claw style.
+"""Chat LLM wiring — claude-agent-sdk only.
 
-Per docs 12 / 13 / 14 in ``background/code_analysis_want_to_use/``:
+We route every chat reply through ``claude-agent-sdk.query()`` so the
+request inherits the SDK's full Claude Code-style headers, user-agent,
+and auth handling. Hitting the Messages API directly with a plain
+``Authorization: Bearer …`` OAuth token (even with the
+``oauth-2025-04-20`` beta flag) gets rate-limited far more aggressively
+than calls routed through the SDK — the API treats anonymous-shaped
+OAuth traffic differently from CLI-shaped OAuth traffic.
 
-* Compass authenticates **only** via the Claude Code OAuth token written
-  by the CLI at ``~/.claude/.credentials.json``. We never send an API
-  key. The token's ``sk-ant-oat01-…`` prefix tells Anthropic's router
-  to bill the call against the user's Claude.ai subscription quota
-  (Pro / Max / Team) — which is engineered for interactive use and is
-  generally hard to exhaust at human pace. Sending an API key would
-  silently switch the call onto the pay-per-token tier-1 quota
-  (~50 RPM, ~40K ITPM), which is what causes the constant 429s you
-  see in other projects.
-* The system prompt is marked ``cache_control: {type: 'ephemeral'}``
-  so subsequent turns hit the cache and cost ~10 % of the input-token
-  rate-limit headroom they would otherwise.
-* Sonnet is the default model (~4× the OAuth-tier TPM of Opus).
+Auth: still OAuth-only. The SDK reads
+``~/.claude/.credentials.json`` itself (or spawns/embeds the ``claude``
+binary which does). No ``ANTHROPIC_API_KEY`` path.
 
-If the credentials file is missing or expired, we surface a clean
-"run `claude /login`" message — no silent fallback to API keys.
+Multi-turn: ``query()`` is single-prompt, so we fold prior turns into
+the user prompt as a transcript. The system prompt carries the
+master-agent / per-analyst voice.
 """
 
 from __future__ import annotations
 
-import json
-import time
-from pathlib import Path
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    TextBlock,
+    query,
+)
 
 from compass.analysts import get_analyst, list_analysts
 from compass.chats import Session
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
-DEFAULT_MAX_TOKENS = 1024
 
 
 # ---------------------------------------------------------------------------
@@ -104,9 +103,9 @@ Style:
 
 
 class OAuthUnavailable(RuntimeError):
-    """Raised when the Claude Code OAuth credentials file is missing or
-    expired. The chat endpoint surfaces this verbatim so the user knows
-    to run ``claude /login`` instead of debugging deeper."""
+    """Raised when ``claude-agent-sdk`` reports the Claude Code CLI is not
+    reachable. The chat endpoint surfaces this verbatim so the user knows
+    to run ``claude /login``."""
 
 
 async def generate_reply(
@@ -115,129 +114,71 @@ async def generate_reply(
     *,
     model: str | None = None,
     thinking: str | None = None,
-    max_tokens: int = DEFAULT_MAX_TOKENS,
+    max_turns: int = 4,
 ) -> str:
     """Return Claude's reply to the session's latest PM message.
 
-    Auth: Claude Code OAuth credentials file only. No API key fallback.
+    Goes through ``claude-agent-sdk.query()``, which handles auth + headers
+    the way the CLI does. ``model`` defaults to Sonnet 4.6; ``thinking``
+    (``"standard"`` / ``"extended"``) maps to the SDK's thinking option.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
 
-    token = _read_claude_code_oauth_token()
-    if not token:
-        raise OAuthUnavailable(
-            "No valid Claude Code OAuth credentials. Run `claude /login` "
-            "to authenticate, then try again."
-        )
-
     chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
-    extended = (thinking or "").lower() == "extended"
-    return _call_messages_api(
-        owner_key, session,
-        oauth_token=token,
-        model=chosen_model,
-        max_tokens=max_tokens,
-        extended_thinking=extended,
-    )
 
-
-# ---------------------------------------------------------------------------
-# OAuth credential read
-# ---------------------------------------------------------------------------
-
-
-def _read_claude_code_oauth_token() -> str | None:
-    """Return the OAuth access token (``sk-ant-oat01-…``) written by
-    ``claude /login``, or None if missing / malformed / expired.
-
-    File location: ``~/.claude/.credentials.json`` (cross-platform —
-    ``Path.home()`` resolves to ``%USERPROFILE%`` on Windows).
-    """
-    creds_path = Path.home() / ".claude" / ".credentials.json"
-    if not creds_path.exists():
-        return None
-    try:
-        data = json.loads(creds_path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
-    oauth = (data or {}).get("claudeAiOauth") or {}
-    token = oauth.get("accessToken")
-    if not isinstance(token, str) or not token:
-        return None
-    # expiresAt is unix-milliseconds. Refuse a token already past expiry —
-    # the user needs to re-login (or wait for the CLI's auto-refresh on
-    # its next invocation) to mint a fresh one.
-    expires_at = oauth.get("expiresAt")
-    if isinstance(expires_at, (int, float)) and expires_at <= time.time() * 1000:
-        return None
-    return token
-
-
-# ---------------------------------------------------------------------------
-# Messages API call (OAuth Bearer + prompt caching)
-# ---------------------------------------------------------------------------
-
-
-def _call_messages_api(
-    owner_key: str,
-    session: Session,
-    *,
-    oauth_token: str,
-    model: str,
-    max_tokens: int,
-    extended_thinking: bool = False,
-) -> str:
-    """Direct Messages-API call with the OAuth token + cache_control on
-    the system prompt.
-
-    Using ``credentials=StaticToken(token)`` wires the request through the
-    SDK's ``AccessTokenAuth`` flow, which sets both
-    ``Authorization: Bearer ...`` and the required
-    ``anthropic-beta: oauth-2025-04-20`` header. A plain ``auth_token=``
-    sets the Bearer header but skips the beta flag, which results in a
-    generic 429 even on healthy tokens.
-    """
-    from anthropic import Anthropic
-    from anthropic.lib.credentials import StaticToken
-
-    client = Anthropic(credentials=StaticToken(oauth_token))
-
-    history: list[dict] = []
-    for m in session.messages:
-        text = (m.text or "").strip()
-        if not text:
-            continue
-        history.append({
-            "role": "user" if m.role == "pm" else "assistant",
-            "content": text,
-        })
-    if not history or history[-1]["role"] != "user":
-        return ""
-
-    # Mark the system prompt as cacheable. First call writes the cache
-    # (~1.25× normal cost); subsequent calls in the next ~5 minutes hit
-    # the cache (~0.1× normal cost) and barely touch ITPM headroom.
-    system_blocks = [{
-        "type": "text",
-        "text": build_system_prompt(owner_key),
-        "cache_control": {"type": "ephemeral"},
-    }]
-
-    kwargs: dict = {
-        "model": model,
-        "system": system_blocks,
-        "messages": history,
-        "max_tokens": max_tokens,
+    options_kwargs: dict = {
+        "model": chosen_model,
+        "system_prompt": build_system_prompt(owner_key),
+        "max_turns": max_turns,
     }
-    if extended_thinking:
-        kwargs["max_tokens"] = max(max_tokens, 4096)
-        kwargs["thinking"] = {"type": "enabled", "budget_tokens": 2048}
+    if (thinking or "").lower() == "extended":
+        # Adaptive thinking — the SDK picks the depth; cheaper than a
+        # fixed-budget enable block and behaves sensibly across models.
+        options_kwargs["thinking"] = {"type": "adaptive"}
 
-    response = client.messages.create(**kwargs)
-    parts: list[str] = []
-    for block in response.content:
-        text = getattr(block, "text", None)
-        if isinstance(text, str):
-            parts.append(text)
-    return "".join(parts).strip()
+    options = ClaudeAgentOptions(**options_kwargs)
+    prompt = _build_prompt_from_history(session)
+
+    text_parts: list[str] = []
+    try:
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        text_parts.append(block.text)
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc).lower()
+        if "claude code" in msg or "cli" in msg or "not found" in msg:
+            raise OAuthUnavailable(
+                f"Claude Code not reachable ({exc}). Install Claude Code and "
+                f"run `claude /login`, then try again."
+            ) from exc
+        raise
+    return "".join(text_parts).strip()
+
+
+def _build_prompt_from_history(session: Session) -> str:
+    """Fold the conversation transcript into a single ``query()`` prompt.
+
+    The most recent PM message is the "now respond" turn; prior messages
+    are framed as the prior exchange. ``query()`` is single-prompt — this
+    is the canonical pattern for multi-turn behaviour.
+    """
+    msgs = [m for m in session.messages if (m.text or "").strip()]
+    if not msgs:
+        return ""
+    if len(msgs) == 1:
+        return msgs[0].text.strip()
+    history_lines: list[str] = []
+    for m in msgs[:-1]:
+        speaker = "PM" if m.role == "pm" else "You"
+        history_lines.append(f"{speaker}: {m.text.strip()}")
+    history = "\n\n".join(history_lines)
+    latest = msgs[-1].text.strip()
+    return (
+        "Previous conversation:\n"
+        f"{history}\n\n"
+        "Latest message from the PM (respond to this in your voice):\n"
+        f"{latest}"
+    )
