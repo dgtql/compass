@@ -192,7 +192,14 @@ async def _reply_via_agent_sdk(owner_key: str, session: Session, *, model: str) 
     """Used when no API key is set. ``claude-agent-sdk.query()`` is
     single-prompt, so we fold the prior conversation into the user prompt
     as a transcript.
+
+    Resolves the ``claude`` CLI path via ``shutil.which`` and passes it
+    explicitly to ``ClaudeAgentOptions(cli_path=...)`` so the SDK doesn't
+    fail with "Failed to start Claude Code" when its internal lookup
+    misses the binary (a common Windows quirk where PowerShell finds
+    ``claude.EXE`` but Python's subprocess doesn't auto-append .EXE).
     """
+    import shutil
     from claude_agent_sdk import (
         AssistantMessage,
         ClaudeAgentOptions,
@@ -200,18 +207,67 @@ async def _reply_via_agent_sdk(owner_key: str, session: Session, *, model: str) 
         query,
     )
 
+    cli_path = _resolve_claude_cli()
+    stderr_buf: list[str] = []
+
     prompt = _build_prompt_from_history(session)
-    options = ClaudeAgentOptions(
-        model=model,
-        system_prompt=build_system_prompt(owner_key),
-    )
-    text_parts: list[str] = []
-    async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock):
-                    text_parts.append(block.text)
-    return "".join(text_parts).strip()
+    options_kwargs: dict = {
+        "model": model,
+        "system_prompt": build_system_prompt(owner_key),
+        "stderr": stderr_buf.append,  # capture SDK errors for diagnostics
+    }
+    if cli_path:
+        options_kwargs["cli_path"] = cli_path
+
+    try:
+        options = ClaudeAgentOptions(**options_kwargs)
+        text_parts: list[str] = []
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        text_parts.append(block.text)
+        return "".join(text_parts).strip()
+    except Exception as exc:
+        # Re-raise with stderr appended so the user sees what really went wrong.
+        if stderr_buf:
+            tail = "\n".join(stderr_buf)[-500:]
+            raise RuntimeError(f"{exc} — claude stderr:\n{tail}") from exc
+        raise
+
+
+def _resolve_claude_cli() -> str | None:
+    """Return an explicit path to the ``claude`` CLI, or None if not found.
+
+    Probes ``shutil.which`` first, then a few well-known Windows install
+    locations as fallbacks. Setting this explicitly on the SDK avoids
+    the 'Failed to start Claude Code: .' empty-error path.
+    """
+    import shutil
+    import os
+    from pathlib import Path
+
+    for name in ("claude", "claude.exe", "claude.cmd"):
+        resolved = shutil.which(name)
+        if resolved:
+            return resolved
+
+    candidates: list[Path] = [
+        Path.home() / ".local" / "bin" / "claude.exe",
+        Path.home() / ".local" / "bin" / "claude",
+    ]
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        candidates.append(Path(appdata) / "npm" / "claude.cmd")
+        candidates.append(Path(appdata) / "npm" / "claude")
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        candidates.append(Path(local) / "Programs" / "claude" / "claude.exe")
+
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return None
 
 
 def _build_prompt_from_history(session: Session) -> str:
