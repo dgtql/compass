@@ -35,6 +35,13 @@ from compass.dispatcher import run_engagement
 from compass.engagement import Engagement, list_engagements, resolve_analyst
 from compass.planner import list_templates, plan as plan_template
 from compass.skills import list_skills
+from compass.universe import (
+    ALLOWED_EXCHANGES,
+    GICS_SECTORS,
+    REGIONS,
+    filter_tickers,
+    load_universe,
+)
 
 load_dotenv()
 
@@ -147,6 +154,56 @@ async def _drive_run(run: dict, engagement: Engagement) -> None:
         run["error"] = f"{type(exc).__name__}: {exc}"
     finally:
         run["finished_at"] = time.time()
+
+
+# --- universe (US ticker pool) ---------------------------------------------
+
+
+@app.get("/api/universe")
+def get_universe(
+    sector: str | None = Query(None, description="Filter by sector."),
+    exchange: str | None = Query(None, description="Filter by exchange (NYSE/NASDAQ/AMEX)."),
+    query: str | None = Query(None, description="Substring match on ticker or name."),
+    limit: int = Query(500, ge=1, le=10_000, description="Max rows to return."),
+) -> dict:
+    """Return the US ticker universe (filtered).
+
+    Returns ``{as_of, region, source, total, tickers: [...]}``. Run
+    ``compass refresh-universe`` once to seed the file; subsequent calls
+    are cached in-memory by the API process.
+    """
+    loaded = load_universe()
+    if loaded is None:
+        raise HTTPException(
+            status_code=503,
+            detail="universe seed missing — run `compass refresh-universe` first.",
+        )
+    rows = filter_tickers(
+        loaded, sector=sector, exchange=exchange, query=query, limit=limit
+    )
+    return {
+        "as_of": loaded.as_of,
+        "region": loaded.region,
+        "source": loaded.source,
+        "total": len(loaded.tickers),
+        "count": len(rows),
+        "tickers": [t.to_dict() for t in rows],
+    }
+
+
+@app.get("/api/universe/regions")
+def get_regions() -> list[str]:
+    return list(REGIONS)
+
+
+@app.get("/api/universe/sectors")
+def get_sectors() -> list[str]:
+    return list(GICS_SECTORS)
+
+
+@app.get("/api/universe/exchanges")
+def get_exchanges() -> list[str]:
+    return list(ALLOWED_EXCHANGES)
 
 
 # --- skill / template listings ---------------------------------------------

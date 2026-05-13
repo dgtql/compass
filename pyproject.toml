@@ -26,6 +26,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "edgartools>=5.30.0",
     "yfinance>=0.2.40",
+    "requests>=2.31.0",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
 ]
@@ -45,6 +46,12 @@ Documentation = "https://github.com/zhudi/compass/tree/main/docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["compass"]
+
+# Universe seed JSON and any future bundled data are package data, not
+# excluded source. The default hatch behaviour ships everything under
+# `compass/`, but we declare it explicitly to keep it stable.
+[tool.hatch.build.targets.wheel.force-include]
+"compass/data" = "compass/data"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

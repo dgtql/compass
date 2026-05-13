@@ -30,6 +30,14 @@ from compass.engagement import (
     Engagement,
     list_engagements,
 )
+from compass.universe import (
+    ALLOWED_EXCHANGES,
+    GICS_SECTORS,
+    Ticker,
+    load_universe,
+    refresh as refresh_universe,
+    universe_path,
+)
 from compass.planner import list_templates, plan as plan_template
 from compass.skills import list_skills
 
@@ -259,6 +267,122 @@ def engagements() -> None:
             f"{'yes' if e['has_tasks'] else 'no':<6} "
             f"{e['path']}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Universe (US ticker pool)
+# ---------------------------------------------------------------------------
+
+
+@app.command("refresh-universe")
+def refresh_universe_cmd(
+    enrich_top: int = typer.Option(
+        0,
+        "--enrich-top",
+        help=(
+            "How many of the top tickers to enrich with sector / industry / "
+            "market-cap via yfinance. 0 = no enrichment (fast). 500 ≈ 10 min."
+        ),
+    ),
+) -> None:
+    """Re-fetch the US ticker universe from SEC and write the seed JSON.
+
+    The output lands at ``compass/data/universe/us-tickers.json`` and is
+    consumed by the FastAPI ``/api/universe`` endpoint plus the
+    ``compass universe`` listing.
+
+    Requires ``COMPASS_SEC_USER_NAME`` and ``COMPASS_SEC_USER_EMAIL`` to be
+    set (SEC requires a User-Agent on every request).
+    """
+    typer.echo(
+        f"Fetching SEC ticker list (NYSE / NASDAQ / AMEX) ..."
+    )
+
+    last_pct = -1
+
+    def progress(i: int, total: int, t: Ticker) -> None:
+        nonlocal last_pct
+        pct = int(100 * i / max(total, 1))
+        if pct != last_pct and pct % 5 == 0:
+            typer.echo(
+                f"  enriched {i}/{total}  ({pct}%)  latest: {t.ticker:<6} {t.name[:40]}",
+            )
+            last_pct = pct
+
+    try:
+        universe = refresh_universe(
+            enrich_top=enrich_top if enrich_top > 0 else 0,
+            on_progress=progress if enrich_top > 0 else None,
+        )
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+
+    typer.echo("")
+    typer.echo(f"Saved {len(universe.tickers)} tickers to {universe_path()}")
+    if enrich_top > 0:
+        enriched = sum(1 for t in universe.tickers if t.sector is not None)
+        typer.echo(f"Enriched with sector data: {enriched}")
+
+
+@app.command()
+def universe(
+    sector: str = typer.Option(None, "--sector", "-s", help="Filter by sector."),
+    exchange: str = typer.Option(None, "--exchange", "-e", help="Filter by exchange."),
+    query: str = typer.Option(None, "--query", "-q", help="Substring on ticker or name."),
+    limit: int = typer.Option(40, "--limit", "-n", help="Max rows to show."),
+) -> None:
+    """List the US ticker universe. Run `compass refresh-universe` first."""
+    from compass.universe import filter_tickers
+
+    loaded = load_universe()
+    if loaded is None:
+        typer.secho(
+            "No universe seed yet. Run `compass refresh-universe` first.",
+            fg=typer.colors.YELLOW,
+        )
+        sys.exit(2)
+
+    rows = filter_tickers(
+        loaded,
+        sector=sector,
+        exchange=exchange,
+        query=query,
+        limit=limit,
+    )
+    if not rows:
+        typer.secho("No matches.", fg=typer.colors.YELLOW)
+        return
+
+    typer.echo(f"{'TICKER':<8} {'EXCH':<7} {'NAME':<40} {'SECTOR':<25} CAP")
+    for t in rows:
+        cap = (
+            f"${t.market_cap / 1e9:.1f}B" if t.market_cap else "—"
+        )
+        sector_v = t.sector or "—"
+        typer.echo(
+            f"{t.ticker:<8} {t.exchange:<7} {t.name[:40]:<40} {sector_v[:25]:<25} {cap}"
+        )
+    typer.echo("")
+    typer.echo(
+        f"({len(rows)} of {len(loaded.tickers)} total · as of {loaded.as_of})"
+    )
+
+
+@app.command()
+def regions() -> None:
+    """List supported regions."""
+    from compass.universe import REGIONS
+
+    for r in REGIONS:
+        typer.echo(r)
+
+
+@app.command()
+def sectors() -> None:
+    """List GICS sectors used for filtering the universe."""
+    for s in GICS_SECTORS:
+        typer.echo(s)
 
 
 # ---------------------------------------------------------------------------

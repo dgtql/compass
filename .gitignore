@@ -72,7 +72,12 @@ Thumbs.db
 .env.*.local
 
 # ===== Compass runtime data =====
-data/
+# Only ignore the top-level data/ (per-user engagements + caches).
+# `compass/data/` is packaged with the install (universe seed, etc.) and
+# must stay tracked — leading slash anchors the pattern to the repo root.
+/data/
+# Same shape if `compass` commands get run from web/ by mistake (Vite's cwd).
+/web/data/
 *.sqlite
 *.sqlite3
 *.db
