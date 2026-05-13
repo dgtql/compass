@@ -470,5 +470,99 @@ def ask(
         sys.exit(1)
 
 
+@app.command()
+def chat(
+    message: str = typer.Argument(None, help="Message to send. Omit to start an interactive REPL."),
+    analyst: str = typer.Option(
+        None, "--analyst", "-a",
+        help="Analyst slug to chat as (e.g. `maria-chen`). Omit to talk to the master agent.",
+    ),
+    model: str = typer.Option(
+        "claude-sonnet-4-6", "--model", "-m",
+        help="Model ID — Sonnet 4.6 / Haiku 4.5 / Opus 4.7.",
+    ),
+    extended_thinking: bool = typer.Option(
+        False, "--extended", help="Enable extended thinking.",
+    ),
+) -> None:
+    """Test the same chat path the UI uses, but from the terminal.
+
+    Uses `compass.llm.generate_reply` — the exact function the FastAPI
+    chat endpoint calls — so if this works, the UI's chat will too. Auth
+    is OAuth-only (reads ~/.claude/.credentials.json).
+
+    One-shot mode:
+        compass chat "Hi"
+        compass chat --analyst maria-chen "thoughts on NVDA today?"
+
+    Interactive REPL (omit the message):
+        compass chat
+        compass chat --analyst maria-chen
+    """
+    from compass.chats import Session as ChatSession, Message as ChatMessage
+    from compass.llm import generate_reply, OAuthUnavailable
+
+    owner_key = analyst or "master"
+    thinking = "extended" if extended_thinking else "standard"
+
+    # In-memory session — not persisted. Each call carries the history
+    # so far in the prompt the way the real API endpoint does.
+    session = ChatSession(
+        id="cli-chat", ownerKey=owner_key, taskId="cli-task",
+        title="", lastMessageAt="", preview="",
+        messages=[],
+    )
+
+    def _now() -> str:
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).isoformat()
+
+    def _new_id(prefix: str) -> str:
+        import uuid
+        return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+    async def _one(user_text: str) -> None:
+        session.messages.append(ChatMessage(id=_new_id("m"), role="pm", text=user_text, ts=_now()))
+        try:
+            reply = await generate_reply(
+                owner_key, session,
+                model=model,
+                thinking=thinking,
+            )
+        except OAuthUnavailable as exc:
+            typer.secho(f"\n[claude /login required] {exc}\n", fg=typer.colors.RED, err=True)
+            sys.exit(2)
+        except Exception as exc:  # noqa: BLE001
+            typer.secho(f"\n[{type(exc).__name__}] {exc}\n", fg=typer.colors.RED, err=True)
+            return
+        session.messages.append(ChatMessage(id=_new_id("m"), role="master", text=reply, ts=_now()))
+        typer.echo(reply)
+
+    typer.secho(
+        f"chat: owner={owner_key} · model={model} · thinking={thinking}",
+        fg=typer.colors.BRIGHT_BLACK,
+    )
+
+    if message:
+        asyncio.run(_one(message))
+        return
+
+    # Interactive REPL
+    typer.secho("(Ctrl+C or empty line to exit.)\n", fg=typer.colors.BRIGHT_BLACK)
+    try:
+        while True:
+            try:
+                user_text = typer.prompt("you", default="", show_default=False)
+            except (KeyboardInterrupt, EOFError):
+                raise KeyboardInterrupt
+            if not user_text.strip():
+                break
+            typer.secho("...", fg=typer.colors.BRIGHT_BLACK)
+            asyncio.run(_one(user_text))
+            typer.echo("")
+    except KeyboardInterrupt:
+        typer.secho("\nbye.", fg=typer.colors.BRIGHT_BLACK)
+
+
 if __name__ == "__main__":
     app()
