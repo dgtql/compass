@@ -122,48 +122,74 @@ async def generate_reply(
 ) -> str:
     """Return Claude's reply to the session's latest PM message.
 
-    Goes through ``claude-agent-sdk.query()``, which handles auth + headers
-    the way the CLI does. ``model`` defaults to Sonnet 4.6; ``thinking``
-    (``"standard"`` / ``"extended"``) maps to the SDK's thinking option.
+    Goes through ``claude-agent-sdk.query()``, which handles auth +
+    headers the way the CLI does.
+
+    Isolation note: we run the SDK call in a worker thread with its own
+    fresh ``asyncio`` loop (``asyncio.run`` inside ``asyncio.to_thread``).
+    Doing this avoids a Windows-specific failure mode where uvicorn's
+    running event loop + anyio's subprocess-spawning code path raises an
+    empty 'Failed to start Claude Code: .' from inside the FastAPI
+    handler — even though the same SDK call works fine when invoked
+    from a top-level ``asyncio.run`` (i.e. ``compass chat`` on the CLI).
+    Easiest reliable fix is to give the SDK its own loop.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
 
     chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    use_extended = (thinking or "").lower() == "extended"
 
-    # Skip the SDK's pre-call version probe — on some Windows setups it
-    # hangs or fails during the FastAPI uvicorn worker startup, giving
-    # the same empty 'Failed to start Claude Code: .' error we used to
-    # hit. The probe is just a deprecation warning anyway.
+    import asyncio
+
+    return await asyncio.to_thread(
+        _generate_reply_sync,
+        owner_key, session, chosen_model, use_extended, max_turns,
+    )
+
+
+def _generate_reply_sync(
+    owner_key: str,
+    session: Session,
+    model: str,
+    extended_thinking: bool,
+    max_turns: int,
+) -> str:
+    """Sync wrapper — runs the async SDK call on a fresh asyncio loop in
+    the worker thread, so it doesn't share state with uvicorn's loop.
+    """
+    import asyncio
+
+    # Skip the SDK's pre-call version probe (deprecation warning only;
+    # on some Windows setups it hangs and contributes to the empty
+    # 'Failed to start Claude Code: .' error).
     os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
 
     options_kwargs: dict = {
-        "model": chosen_model,
+        "model": model,
         "system_prompt": build_system_prompt(owner_key),
         "max_turns": max_turns,
     }
-    # When the SDK's own lookup misses the `claude` binary, hand it the
-    # resolved path explicitly. The CLI inherits the user's shell PATH,
-    # but the uvicorn worker sometimes doesn't — pre-resolving here
-    # bridges the gap.
     cli_path = _resolve_claude_cli()
     if cli_path:
         options_kwargs["cli_path"] = cli_path
-    if (thinking or "").lower() == "extended":
-        # Adaptive thinking — the SDK picks the depth; cheaper than a
-        # fixed-budget enable block and behaves sensibly across models.
+    if extended_thinking:
         options_kwargs["thinking"] = {"type": "adaptive"}
 
     options = ClaudeAgentOptions(**options_kwargs)
     prompt = _build_prompt_from_history(session)
 
-    text_parts: list[str] = []
-    try:
+    async def _run() -> str:
+        text_parts: list[str] = []
         async for message in query(prompt=prompt, options=options):
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, TextBlock):
                         text_parts.append(block.text)
+        return "".join(text_parts).strip()
+
+    try:
+        return asyncio.run(_run())
     except Exception as exc:  # noqa: BLE001
         msg = str(exc).lower()
         if "claude code" in msg or "cli" in msg or "not found" in msg:
@@ -172,7 +198,6 @@ async def generate_reply(
                 f"run `claude /login`, then try again."
             ) from exc
         raise
-    return "".join(text_parts).strip()
 
 
 def _resolve_claude_cli() -> str | None:
