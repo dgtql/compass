@@ -41,6 +41,8 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
 
   const [sectors, setSectors] = useState<string[]>([]);
   const [suggested, setSuggested] = useState<ApiTicker[]>([]);
+  const [suggestedLoading, setSuggestedLoading] = useState(false);
+  const [suggestedError, setSuggestedError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,15 +63,24 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
   useEffect(() => {
     if (!sector) {
       setSuggested([]);
+      setSuggestedLoading(false);
+      setSuggestedError(null);
       return;
     }
     let cancelled = false;
+    setSuggestedLoading(true);
+    setSuggestedError(null);
     getUniverse({ sector, limit: 20 })
       .then((u) => {
         if (cancelled) return;
         setSuggested(u.tickers);
       })
-      .catch(() => { if (!cancelled) setSuggested([]); });
+      .catch((err: Error) => {
+        if (cancelled) return;
+        setSuggested([]);
+        setSuggestedError(err.message);
+      })
+      .finally(() => { if (!cancelled) setSuggestedLoading(false); });
     return () => { cancelled = true; };
   }, [sector]);
 
@@ -185,8 +196,14 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
             </div>
           ) : (
             <div className="flex flex-wrap gap-1.5 p-3 border border-border rounded-md max-h-32 overflow-y-auto scrollbar-thin">
-              {suggested.length === 0 && (
+              {suggestedLoading && (
                 <span className="text-[11px] text-muted-foreground italic">Loading suggestions…</span>
+              )}
+              {!suggestedLoading && suggestedError && (
+                <span className="text-[11px] text-rose-500 italic">Couldn't load: {suggestedError}</span>
+              )}
+              {!suggestedLoading && !suggestedError && suggested.length === 0 && (
+                <span className="text-[11px] text-muted-foreground italic">No suggestions for this sector. You can type tickers in by adding them from the Tickers page.</span>
               )}
               {suggested.map((t) => {
                 const selected = coverage.has(t.ticker);
