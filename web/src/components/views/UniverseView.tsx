@@ -408,7 +408,7 @@ function ErrorPanel({ error }: { error: string }) {
           {isMissingSeed ? (
             <>Run <code className="text-primary">python -m compass.cli refresh-universe</code> and reload.</>
           ) : (
-            <>Start the API with <code className="text-primary">python -m compass.cli serve</code> on port 8000. Detail: <span className="font-mono text-xs">{error}</span></>
+            <>Start the API with <code className="text-primary">python -m compass.cli serve</code> (default port 8001). Detail: <span className="font-mono text-xs">{error}</span></>
           )}
         </CardDescription>
       </CardHeader>

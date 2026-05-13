@@ -436,7 +436,7 @@ def sectors() -> None:
 @app.command()
 def serve(
     host: str = typer.Option("127.0.0.1", "--host"),
-    port: int = typer.Option(8000, "--port", "-p"),
+    port: int = typer.Option(8001, "--port", "-p"),
     reload: bool = typer.Option(False, "--reload"),
 ) -> None:
     """Start the Compass FastAPI app (the React UI talks to this in slice 19)."""

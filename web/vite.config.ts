@@ -22,9 +22,10 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     proxy: {
-      // Port 8000 sometimes gets stuck on Windows TCP TIME_WAIT after a
-      // crashed uvicorn; 8001 lets us sidestep that without rebooting.
-      // Match this with `compass serve --port 8001`.
+      // Matches `compass serve` default. (Switched from 8000 → 8001 after
+      // a stuck zombie-socket episode on Windows; 8001 is the new permanent
+      // dev port. FastAPI in prod ignores this — it serves the SPA from
+      // the same origin.)
       '/api': 'http://127.0.0.1:8001',
     },
   },

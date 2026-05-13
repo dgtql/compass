@@ -2,8 +2,9 @@
  * Thin fetch wrappers for the Compass FastAPI backend.
  *
  * Endpoints are documented in `compass/api.py`. In dev, Vite's `/api/*`
- * proxy forwards to http://127.0.0.1:8000; in production, FastAPI serves
- * the SPA from the same origin, so relative paths work in both modes.
+ * proxy forwards to http://127.0.0.1:8001 (the default `compass serve`
+ * port); in production, FastAPI serves the SPA from the same origin so
+ * relative paths work in both modes.
  */
 
 export type ApiTicker = {
