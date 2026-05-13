@@ -200,6 +200,7 @@ async def _reply_via_agent_sdk(owner_key: str, session: Session, *, model: str) 
     ``claude.EXE`` but Python's subprocess doesn't auto-append .EXE).
     """
     import shutil
+    import os
     from claude_agent_sdk import (
         AssistantMessage,
         ClaudeAgentOptions,
@@ -207,8 +208,19 @@ async def _reply_via_agent_sdk(owner_key: str, session: Session, *, model: str) 
         query,
     )
 
+    # Skip the SDK's pre-call version probe — on Windows this can hang and
+    # contribute to the empty-error path we saw in the wild. The probe is
+    # purely a deprecation warning; the actual call doesn't depend on it.
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
     cli_path = _resolve_claude_cli()
     stderr_buf: list[str] = []
+    if not cli_path:
+        raise RuntimeError(
+            "Couldn't find the `claude` CLI on PATH. Install Claude Code "
+            "(https://docs.claude.com/en/docs/claude-code/quickstart) or add "
+            "ANTHROPIC_API_KEY to .env to use the direct-API path instead."
+        )
 
     prompt = _build_prompt_from_history(session)
     options_kwargs: dict = {
