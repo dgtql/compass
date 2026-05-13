@@ -522,21 +522,29 @@ def delete_chat_session(owner_key: str, session_id: str) -> dict:
 
 
 @app.post("/api/chats/{owner_key}/sessions/{session_id}/messages")
-def post_chat_message(owner_key: str, session_id: str, req: AppendMessageReq) -> dict:
-    """Append a PM message; the API tacks on a mock 'master' reply for now.
+async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageReq) -> dict:
+    """Append a PM message; call Claude for the analyst/master reply.
 
-    Replacing the canned reply with a real LLM call is a single-spot change
-    here (see the inline mock below).
+    Async because ``generate_reply`` uses ``claude-agent-sdk`` which is
+    async-native.
     """
+    from compass.llm import generate_reply  # local import — keeps the SDK
+    # import out of the FastAPI startup path.
+
     try:
         session = chats_append_message(owner_key, session_id, role=req.role, text=req.text)
         if req.role == "pm" and req.text.strip():
-            # Canned reply so the UI sees a response. When the LLM is wired
-            # in this is the seam to call out to it instead.
-            reply = (
-                "(mocked reply — backend LLM wiring lands in a future slice.)"
-            )
-            session = chats_append_message(owner_key, session_id, role="master", text=reply)
+            try:
+                reply = await generate_reply(owner_key, session)
+            except Exception as exc:  # noqa: BLE001
+                # Surface the failure as an assistant message so the user
+                # sees what went wrong instead of a silent timeout.
+                reply = (
+                    f"(couldn't reach the LLM — {type(exc).__name__}: {exc}.\n"
+                    "Check that ANTHROPIC_API_KEY is set or that you're logged in via `claude`.)"
+                )
+            if reply:
+                session = chats_append_message(owner_key, session_id, role="master", text=reply)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return session.to_dict()
