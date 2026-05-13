@@ -52,7 +52,58 @@ import compass
 
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers_exchange.json"
 
-REGIONS: tuple[str, ...] = ("US",)
+REGIONS: tuple[str, ...] = ("US", "EU")
+
+# Which regions have data. EU is a roadmap placeholder for now — listed so
+# the UI can show the chip but tickers come back empty until we have a
+# European seed.
+ACTIVE_REGIONS: tuple[str, ...] = ("US",)
+
+
+# ---------------------------------------------------------------------------
+# Market-cap buckets (categorical, static)
+# ---------------------------------------------------------------------------
+#
+# A company crosses these thresholds maybe once a decade, so we compute the
+# bucket *once* (at enrichment time) and freeze it. The UI filters by
+# bucket; the numeric market-cap field is omitted from API responses so
+# it doesn't confuse anyone into thinking it's live.
+
+CAP_BUCKETS: tuple[str, ...] = ("blue-chip", "large", "mid", "small", "micro")
+
+CAP_BUCKET_LABELS: dict[str, str] = {
+    "blue-chip": "Blue chip",
+    "large":     "Large cap",
+    "mid":       "Mid cap",
+    "small":     "Small cap",
+    "micro":     "Micro cap",
+}
+
+
+def classify_cap(market_cap_usd: float | None) -> str | None:
+    """Categorize a market cap into a static bucket. Thresholds are conventional:
+
+    * Blue chip / mega cap: >= $200B
+    * Large cap:            $10B  – $200B
+    * Mid cap:              $2B   – $10B
+    * Small cap:            $300M – $2B
+    * Micro cap:            < $300M
+
+    Returns None if ``market_cap_usd`` is missing or non-positive.
+    """
+    if market_cap_usd is None:
+        return None
+    try:
+        v = float(market_cap_usd)
+    except (TypeError, ValueError):
+        return None
+    if v <= 0:
+        return None
+    if v >= 200e9: return "blue-chip"
+    if v >= 10e9:  return "large"
+    if v >= 2e9:   return "mid"
+    if v >= 300e6: return "small"
+    return "micro"
 
 # GICS top-level sectors — hardcoded because the list is small, stable, and
 # the canonical source (MSCI) is paid. yfinance returns these names verbatim,
@@ -118,7 +169,7 @@ class Ticker:
     exchange: str               # normalized: NYSE | NASDAQ | AMEX | OTC
     sector: str | None = None
     industry: str | None = None
-    market_cap: float | None = None
+    cap_bucket: str | None = None   # blue-chip | large | mid | small | micro
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -141,11 +192,22 @@ class Universe:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Universe":
+        # Filter to known Ticker fields so legacy seed files (e.g. those that
+        # still carry numeric `market_cap`) load cleanly. Migration to
+        # `cap_bucket` happens at enrichment time, not at load time.
+        keep = set(Ticker.__dataclass_fields__)
+        tickers = []
+        for raw in data.get("tickers", []):
+            kwargs = {k: v for k, v in raw.items() if k in keep}
+            # Honour a legacy numeric market_cap by deriving the bucket.
+            if "cap_bucket" not in raw and isinstance(raw.get("market_cap"), (int, float)):
+                kwargs.setdefault("cap_bucket", classify_cap(raw["market_cap"]))
+            tickers.append(Ticker(**kwargs))
         return cls(
             as_of=data.get("as_of", ""),
             region=data.get("region", "US"),
             source=data.get("source", ""),
-            tickers=[Ticker(**t) for t in data.get("tickers", [])],
+            tickers=tickers,
         )
 
 
@@ -231,12 +293,23 @@ def enrich_with_yfinance(
     limit: int | None = 500,
     sleep_between: float = 0.15,
     on_progress: callable | None = None,
+    checkpoint_every: int = 50,
+    universe_for_checkpoint: "Universe | None" = None,
 ) -> list[Ticker]:
-    """Fill in ``sector`` / ``industry`` / ``market_cap`` from yfinance.
+    """Fill in ``sector`` / ``industry`` / ``cap_bucket`` from yfinance.
 
     yfinance is rate-limited; we sleep briefly between calls and cap the
     number of tickers enriched by default (``limit=500``) to keep runtime
     bounded (~10 min). Unenrichable tickers keep their existing fields.
+
+    The numeric market cap from yfinance is *only* used to compute
+    ``cap_bucket`` (categorical, static); the raw number isn't stored
+    because it goes stale within a day and we don't want stale numbers
+    in the UI.
+
+    Pass ``universe_for_checkpoint`` to persist partial progress every
+    ``checkpoint_every`` tickers — useful for long crawls so a rate-limit
+    or network hiccup doesn't lose all progress.
 
     Returns the same ``Ticker`` objects, mutated in place.
     """
@@ -255,11 +328,22 @@ def enrich_with_yfinance(
         mcap = info.get("marketCap")
         if sector:   t.sector = str(sector)
         if industry: t.industry = str(industry)
-        if isinstance(mcap, (int, float)) and mcap > 0:
-            t.market_cap = float(mcap)
+        bucket = classify_cap(mcap)
+        if bucket:
+            t.cap_bucket = bucket
         if on_progress is not None:
             try:
                 on_progress(i + 1, len(target), t)
+            except Exception:  # noqa: BLE001
+                pass
+        # Checkpoint periodically so a long crawl can resume from disk.
+        if (
+            universe_for_checkpoint is not None
+            and checkpoint_every > 0
+            and (i + 1) % checkpoint_every == 0
+        ):
+            try:
+                save_universe(universe_for_checkpoint)
             except Exception:  # noqa: BLE001
                 pass
         if sleep_between > 0:
@@ -302,23 +386,56 @@ def refresh(
 ) -> Universe:
     """Fetch + optionally enrich + save. Returns the final Universe."""
     sec_rows = fetch_sec_tickers()
-    if enrich_top is not None and enrich_top > 0:
-        # Without market-cap data the order is whatever SEC returns, which
-        # is roughly alphabetical-by-CIK. The first call has to enumerate
-        # something — we enrich the first N from that order, then resort
-        # the universe by market-cap-desc so the UI shows the most-followed
-        # names first.
-        enrich_with_yfinance(sec_rows, limit=enrich_top, on_progress=on_progress)
-        sec_rows.sort(
-            key=lambda t: (t.market_cap or 0.0),
-            reverse=True,
-        )
     universe = Universe(
         as_of=date.today().isoformat(),
         region="US",
         source="sec:company_tickers_exchange",
         tickers=sec_rows,
     )
+    if enrich_top is not None and enrich_top > 0:
+        enrich_with_yfinance(
+            sec_rows,
+            limit=enrich_top,
+            on_progress=on_progress,
+            universe_for_checkpoint=universe,
+        )
+        # Bring blue-chips to the top, then large, mid, small, micro, then
+        # unenriched. Within a bucket the SEC order is roughly by filings
+        # activity, which is a decent proxy for "how often does anyone
+        # touch this name".
+        rank = {b: i for i, b in enumerate(CAP_BUCKETS)}
+        sec_rows.sort(key=lambda t: rank.get(t.cap_bucket or "", 99))
+    save_universe(universe)
+    return universe
+
+
+def enrich_existing(
+    *,
+    start: int = 0,
+    limit: int | None = None,
+    on_progress: callable | None = None,
+) -> Universe:
+    """Top up enrichment on an already-saved seed without re-fetching SEC.
+
+    Useful when extending coverage beyond the current top-N enriched —
+    re-running ``refresh()`` would re-fetch from SEC unnecessarily. Loads
+    the on-disk universe, skips already-enriched rows (those with
+    ``cap_bucket`` set), and runs yfinance on the next slice.
+    """
+    universe = load_universe()
+    if universe is None:
+        raise RuntimeError("no universe seed yet — run `compass refresh-universe` first.")
+    pending = [t for t in universe.tickers if t.cap_bucket is None][start:]
+    if limit is not None:
+        pending = pending[:limit]
+    enrich_with_yfinance(
+        pending,
+        limit=None,
+        on_progress=on_progress,
+        universe_for_checkpoint=universe,
+    )
+    rank = {b: i for i, b in enumerate(CAP_BUCKETS)}
+    universe.tickers.sort(key=lambda t: rank.get(t.cap_bucket or "", 99))
     save_universe(universe)
     return universe
 
@@ -333,20 +450,65 @@ def filter_tickers(
     *,
     sector: str | None = None,
     exchange: str | None = None,
+    cap_bucket: str | None = None,
     query: str | None = None,
-    limit: int = 500,
 ) -> list[Ticker]:
-    """Cheap in-memory filter — case-insensitive substring on ticker + name."""
+    """Filter ``universe.tickers`` by category fields + rank by query relevance.
+
+    Returns *all* matching rows (no pagination). Callers slice with
+    ``offset`` + ``limit`` for paged display — the FastAPI endpoint does
+    this so the UI can render a "page N of M" footer that knows the true
+    match count.
+
+    Search ranking: when ``query`` is given, results are sorted by how
+    closely the query matches a ticker / name — exact ticker match first,
+    then ticker prefix, then name word-start, then substring. Typing
+    ``"C"`` lands JPMorgan ticker ``"C"`` (Citigroup) at the top, not the
+    long list of names that happen to contain a 'c'.
+    """
     rows = universe.tickers
     if sector:
         rows = [r for r in rows if (r.sector or "").lower() == sector.lower()]
     if exchange:
         rows = [r for r in rows if r.exchange.upper() == exchange.upper()]
+    if cap_bucket:
+        rows = [r for r in rows if (r.cap_bucket or "") == cap_bucket.lower()]
     if query:
-        q = query.strip().lower()
+        q = query.strip()
         if q:
-            rows = [
-                r for r in rows
-                if q in r.ticker.lower() or q in r.name.lower()
-            ]
-    return rows[:limit]
+            scored = [(r, _score_query(r, q)) for r in rows]
+            kept = [(r, s) for r, s in scored if s > 0]
+            kept.sort(key=lambda rs: (-rs[1], rs[0].ticker))
+            rows = [r for r, _ in kept]
+    return rows
+
+
+def _score_query(t: Ticker, query: str) -> int:
+    """Higher score = better match. 0 means no match (filtered out).
+
+    Tiers:
+    * 1000 — ticker == query (exact)
+    * 500  — ticker starts with query
+    * 300  — name starts with query
+    * 100  — any word of name starts with query (e.g. "C" → "Citigroup")
+    * 50   — query is a substring of the ticker
+    * 10   — query is a substring of the name
+    """
+    ql = query.lower()
+    tl = t.ticker.lower()
+    nl = t.name.lower()
+    if tl == ql:
+        return 1000
+    if tl.startswith(ql):
+        return 500
+    if nl.startswith(ql):
+        return 300
+    # Word-start match — handles "C" → "Citigroup Inc." and so on.
+    for word in nl.replace(",", " ").replace(".", " ").split():
+        if word.startswith(ql):
+            return 100
+    if ql in tl:
+        return 50
+    if ql in nl:
+        return 10
+    return 0

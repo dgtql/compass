@@ -7,12 +7,16 @@ import json
 import pytest
 
 from compass.universe import (
+    ACTIVE_REGIONS,
     ALLOWED_EXCHANGES,
+    CAP_BUCKETS,
     GICS_SECTORS,
     REGIONS,
     Ticker,
     Universe,
     _parse_sec_payload,
+    _score_query,
+    classify_cap,
     filter_tickers,
     load_universe,
     save_universe,
@@ -120,12 +124,6 @@ def test_filter_combined() -> None:
     assert {r.ticker for r in rows} == {"AAPL", "NVDA"}
 
 
-def test_filter_limit() -> None:
-    u = _make_universe()
-    rows = filter_tickers(u, limit=2)
-    assert len(rows) == 2
-
-
 def test_filter_no_match_returns_empty() -> None:
     u = _make_universe()
     rows = filter_tickers(u, sector="Utilities")
@@ -171,5 +169,124 @@ def test_allowed_exchanges_known() -> None:
     assert set(ALLOWED_EXCHANGES) == {"NYSE", "NASDAQ", "AMEX"}
 
 
-def test_us_is_only_region() -> None:
-    assert REGIONS == ("US",)
+def test_regions_include_eu_placeholder() -> None:
+    assert "US" in REGIONS
+    assert "EU" in REGIONS  # placeholder for the UI roadmap pill
+    assert "US" in ACTIVE_REGIONS
+    assert "EU" not in ACTIVE_REGIONS  # not populated yet
+
+
+# --- cap-bucket classifier --------------------------------------------------
+
+
+@pytest.mark.parametrize("cap,expected", [
+    (5e12,    "blue-chip"),
+    (200e9,   "blue-chip"),    # threshold inclusive
+    (199e9,   "large"),
+    (50e9,    "large"),
+    (10e9,    "large"),
+    (9e9,     "mid"),
+    (2e9,     "mid"),
+    (1.9e9,   "small"),
+    (300e6,   "small"),
+    (299e6,   "micro"),
+    (1,       "micro"),
+    (0,       None),
+    (-1,      None),
+    (None,    None),
+])
+def test_classify_cap_buckets(cap, expected) -> None:
+    assert classify_cap(cap) == expected
+
+
+def test_cap_buckets_constant_complete() -> None:
+    assert CAP_BUCKETS == ("blue-chip", "large", "mid", "small", "micro")
+
+
+# --- search ranking ----------------------------------------------------------
+
+
+def test_search_ranks_exact_ticker_highest() -> None:
+    """Typing 'C' should put NYSE:C (Citigroup) before companies that
+    merely contain 'c' somewhere in their name."""
+    u = Universe(as_of="x", region="US", source="x", tickers=[
+        Ticker(cik=1, ticker="C",    name="Citigroup Inc",       exchange="NYSE"),
+        Ticker(cik=2, ticker="MSFT", name="Microsoft Corp",      exchange="NASDAQ"),
+        Ticker(cik=3, ticker="CSCO", name="Cisco Systems",       exchange="NASDAQ"),
+        Ticker(cik=4, ticker="AAPL", name="Apple Inc.",          exchange="NASDAQ"),
+        Ticker(cik=5, ticker="GOOG", name="Alphabet Inc Class C", exchange="NASDAQ"),
+    ])
+    rows = filter_tickers(u, query="C")
+    assert rows[0].ticker == "C"          # exact ticker match wins
+    assert rows[1].ticker == "CSCO"        # ticker prefix
+    # Word-start in name ('Citigroup', 'Cisco', 'Class C') — but 'Cisco'
+    # was already matched higher via ticker prefix. Microsoft contains 'c'
+    # mid-word; should come AFTER prefix matches.
+    tickers_in_order = [r.ticker for r in rows]
+    assert tickers_in_order.index("MSFT") > tickers_in_order.index("C")
+    assert tickers_in_order.index("AAPL") > tickers_in_order.index("C")
+
+
+def test_search_word_start_beats_substring() -> None:
+    """Name word-start > ticker substring > name substring."""
+    u = Universe(as_of="x", region="US", source="x", tickers=[
+        Ticker(cik=1, ticker="XYZ",  name="Some other Beta Corp", exchange="NYSE"),    # name substring
+        Ticker(cik=2, ticker="META", name="Meta Platforms",        exchange="NASDAQ"), # ticker substring
+        Ticker(cik=3, ticker="ABC",  name="Eta Foods",             exchange="NYSE"),   # name starts-with
+    ])
+    rows = filter_tickers(u, query="eta")
+    # name-start (300) > ticker-substring (50) > name-substring (10).
+    assert [r.ticker for r in rows] == ["ABC", "META", "XYZ"]
+
+
+def test_search_excludes_zero_score() -> None:
+    u = Universe(as_of="x", region="US", source="x", tickers=[
+        Ticker(cik=1, ticker="AAPL", name="Apple Inc.",       exchange="NASDAQ"),
+        Ticker(cik=2, ticker="MSFT", name="Microsoft Corp",   exchange="NASDAQ"),
+    ])
+    rows = filter_tickers(u, query="zzzzz")
+    assert rows == []
+
+
+def test_score_query_thresholds() -> None:
+    t = Ticker(cik=1, ticker="C", name="Citigroup Inc", exchange="NYSE")
+    assert _score_query(t, "c") == 1000          # exact ticker
+    t2 = Ticker(cik=2, ticker="CSCO", name="Cisco Systems", exchange="NASDAQ")
+    assert _score_query(t2, "cs") == 500         # ticker prefix
+    t3 = Ticker(cik=3, ticker="JPM", name="JPMorgan Chase", exchange="NYSE")
+    assert _score_query(t3, "jp") == 500         # ticker prefix
+    assert _score_query(t3, "chase") == 100      # name word-start
+    assert _score_query(t3, "morg") == 10        # name substring only (mid-word)
+    assert _score_query(t3, "zzzz") == 0         # no match at all
+
+
+# --- cap_bucket filter -------------------------------------------------------
+
+
+def test_filter_by_cap_bucket() -> None:
+    u = Universe(as_of="x", region="US", source="x", tickers=[
+        Ticker(cik=1, ticker="NVDA", name="Nvidia", exchange="NASDAQ", cap_bucket="blue-chip"),
+        Ticker(cik=2, ticker="AMD",  name="AMD",    exchange="NASDAQ", cap_bucket="large"),
+        Ticker(cik=3, ticker="SOC",  name="Sable",  exchange="NYSE",   cap_bucket="small"),
+    ])
+    rows = filter_tickers(u, cap_bucket="blue-chip")
+    assert {r.ticker for r in rows} == {"NVDA"}
+
+
+def test_from_dict_drops_legacy_market_cap_field() -> None:
+    """Loading a JSON that still has the old numeric `market_cap` field
+    doesn't crash and derives `cap_bucket` from it."""
+    raw = {
+        "as_of": "2026-05-13",
+        "region": "US",
+        "source": "x",
+        "tickers": [
+            {"cik": 1, "ticker": "NVDA", "name": "Nvidia",
+             "exchange": "NASDAQ", "sector": None, "industry": None,
+             "market_cap": 5e12},
+        ],
+    }
+    u = Universe.from_dict(raw)
+    assert u.tickers[0].cap_bucket == "blue-chip"
+    # Old field should not appear on the new dataclass.
+    assert not hasattr(u.tickers[0], "market_cap")

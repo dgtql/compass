@@ -32,8 +32,11 @@ from compass.engagement import (
 )
 from compass.universe import (
     ALLOWED_EXCHANGES,
+    CAP_BUCKET_LABELS,
     GICS_SECTORS,
+    REGIONS,
     Ticker,
+    enrich_existing,
     load_universe,
     refresh as refresh_universe,
     universe_path,
@@ -329,7 +332,8 @@ def refresh_universe_cmd(
 def universe(
     sector: str = typer.Option(None, "--sector", "-s", help="Filter by sector."),
     exchange: str = typer.Option(None, "--exchange", "-e", help="Filter by exchange."),
-    query: str = typer.Option(None, "--query", "-q", help="Substring on ticker or name."),
+    cap_bucket: str = typer.Option(None, "--cap", "-c", help="Filter by cap bucket (blue-chip/large/mid/small/micro)."),
+    query: str = typer.Option(None, "--query", "-q", help="Ranked search on ticker / name."),
     limit: int = typer.Option(40, "--limit", "-n", help="Max rows to show."),
 ) -> None:
     """List the US ticker universe. Run `compass refresh-universe` first."""
@@ -343,30 +347,69 @@ def universe(
         )
         sys.exit(2)
 
-    rows = filter_tickers(
+    matched = filter_tickers(
         loaded,
         sector=sector,
         exchange=exchange,
+        cap_bucket=cap_bucket,
         query=query,
-        limit=limit,
     )
+    rows = matched[:limit]
     if not rows:
         typer.secho("No matches.", fg=typer.colors.YELLOW)
         return
 
     typer.echo(f"{'TICKER':<8} {'EXCH':<7} {'NAME':<40} {'SECTOR':<25} CAP")
     for t in rows:
-        cap = (
-            f"${t.market_cap / 1e9:.1f}B" if t.market_cap else "—"
-        )
+        cap = CAP_BUCKET_LABELS.get(t.cap_bucket or "", "—")
         sector_v = t.sector or "—"
         typer.echo(
             f"{t.ticker:<8} {t.exchange:<7} {t.name[:40]:<40} {sector_v[:25]:<25} {cap}"
         )
     typer.echo("")
     typer.echo(
-        f"({len(rows)} of {len(loaded.tickers)} total · as of {loaded.as_of})"
+        f"({len(rows)} of {len(matched)} matched · {len(loaded.tickers)} total · as of {loaded.as_of})"
     )
+
+
+@app.command("enrich-universe")
+def enrich_universe_cmd(
+    count: int = typer.Option(
+        300,
+        "--count",
+        "-n",
+        help="How many additional tickers to enrich in this run.",
+    ),
+    start: int = typer.Option(
+        0,
+        "--start",
+        help="Skip this many already-unenriched tickers (resume).",
+    ),
+) -> None:
+    """Extend enrichment without re-fetching the SEC list.
+
+    Each call enriches the next ``count`` unenriched tickers and saves
+    progress every 50 rows, so a long crawl that hits a rate limit
+    preserves what it got. Run this repeatedly to grow coverage beyond
+    the shipped seed.
+    """
+    last_pct = -1
+
+    def progress(i: int, total: int, t: Ticker) -> None:
+        nonlocal last_pct
+        pct = int(100 * i / max(total, 1))
+        if pct != last_pct and pct % 5 == 0:
+            typer.echo(f"  enriched {i}/{total}  ({pct}%)  latest: {t.ticker:<6} {t.name[:40]}")
+            last_pct = pct
+
+    try:
+        universe = enrich_existing(start=start, limit=count, on_progress=progress)
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        sys.exit(1)
+    enriched = sum(1 for t in universe.tickers if t.cap_bucket is not None)
+    typer.echo("")
+    typer.echo(f"Total enriched: {enriched} of {len(universe.tickers)}.")
 
 
 @app.command()

@@ -90,7 +90,7 @@ export function MyUniverseView({ onOpenUniverse }: Props) {
                     <th className="font-medium pb-2 pr-3">Name</th>
                     <th className="font-medium pb-2 pr-3">Exchange</th>
                     <th className="font-medium pb-2 pr-3">Sector</th>
-                    <th className="font-medium pb-2 pr-3 text-right">Mkt cap</th>
+                    <th className="font-medium pb-2 pr-3">Cap</th>
                     <th className="font-medium pb-2 pr-3">Added</th>
                     <th className="font-medium pb-2 pr-3 text-right">Remove</th>
                   </tr>
@@ -106,9 +106,7 @@ export function MyUniverseView({ onOpenUniverse }: Props) {
                         ) : '—'}
                       </td>
                       <td className="py-2 pr-3 text-muted-foreground text-xs">{t.sector ?? '—'}</td>
-                      <td className="py-2 pr-3 text-right text-muted-foreground text-xs">
-                        {t.market_cap ? fmtCap(t.market_cap) : '—'}
-                      </td>
+                      <td className="py-2 pr-3 text-muted-foreground text-xs">{capLabel(t.cap_bucket)}</td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">{fmtAddedAt(t.added_at)}</td>
                       <td className="py-2 pr-3 text-right">
                         <button
@@ -175,11 +173,16 @@ function ErrorPanel({ error, onReload }: { error: string; onReload: () => void }
   );
 }
 
-function fmtCap(usd: number): string {
-  if (usd >= 1e12) return `$${(usd / 1e12).toFixed(2)}T`;
-  if (usd >= 1e9)  return `$${(usd / 1e9).toFixed(usd / 1e9 < 10 ? 1 : 0)}B`;
-  if (usd >= 1e6)  return `$${(usd / 1e6).toFixed(0)}M`;
-  return `$${usd.toLocaleString()}`;
+const CAP_LABELS: Record<string, string> = {
+  'blue-chip': 'Blue chip',
+  large: 'Large cap',
+  mid: 'Mid cap',
+  small: 'Small cap',
+  micro: 'Micro cap',
+};
+function capLabel(v: string | null): string {
+  if (!v) return '—';
+  return CAP_LABELS[v] ?? v;
 }
 
 function fmtAddedAt(iso: string): string {

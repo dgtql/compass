@@ -13,17 +13,22 @@ export type ApiTicker = {
   exchange: string;
   sector: string | null;
   industry: string | null;
-  market_cap: number | null;
+  cap_bucket: string | null;   // 'blue-chip' | 'large' | 'mid' | 'small' | 'micro' | null
 };
 
 export type ApiUniverse = {
   as_of: string;
   region: string;
   source: string;
-  total: number;
-  count: number;
+  total: number;     // size of the entire universe
+  matched: number;   // matches after filtering (before pagination)
+  count: number;     // page size returned
+  offset: number;
   tickers: ApiTicker[];
 };
+
+export type ApiRegion = { id: string; label: string; active: boolean };
+export type ApiCapBucket = { id: string; label: string };
 
 async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -38,16 +43,22 @@ async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function getUniverse(params: {
+  region?: string;
   sector?: string;
   exchange?: string;
+  cap_bucket?: string;
   query?: string;
+  offset?: number;
   limit?: number;
 } = {}): Promise<ApiUniverse> {
   const search = new URLSearchParams();
-  if (params.sector)   search.set('sector', params.sector);
-  if (params.exchange) search.set('exchange', params.exchange);
-  if (params.query)    search.set('query', params.query);
-  search.set('limit', String(params.limit ?? 1000));
+  if (params.region)     search.set('region', params.region);
+  if (params.sector)     search.set('sector', params.sector);
+  if (params.exchange)   search.set('exchange', params.exchange);
+  if (params.cap_bucket) search.set('cap_bucket', params.cap_bucket);
+  if (params.query)      search.set('query', params.query);
+  search.set('offset', String(params.offset ?? 0));
+  search.set('limit',  String(params.limit ?? 500));
   return getJson<ApiUniverse>(`/api/universe?${search.toString()}`);
 }
 
@@ -59,8 +70,12 @@ export function getExchanges(): Promise<string[]> {
   return getJson<string[]>('/api/universe/exchanges');
 }
 
-export function getRegions(): Promise<string[]> {
-  return getJson<string[]>('/api/universe/regions');
+export function getRegions(): Promise<ApiRegion[]> {
+  return getJson<ApiRegion[]>('/api/universe/regions');
+}
+
+export function getCapBuckets(): Promise<ApiCapBucket[]> {
+  return getJson<ApiCapBucket[]>('/api/universe/cap-buckets');
 }
 
 // --- My universe (PM's personal watchlist) --------------------------------
@@ -74,7 +89,7 @@ export type ApiWatchlistEntry = {
   exchange: string | null;
   sector: string | null;
   industry: string | null;
-  market_cap: number | null;
+  cap_bucket: string | null;
   cik: number | null;
 };
 

@@ -189,7 +189,7 @@ def hydrate(watchlist: Watchlist) -> list[dict[str, Any]]:
             "exchange": u.get("exchange"),
             "sector": u.get("sector"),
             "industry": u.get("industry"),
-            "market_cap": u.get("market_cap"),
+            "cap_bucket": u.get("cap_bucket"),
             "cik": u.get("cik"),
         })
     return rows

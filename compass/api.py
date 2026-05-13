@@ -36,7 +36,10 @@ from compass.engagement import Engagement, list_engagements, resolve_analyst
 from compass.planner import list_templates, plan as plan_template
 from compass.skills import list_skills
 from compass.universe import (
+    ACTIVE_REGIONS,
     ALLOWED_EXCHANGES,
+    CAP_BUCKETS,
+    CAP_BUCKET_LABELS,
     GICS_SECTORS,
     REGIONS,
     filter_tickers,
@@ -167,39 +170,77 @@ async def _drive_run(run: dict, engagement: Engagement) -> None:
 
 @app.get("/api/universe")
 def get_universe(
+    region: str = Query("US", description="Region — only 'US' has data; 'EU' is a placeholder."),
     sector: str | None = Query(None, description="Filter by sector."),
     exchange: str | None = Query(None, description="Filter by exchange (NYSE/NASDAQ/AMEX)."),
-    query: str | None = Query(None, description="Substring match on ticker or name."),
-    limit: int = Query(500, ge=1, le=10_000, description="Max rows to return."),
+    cap_bucket: str | None = Query(None, description="Filter by market-cap bucket."),
+    query: str | None = Query(None, description="Ranked search across ticker + name."),
+    offset: int = Query(0, ge=0, description="Pagination offset (rows to skip)."),
+    limit: int = Query(500, ge=1, le=2000, description="Page size."),
 ) -> dict:
-    """Return the US ticker universe (filtered).
+    """Return tickers in the universe (filtered + paginated).
 
-    Returns ``{as_of, region, source, total, tickers: [...]}``. Run
-    ``compass refresh-universe`` once to seed the file; subsequent calls
-    are cached in-memory by the API process.
+    Returns ``{as_of, region, source, total, matched, count, offset,
+    tickers: [...]}``. ``total`` is the size of the entire universe;
+    ``matched`` is the number of rows that satisfied the filters (before
+    pagination); ``count`` is the page size returned.
+
+    Run ``compass refresh-universe`` once to seed the file. Subsequent
+    calls reuse the in-memory load.
     """
+    # EU is a placeholder for v1. Return the same shape with empty rows so
+    # the UI can keep its region selector enabled.
+    if region.upper() == "EU":
+        return {
+            "as_of": "",
+            "region": "EU",
+            "source": "placeholder",
+            "total": 0,
+            "matched": 0,
+            "count": 0,
+            "offset": 0,
+            "tickers": [],
+        }
+
     loaded = load_universe()
     if loaded is None:
         raise HTTPException(
             status_code=503,
             detail="universe seed missing — run `compass refresh-universe` first.",
         )
-    rows = filter_tickers(
-        loaded, sector=sector, exchange=exchange, query=query, limit=limit
+    matched = filter_tickers(
+        loaded,
+        sector=sector,
+        exchange=exchange,
+        cap_bucket=cap_bucket,
+        query=query,
     )
+    page = matched[offset : offset + limit]
     return {
         "as_of": loaded.as_of,
         "region": loaded.region,
         "source": loaded.source,
         "total": len(loaded.tickers),
-        "count": len(rows),
-        "tickers": [t.to_dict() for t in rows],
+        "matched": len(matched),
+        "count": len(page),
+        "offset": offset,
+        "tickers": [t.to_dict() for t in page],
     }
 
 
 @app.get("/api/universe/regions")
-def get_regions() -> list[str]:
-    return list(REGIONS)
+def get_regions() -> list[dict]:
+    """Regions, with an ``active`` flag — EU is listed but not yet populated."""
+    return [
+        {"id": r, "label": _REGION_LABELS.get(r, r), "active": r in ACTIVE_REGIONS}
+        for r in REGIONS
+    ]
+
+
+_REGION_LABELS: dict[str, str] = {
+    "US": "United States",
+    "EU": "Europe (coming soon)",
+}
 
 
 @app.get("/api/universe/sectors")
@@ -210,6 +251,12 @@ def get_sectors() -> list[str]:
 @app.get("/api/universe/exchanges")
 def get_exchanges() -> list[str]:
     return list(ALLOWED_EXCHANGES)
+
+
+@app.get("/api/universe/cap-buckets")
+def get_cap_buckets() -> list[dict]:
+    """Categorical market-cap buckets, with display labels."""
+    return [{"id": b, "label": CAP_BUCKET_LABELS[b]} for b in CAP_BUCKETS]
 
 
 # --- my universe (PM's personal watchlist) ---------------------------------

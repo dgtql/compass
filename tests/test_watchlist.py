@@ -102,8 +102,8 @@ def test_hydrate_combines_watchlist_with_universe(wl_path, monkeypatch) -> None:
         region="US",
         source="test",
         tickers=[
-            Ticker(cik=1, ticker="NVDA", name="Nvidia",  exchange="NASDAQ", sector="Tech",     market_cap=5e12),
-            Ticker(cik=2, ticker="SOC",  name="Sable",   exchange="NYSE",   sector="Energy",   market_cap=2e9),
+            Ticker(cik=1, ticker="NVDA", name="Nvidia",  exchange="NASDAQ", sector="Tech",   cap_bucket="blue-chip"),
+            Ticker(cik=2, ticker="SOC",  name="Sable",   exchange="NYSE",   sector="Energy", cap_bucket="mid"),
         ],
     )
     monkeypatch.setattr("compass.universe.load_universe", lambda: fake)
@@ -118,7 +118,7 @@ def test_hydrate_combines_watchlist_with_universe(wl_path, monkeypatch) -> None:
     rows = hydrate(load_watchlist())
     by_ticker = {r["ticker"]: r for r in rows}
     assert by_ticker["NVDA"]["sector"] == "Tech"
-    assert by_ticker["NVDA"]["market_cap"] == 5e12
+    assert by_ticker["NVDA"]["cap_bucket"] == "blue-chip"
     assert by_ticker["NVDA"]["note"] == "N"
     assert by_ticker["SOC"]["industry"] is None  # not set in the fake universe
 
