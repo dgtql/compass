@@ -616,6 +616,33 @@
       "cap_bucket": "blue-chip"
     },
     {
+      "cik": 1046179,
+      "ticker": "TSM",
+      "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "cap_bucket": "blue-chip"
+    },
+    {
+      "cik": 1652044,
+      "ticker": "GOOG",
+      "name": "Alphabet Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "blue-chip"
+    },
+    {
+      "cik": 1067983,
+      "ticker": "BRK-A",
+      "name": "BERKSHIRE HATHAWAY INC",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance - Diversified",
+      "cap_bucket": "blue-chip"
+    },
+    {
       "cik": 753308,
       "ticker": "NEE",
       "name": "NEXTERA ENERGY INC",
@@ -8272,6 +8299,159 @@
       "exchange": "NASDAQ",
       "sector": "Industrials",
       "industry": "Building Products & Equipment",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 36966,
+      "ticker": "FHN",
+      "name": "FIRST HORIZON CORP",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 912093,
+      "ticker": "VIAV",
+      "name": "VIAVI SOLUTIONS INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1468174,
+      "ticker": "H",
+      "name": "Hyatt Hotels Corp",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Lodging",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 72971,
+      "ticker": "WFC-PC",
+      "name": "WELLS FARGO & COMPANY/MN",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1119639,
+      "ticker": "PBR-A",
+      "name": "PETROBRAS - PETROLEO BRASILEIRO SA",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 899051,
+      "ticker": "ALL-PH",
+      "name": "ALLSTATE CORP",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 920760,
+      "ticker": "LEN-B",
+      "name": "LENNAR CORP /NEW/",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Residential Construction",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 46619,
+      "ticker": "HEI-A",
+      "name": "HEICO CORP",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1160330,
+      "ticker": "BBDO",
+      "name": "BANK BRADESCO",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1754301,
+      "ticker": "FOX",
+      "name": "Fox Corp",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 63754,
+      "ticker": "MKC-V",
+      "name": "MCCORMICK & CO INC",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1560385,
+      "ticker": "FWONK",
+      "name": "Liberty Media Corp",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1564708,
+      "ticker": "NWS",
+      "name": "NEWS CORP",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 91576,
+      "ticker": "KEY-PK",
+      "name": "KEYCORP /NEW/",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 105016,
+      "ticker": "WSO-B",
+      "name": "WATSCO INC",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Industrial Distribution",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 14693,
+      "ticker": "BF-B",
+      "name": "BROWN FORMAN CORP",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Wineries & Distilleries",
+      "cap_bucket": "large"
+    },
+    {
+      "cik": 1884082,
+      "ticker": "PSNYW",
+      "name": "Polestar Automotive Holding UK PLC",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
       "cap_bucket": "large"
     },
     {
@@ -18379,6 +18559,213 @@
       "exchange": "NYSE",
       "sector": "Consumer Cyclical",
       "industry": "Personal Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 891103,
+      "ticker": "MTCH",
+      "name": "Match Group, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1549084,
+      "ticker": "CHRN",
+      "name": "EKSO BIONICS HOLDINGS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1826836,
+      "ticker": "AYA",
+      "name": "Aya Gold & Silver Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Basic Materials",
+      "industry": "Silver",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1617640,
+      "ticker": "Z",
+      "name": "ZILLOW GROUP, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 12208,
+      "ticker": "BIO-B",
+      "name": "BIO-RAD LABORATORIES, INC.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 4457,
+      "ticker": "UHAL-B",
+      "name": "U-Haul Holding Co /NV/",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Rental & Leasing Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 24545,
+      "ticker": "TAP-A",
+      "name": "MOLSON COORS BEVERAGE CO",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Brewers",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1157557,
+      "ticker": "CIG-C",
+      "name": "ENERGY CO OF MINAS GERAIS",
+      "exchange": "NYSE",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1570585,
+      "ticker": "LBTYB",
+      "name": "Liberty Global Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1567683,
+      "ticker": "CWEN-A",
+      "name": "Clearway Energy, Inc.",
+      "exchange": "NYSE",
+      "sector": "Utilities",
+      "industry": "Utilities - Renewable",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1786205,
+      "ticker": "ACLX",
+      "name": "Arcellx, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1012019,
+      "ticker": "RUSHB",
+      "name": "RUSH ENTERPRISES INC \\TX\\",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1178879,
+      "ticker": "FOLD",
+      "name": "AMICUS THERAPEUTICS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 925261,
+      "ticker": "AKO-B",
+      "name": "ANDINA BOTTLING CO INC",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1570585,
+      "ticker": "LBTYK",
+      "name": "Liberty Global Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 729580,
+      "ticker": "BELFB",
+      "name": "BEL FUSE INC /NJ",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 925261,
+      "ticker": "AKO-A",
+      "name": "ANDINA BOTTLING CO INC",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 67887,
+      "ticker": "MOG-B",
+      "name": "MOOG INC.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1958140,
+      "ticker": "BATRK",
+      "name": "Atlanta Braves Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 43920,
+      "ticker": "GEF-B",
+      "name": "GREIF, INC",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Packaging & Containers",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 1336917,
+      "ticker": "UA",
+      "name": "Under Armour, Inc.",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Manufacturing",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 887733,
+      "ticker": "CENTA",
+      "name": "CENTRAL GARDEN & PET CO",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "mid"
+    },
+    {
+      "cik": 107140,
+      "ticker": "WLYB",
+      "name": "JOHN WILEY & SONS, INC.",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Publishing",
       "cap_bucket": "mid"
     },
     {
@@ -33310,6 +33697,204 @@
       "exchange": "NASDAQ",
       "sector": "Healthcare",
       "industry": "Biotechnology",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1643615,
+      "ticker": "ONT",
+      "name": "Montrose Environmental Group, Inc.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Waste Management",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1702780,
+      "ticker": "OPTU",
+      "name": "Optimum Communications, Inc.",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 2040491,
+      "ticker": "ASIC",
+      "name": "Ategrity Specialty Insurance Co Holdings",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 2042347,
+      "ticker": "SPTX",
+      "name": "Seaport Therapeutics, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 2092897,
+      "ticker": "AACI",
+      "name": "Armada Acquisition Corp. III",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 2100125,
+      "ticker": "CAQ",
+      "name": "Cambridge Acquisition Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1831840,
+      "ticker": "SEMR",
+      "name": "SEMrush Holdings, Inc.",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1553079,
+      "ticker": "FISK",
+      "name": "Empire State Realty OP, L.P.",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1712184,
+      "ticker": "LILAK",
+      "name": "Liberty Latin America Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1553079,
+      "ticker": "OGCP",
+      "name": "Empire State Realty OP, L.P.",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 845877,
+      "ticker": "AGM-A",
+      "name": "FEDERAL AGRICULTURAL MORTGAGE CORP",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1464343,
+      "ticker": "ATLC",
+      "name": "Atlanticus Holdings Corp",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 88948,
+      "ticker": "SENEA",
+      "name": "Seneca Foods Corp",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1726173,
+      "ticker": "BH",
+      "name": "Biglari Holdings Inc.",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1643615,
+      "ticker": "MEG",
+      "name": "Montrose Environmental Group, Inc.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Waste Management",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 351834,
+      "ticker": "STKL",
+      "name": "SunOpta Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 43196,
+      "ticker": "GTN-A",
+      "name": "GRAY MEDIA, INC",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Broadcasting",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1071255,
+      "ticker": "GDEN",
+      "name": "NEW ROYAL HOLDCO I INC.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Resorts & Casinos",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 800457,
+      "ticker": "DGICB",
+      "name": "DONEGAL GROUP INC",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 216085,
+      "ticker": "HVT-A",
+      "name": "HAVERTY FURNITURE COMPANIES INC",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Home Improvement Retail",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 55135,
+      "ticker": "KELYB",
+      "name": "KELLY SERVICES INC",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Staffing & Employment Services",
+      "cap_bucket": "small"
+    },
+    {
+      "cik": 1087786,
+      "ticker": "NXJ",
+      "name": "NUVEEN NEW JERSEY QUALITY MUNICIPAL INCOME FUND",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": "small"
     },
     {
@@ -51268,6 +51853,1023 @@
       "cap_bucket": "micro"
     },
     {
+      "cik": 1397183,
+      "ticker": "IVDA",
+      "name": "Iveda Solutions, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Security & Protection Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1864055,
+      "ticker": "ABTS",
+      "name": "Abits Group Inc",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1630212,
+      "ticker": "ALBT",
+      "name": "Avalon GloboCare Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1815021,
+      "ticker": "BQ",
+      "name": "Boqii Holding Ltd",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1930510,
+      "ticker": "VCIG",
+      "name": "VCI Global Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1789192,
+      "ticker": "NXTS",
+      "name": "Nexentis Technologies Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Basic Materials",
+      "industry": "Agricultural Inputs",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1422892,
+      "ticker": "SGLY",
+      "name": "Singularity Future Technology Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1743745,
+      "ticker": "GNLN",
+      "name": "Greenlane Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1824293,
+      "ticker": "GRI",
+      "name": "GRI Bio, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1975940,
+      "ticker": "FLYE",
+      "name": "Fly-E Group, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1985337,
+      "ticker": "YYGH",
+      "name": "YY Group Holding Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Personal Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1358190,
+      "ticker": "ITP",
+      "name": "IT TECH PACKAGING, INC.",
+      "exchange": "NYSE",
+      "sector": "Basic Materials",
+      "industry": "Paper & Paper Products",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1855509,
+      "ticker": "VEEE",
+      "name": "Twin Vee PowerCats, Co.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Recreational Vehicles",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1855485,
+      "ticker": "CLDI",
+      "name": "Calidi Biotherapeutics, Inc.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1776067,
+      "ticker": "OCG",
+      "name": "Oriental Culture Holding LTD",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1880613,
+      "ticker": "DRCT",
+      "name": "Direct Digital Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1615219,
+      "ticker": "DCOY",
+      "name": "Decoy Therapeutics Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1589149,
+      "ticker": "GWAV",
+      "name": "Greenwave Technology Solutions, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Waste Management",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2018529,
+      "ticker": "NCT",
+      "name": "Intercont (Cayman) Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1417926,
+      "ticker": "IVF",
+      "name": "INVO Fertility, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1621221,
+      "ticker": "ARTL",
+      "name": "ARTELO BIOSCIENCES, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1787740,
+      "ticker": "VBIO",
+      "name": "Valion Bio, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1747661,
+      "ticker": "ZNB",
+      "name": "Zeta Network Group",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1211805,
+      "ticker": "MYSZ",
+      "name": "My Size, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1414767,
+      "ticker": "NCPL",
+      "name": "Netcapital Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1506492,
+      "ticker": "NUWE",
+      "name": "Nuwellis, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1854480,
+      "ticker": "DEVS",
+      "name": "DevvStream Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Pollution & Treatment Controls",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1738758,
+      "ticker": "CHR",
+      "name": "Cheer Holding, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1828673,
+      "ticker": "HCWB",
+      "name": "HCW Biologics Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1532619,
+      "ticker": "PW",
+      "name": "Power REIT",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1951294,
+      "ticker": "VSME",
+      "name": "VS MEDIA Holdings Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1943421,
+      "ticker": "RUBI",
+      "name": "Rubico Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1713210,
+      "ticker": "ATPC",
+      "name": "Agape ATP Corp",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1506983,
+      "ticker": "GCTK",
+      "name": "Glucotrack, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1821424,
+      "ticker": "UK",
+      "name": "Ucommune International Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1174940,
+      "ticker": "OGEN",
+      "name": "ORAGENICS INC",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 744452,
+      "ticker": "BNBX",
+      "name": "BNB PLUS CORP.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1972074,
+      "ticker": "LNKS",
+      "name": "Linkers Industries Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1470683,
+      "ticker": "AEHL",
+      "name": "Antelope Enterprise Holdings Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1896425,
+      "ticker": "LBGJ",
+      "name": "Li Bang International Corp Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2022416,
+      "ticker": "SLXN",
+      "name": "Silexion Therapeutics Corp",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1553788,
+      "ticker": "SBEV",
+      "name": "SPLASH BEVERAGE GROUP, INC.",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Wineries & Distilleries",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1716621,
+      "ticker": "VTAK",
+      "name": "Catheter Precision, Inc.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1728328,
+      "ticker": "INM",
+      "name": "InMed Pharmaceuticals Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1419554,
+      "ticker": "BBLG",
+      "name": "Bone Biologics Corp",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1469443,
+      "ticker": "RKDA",
+      "name": "Arcadia Biosciences, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1956741,
+      "ticker": "ZONE",
+      "name": "CleanCore Solutions, Inc.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Pollution & Treatment Controls",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1859807,
+      "ticker": "PFSA",
+      "name": "Profusa, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1931717,
+      "ticker": "CCTG",
+      "name": "CCSC Technology International Holdings Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1964664,
+      "ticker": "ORIS",
+      "name": "ORIENTAL RISE HOLDINGS Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1376321,
+      "ticker": "CNET",
+      "name": "ZW Data Action Technologies Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1809750,
+      "ticker": "EDBL",
+      "name": "Edible Garden AG Inc",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Farm Products",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1894525,
+      "ticker": "APUS",
+      "name": "Apimeds Pharmaceuticals US, Inc.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2013186,
+      "ticker": "TNMG",
+      "name": "TNL Mediagene",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Publishing",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1857086,
+      "ticker": "TRUG",
+      "name": "TruGolf Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2018222,
+      "ticker": "JEM",
+      "name": "707 Cayman Holdings Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1513525,
+      "ticker": "ADIL",
+      "name": "ADIAL PHARMACEUTICALS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1611747,
+      "ticker": "SCNI",
+      "name": "Scinai Immunotherapeutics Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1989930,
+      "ticker": "FGL",
+      "name": "Founder Group Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1517681,
+      "ticker": "PPCB",
+      "name": "Propanc Biopharma, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1837254,
+      "ticker": "MEHA",
+      "name": "Functional Brands Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1789299,
+      "ticker": "WTO",
+      "name": "UTime Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2023796,
+      "ticker": "FCHL",
+      "name": "Fitness Champs Holdings Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1687542,
+      "ticker": "FRGT",
+      "name": "Freight Technologies, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1785056,
+      "ticker": "TRNR",
+      "name": "Interactive Strength, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Personal Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1705402,
+      "ticker": "AGMH",
+      "name": "AGM GROUP HOLDINGS, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1814067,
+      "ticker": "LXEH",
+      "name": "Lixiang Education Holding Co. Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1704287,
+      "ticker": "BJDX",
+      "name": "Bluejay Diagnostics, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1723980,
+      "ticker": "SXTC",
+      "name": "China SXT Pharmaceuticals, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1643918,
+      "ticker": "BDRX",
+      "name": "Biodexa Pharmaceuticals Plc",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1813783,
+      "ticker": "VMAR",
+      "name": "Vision Marine Technologies Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Recreational Vehicles",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1879403,
+      "ticker": "LRHC",
+      "name": "La Rosa Holdings Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1590418,
+      "ticker": "FCUV",
+      "name": "FOCUS UNIVERSAL INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1924482,
+      "ticker": "IBG",
+      "name": "Innovation Beverage Group Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Wineries & Distilleries",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1951067,
+      "ticker": "CISS",
+      "name": "C3is Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1668438,
+      "ticker": "IMTE",
+      "name": "Integrated Media Technology Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1809616,
+      "ticker": "UPC",
+      "name": "Universe Pharmaceuticals INC",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1342958,
+      "ticker": "KUST",
+      "name": "KUSTOM ENTERTAINMENT, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1792030,
+      "ticker": "IMCC",
+      "name": "IM Cannabis Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1929783,
+      "ticker": "WOK",
+      "name": "WORK Medical Technology Group LTD",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1825349,
+      "ticker": "CHSN",
+      "name": "Chanson International Holding",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1836875,
+      "ticker": "NVVE",
+      "name": "Nuvve Holding Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1885408,
+      "ticker": "NEXR",
+      "name": "Nexera Technologies Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1928581,
+      "ticker": "GMEX",
+      "name": "GMEX Robotics Corp",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1801834,
+      "ticker": "PRFX",
+      "name": "PRF Technologies Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1993097,
+      "ticker": "MASK",
+      "name": "3 E Network Technology Group Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1425627,
+      "ticker": "SOBR",
+      "name": "SOBR Safe, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1499494,
+      "ticker": "DXF",
+      "name": "Eason Technology Ltd",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1651721,
+      "ticker": "GIPR",
+      "name": "GENERATION INCOME PROPERTIES, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "REIT - Diversified",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1901215,
+      "ticker": "BNRG",
+      "name": "Brenmiller Energy Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Utilities",
+      "industry": "Utilities - Renewable",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1648087,
+      "ticker": "AREB",
+      "name": "AMERICAN REBEL HOLDINGS INC",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Footwear & Accessories",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1856084,
+      "ticker": "RDGT",
+      "name": "Ridgetech Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Pharmaceutical Retailers",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1751876,
+      "ticker": "PAVS",
+      "name": "Paranovus Entertainment Technology Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1585608,
+      "ticker": "JAGX",
+      "name": "Jaguar Health, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1830072,
+      "ticker": "IPW",
+      "name": "iPower Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1841675,
+      "ticker": "ARBK",
+      "name": "Argo Blockchain Plc",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1892274,
+      "ticker": "GV",
+      "name": "Visionary Holdings Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1816172,
+      "ticker": "JZXN",
+      "name": "Jiuzi Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1527541,
+      "ticker": "WHLR",
+      "name": "Wheeler Real Estate Investment Trust, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2022308,
+      "ticker": "KIDZ",
+      "name": "Classover Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1347858,
+      "ticker": "XXII",
+      "name": "22nd Century Group, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1847345,
+      "ticker": "ASBP",
+      "name": "Aspire Biopharma Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1885827,
+      "ticker": "VRAX",
+      "name": "Virax Biolabs Group Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1981662,
+      "ticker": "NIVF",
+      "name": "NewGenIvf Group Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1961847,
+      "ticker": "INHD",
+      "name": "INNO HOLDINGS INC.",
+      "exchange": "NASDAQ",
+      "sector": "Basic Materials",
+      "industry": "Steel",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1905660,
+      "ticker": "HUBC",
+      "name": "Hub Cyber Security Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1701756,
+      "ticker": "SDOT",
+      "name": "Sadot Group Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Defensive",
+      "industry": "Farm Products",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1806524,
+      "ticker": "LGHL",
+      "name": "Lion Group Holding Ltd",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1726711,
+      "ticker": "ADTX",
+      "name": "Aditxt, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 100378,
+      "ticker": "TWIN",
+      "name": "TWIN DISC INC",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1562733,
+      "ticker": "SNYR",
+      "name": "Synergy CHC Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Distribution",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 1632127,
+      "ticker": "CABO",
+      "name": "Cable One, Inc.",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "cap_bucket": "micro"
+    },
+    {
+      "cik": 2028699,
+      "ticker": "DYNC",
+      "name": "Dynamix Corp",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
+      "cap_bucket": "micro"
+    },
+    {
       "cik": 2108164,
       "ticker": "PONO",
       "name": "Pono Capital Four, Inc.",
@@ -51277,999 +52879,9 @@
       "cap_bucket": null
     },
     {
-      "cik": 1397183,
-      "ticker": "IVDA",
-      "name": "Iveda Solutions, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1864055,
-      "ticker": "ABTS",
-      "name": "Abits Group Inc",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1630212,
-      "ticker": "ALBT",
-      "name": "Avalon GloboCare Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1815021,
-      "ticker": "BQ",
-      "name": "Boqii Holding Ltd",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1930510,
-      "ticker": "VCIG",
-      "name": "VCI Global Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1789192,
-      "ticker": "NXTS",
-      "name": "Nexentis Technologies Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1422892,
-      "ticker": "SGLY",
-      "name": "Singularity Future Technology Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1743745,
-      "ticker": "GNLN",
-      "name": "Greenlane Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1824293,
-      "ticker": "GRI",
-      "name": "GRI Bio, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1975940,
-      "ticker": "FLYE",
-      "name": "Fly-E Group, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1985337,
-      "ticker": "YYGH",
-      "name": "YY Group Holding Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1358190,
-      "ticker": "ITP",
-      "name": "IT TECH PACKAGING, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1855509,
-      "ticker": "VEEE",
-      "name": "Twin Vee PowerCats, Co.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1855485,
-      "ticker": "CLDI",
-      "name": "Calidi Biotherapeutics, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1776067,
-      "ticker": "OCG",
-      "name": "Oriental Culture Holding LTD",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1880613,
-      "ticker": "DRCT",
-      "name": "Direct Digital Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1615219,
-      "ticker": "DCOY",
-      "name": "Decoy Therapeutics Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1589149,
-      "ticker": "GWAV",
-      "name": "Greenwave Technology Solutions, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2018529,
-      "ticker": "NCT",
-      "name": "Intercont (Cayman) Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1417926,
-      "ticker": "IVF",
-      "name": "INVO Fertility, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1621221,
-      "ticker": "ARTL",
-      "name": "ARTELO BIOSCIENCES, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1787740,
-      "ticker": "VBIO",
-      "name": "Valion Bio, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1747661,
-      "ticker": "ZNB",
-      "name": "Zeta Network Group",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1211805,
-      "ticker": "MYSZ",
-      "name": "My Size, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1414767,
-      "ticker": "NCPL",
-      "name": "Netcapital Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1506492,
-      "ticker": "NUWE",
-      "name": "Nuwellis, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1854480,
-      "ticker": "DEVS",
-      "name": "DevvStream Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1738758,
-      "ticker": "CHR",
-      "name": "Cheer Holding, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1828673,
-      "ticker": "HCWB",
-      "name": "HCW Biologics Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1532619,
-      "ticker": "PW",
-      "name": "Power REIT",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1951294,
-      "ticker": "VSME",
-      "name": "VS MEDIA Holdings Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1943421,
-      "ticker": "RUBI",
-      "name": "Rubico Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1713210,
-      "ticker": "ATPC",
-      "name": "Agape ATP Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1506983,
-      "ticker": "GCTK",
-      "name": "Glucotrack, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1821424,
-      "ticker": "UK",
-      "name": "Ucommune International Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1174940,
-      "ticker": "OGEN",
-      "name": "ORAGENICS INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 744452,
-      "ticker": "BNBX",
-      "name": "BNB PLUS CORP.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1972074,
-      "ticker": "LNKS",
-      "name": "Linkers Industries Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1470683,
-      "ticker": "AEHL",
-      "name": "Antelope Enterprise Holdings Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1896425,
-      "ticker": "LBGJ",
-      "name": "Li Bang International Corp Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2022416,
-      "ticker": "SLXN",
-      "name": "Silexion Therapeutics Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1553788,
-      "ticker": "SBEV",
-      "name": "SPLASH BEVERAGE GROUP, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1716621,
-      "ticker": "VTAK",
-      "name": "Catheter Precision, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1728328,
-      "ticker": "INM",
-      "name": "InMed Pharmaceuticals Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1419554,
-      "ticker": "BBLG",
-      "name": "Bone Biologics Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1469443,
-      "ticker": "RKDA",
-      "name": "Arcadia Biosciences, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1956741,
-      "ticker": "ZONE",
-      "name": "CleanCore Solutions, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1859807,
-      "ticker": "PFSA",
-      "name": "Profusa, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1931717,
-      "ticker": "CCTG",
-      "name": "CCSC Technology International Holdings Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1964664,
-      "ticker": "ORIS",
-      "name": "ORIENTAL RISE HOLDINGS Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1376321,
-      "ticker": "CNET",
-      "name": "ZW Data Action Technologies Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1809750,
-      "ticker": "EDBL",
-      "name": "Edible Garden AG Inc",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1894525,
-      "ticker": "APUS",
-      "name": "Apimeds Pharmaceuticals US, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2013186,
-      "ticker": "TNMG",
-      "name": "TNL Mediagene",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1857086,
-      "ticker": "TRUG",
-      "name": "TruGolf Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2018222,
-      "ticker": "JEM",
-      "name": "707 Cayman Holdings Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1513525,
-      "ticker": "ADIL",
-      "name": "ADIAL PHARMACEUTICALS, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1611747,
-      "ticker": "SCNI",
-      "name": "Scinai Immunotherapeutics Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1989930,
-      "ticker": "FGL",
-      "name": "Founder Group Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1517681,
-      "ticker": "PPCB",
-      "name": "Propanc Biopharma, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1837254,
-      "ticker": "MEHA",
-      "name": "Functional Brands Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1789299,
-      "ticker": "WTO",
-      "name": "UTime Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2023796,
-      "ticker": "FCHL",
-      "name": "Fitness Champs Holdings Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1687542,
-      "ticker": "FRGT",
-      "name": "Freight Technologies, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1785056,
-      "ticker": "TRNR",
-      "name": "Interactive Strength, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1705402,
-      "ticker": "AGMH",
-      "name": "AGM GROUP HOLDINGS, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1814067,
-      "ticker": "LXEH",
-      "name": "Lixiang Education Holding Co. Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1704287,
-      "ticker": "BJDX",
-      "name": "Bluejay Diagnostics, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1723980,
-      "ticker": "SXTC",
-      "name": "China SXT Pharmaceuticals, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1643918,
-      "ticker": "BDRX",
-      "name": "Biodexa Pharmaceuticals Plc",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1813783,
-      "ticker": "VMAR",
-      "name": "Vision Marine Technologies Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1879403,
-      "ticker": "LRHC",
-      "name": "La Rosa Holdings Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1590418,
-      "ticker": "FCUV",
-      "name": "FOCUS UNIVERSAL INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1924482,
-      "ticker": "IBG",
-      "name": "Innovation Beverage Group Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1951067,
-      "ticker": "CISS",
-      "name": "C3is Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1668438,
-      "ticker": "IMTE",
-      "name": "Integrated Media Technology Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1809616,
-      "ticker": "UPC",
-      "name": "Universe Pharmaceuticals INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1342958,
-      "ticker": "KUST",
-      "name": "KUSTOM ENTERTAINMENT, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1792030,
-      "ticker": "IMCC",
-      "name": "IM Cannabis Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1929783,
-      "ticker": "WOK",
-      "name": "WORK Medical Technology Group LTD",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1825349,
-      "ticker": "CHSN",
-      "name": "Chanson International Holding",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1836875,
-      "ticker": "NVVE",
-      "name": "Nuvve Holding Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1885408,
-      "ticker": "NEXR",
-      "name": "Nexera Technologies Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1928581,
-      "ticker": "GMEX",
-      "name": "GMEX Robotics Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1801834,
-      "ticker": "PRFX",
-      "name": "PRF Technologies Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1993097,
-      "ticker": "MASK",
-      "name": "3 E Network Technology Group Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1425627,
-      "ticker": "SOBR",
-      "name": "SOBR Safe, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1499494,
-      "ticker": "DXF",
-      "name": "Eason Technology Ltd",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1651721,
-      "ticker": "GIPR",
-      "name": "GENERATION INCOME PROPERTIES, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1901215,
-      "ticker": "BNRG",
-      "name": "Brenmiller Energy Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1648087,
-      "ticker": "AREB",
-      "name": "AMERICAN REBEL HOLDINGS INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1856084,
-      "ticker": "RDGT",
-      "name": "Ridgetech Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1751876,
-      "ticker": "PAVS",
-      "name": "Paranovus Entertainment Technology Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1585608,
-      "ticker": "JAGX",
-      "name": "Jaguar Health, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1830072,
-      "ticker": "IPW",
-      "name": "iPower Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1841675,
-      "ticker": "ARBK",
-      "name": "Argo Blockchain Plc",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1892274,
-      "ticker": "GV",
-      "name": "Visionary Holdings Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1816172,
-      "ticker": "JZXN",
-      "name": "Jiuzi Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1527541,
-      "ticker": "WHLR",
-      "name": "Wheeler Real Estate Investment Trust, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2022308,
-      "ticker": "KIDZ",
-      "name": "Classover Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1347858,
-      "ticker": "XXII",
-      "name": "22nd Century Group, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1847345,
-      "ticker": "ASBP",
-      "name": "Aspire Biopharma Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1885827,
-      "ticker": "VRAX",
-      "name": "Virax Biolabs Group Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1981662,
-      "ticker": "NIVF",
-      "name": "NewGenIvf Group Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1961847,
-      "ticker": "INHD",
-      "name": "INNO HOLDINGS INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1905660,
-      "ticker": "HUBC",
-      "name": "Hub Cyber Security Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1701756,
-      "ticker": "SDOT",
-      "name": "Sadot Group Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1806524,
-      "ticker": "LGHL",
-      "name": "Lion Group Holding Ltd",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1726711,
-      "ticker": "ADTX",
-      "name": "Aditxt, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 7323,
       "ticker": "EAI",
       "name": "ENTERGY ARKANSAS, LLC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 36966,
-      "ticker": "FHN",
-      "name": "FIRST HORIZON CORP",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
@@ -52312,21 +52924,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 100378,
-      "ticker": "TWIN",
-      "name": "TWIN DISC INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 201533,
       "ticker": "CMS-PB",
       "name": "CONSUMERS ENERGY CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -52334,8 +52937,8 @@
       "ticker": "ACCO",
       "name": "ACCO BRANDS Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Business Equipment & Supplies",
       "cap_bucket": null
     },
     {
@@ -52343,8 +52946,8 @@
       "ticker": "CHSCP",
       "name": "CHS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Consumer Defensive",
+      "industry": "Farm Products",
       "cap_bucket": null
     },
     {
@@ -52361,8 +52964,8 @@
       "ticker": "WDS",
       "name": "WOODSIDE ENERGY GROUP LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
       "cap_bucket": null
     },
     {
@@ -52370,8 +52973,8 @@
       "ticker": "VMO",
       "name": "Invesco Municipal Opportunity Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -52384,28 +52987,10 @@
       "cap_bucket": null
     },
     {
-      "cik": 891103,
-      "ticker": "MTCH",
-      "name": "Match Group, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 894556,
       "ticker": "CITR",
       "name": "CitroTech Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 912093,
-      "ticker": "VIAV",
-      "name": "VIAVI SOLUTIONS INC.",
-      "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
       "cap_bucket": null
@@ -52424,8 +53009,8 @@
       "ticker": "BTO",
       "name": "JOHN HANCOCK FINANCIAL OPPORTUNITIES FUND",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -52442,23 +53027,14 @@
       "ticker": "EPM",
       "name": "EVOLUTION PETROLEUM CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
       "cap_bucket": null
     },
     {
       "cik": 1041130,
       "ticker": "DIA",
       "name": "SPDR DOW JONES INDUSTRIAL AVERAGE ETF TRUST",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1046179,
-      "ticker": "TSM",
-      "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
@@ -52559,8 +53135,8 @@
       "ticker": "GAIN",
       "name": "GLADSTONE INVESTMENT CORPORATION\\DE",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -52640,8 +53216,8 @@
       "ticker": "ASTI",
       "name": "Ascent Solar Technologies, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Technology",
+      "industry": "Solar",
       "cap_bucket": null
     },
     {
@@ -52793,8 +53369,8 @@
       "ticker": "EDD",
       "name": "Morgan Stanley Emerging Markets Domestic Debt Fund, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -52838,8 +53414,8 @@
       "ticker": "ETI-P",
       "name": "ENTERGY TEXAS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
       "cap_bucket": null
     },
     {
@@ -52883,17 +53459,8 @@
       "ticker": "ATLCP",
       "name": "Atlanticus Holdings Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1468174,
-      "ticker": "H",
-      "name": "Hyatt Hotels Corp",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Credit Services",
       "cap_bucket": null
     },
     {
@@ -52928,8 +53495,8 @@
       "ticker": "AMBO",
       "name": "Ambow Education Holding Ltd.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Consumer Defensive",
+      "industry": "Education & Training Services",
       "cap_bucket": null
     },
     {
@@ -52937,8 +53504,8 @@
       "ticker": "EDSA",
       "name": "Edesa Biotech, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
       "cap_bucket": null
     },
     {
@@ -52946,8 +53513,8 @@
       "ticker": "BPYPP",
       "name": "Brookfield Property Partners L.P.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
       "cap_bucket": null
     },
     {
@@ -52960,21 +53527,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1549084,
-      "ticker": "CHRN",
-      "name": "EKSO BIONICS HOLDINGS, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1549107,
       "ticker": "MANU",
       "name": "Manchester United plc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Communication Services",
+      "industry": "Entertainment",
       "cap_bucket": null
     },
     {
@@ -52982,17 +53540,8 @@
       "ticker": "BPRE",
       "name": "Bluerock Private Real Estate Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1562733,
-      "ticker": "SNYR",
-      "name": "Synergy CHC Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -53000,8 +53549,8 @@
       "ticker": "EEX",
       "name": "Emerald Holding, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
       "cap_bucket": null
     },
     {
@@ -53032,24 +53581,6 @@
       "cap_bucket": null
     },
     {
-      "cik": 1632127,
-      "ticker": "CABO",
-      "name": "Cable One, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1643615,
-      "ticker": "ONT",
-      "name": "Montrose Environmental Group, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1674356,
       "ticker": "TPTA",
       "name": "Terra Property Trust, Inc.",
@@ -53063,8 +53594,8 @@
       "ticker": "ICR-PA",
       "name": "InPoint Commercial Real Estate Income, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -53080,15 +53611,6 @@
       "cik": 1690842,
       "ticker": "PLTM",
       "name": "GraniteShares Platinum Trust",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1702780,
-      "ticker": "OPTU",
-      "name": "Optimum Communications, Inc.",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
@@ -53167,15 +53689,6 @@
       "cap_bucket": null
     },
     {
-      "cik": 1826836,
-      "ticker": "AYA",
-      "name": "Aya Gold & Silver Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1838028,
       "ticker": "HODL",
       "name": "VanEck Bitcoin ETF",
@@ -53198,8 +53711,8 @@
       "ticker": "RMCO",
       "name": "Royalty Management Holding Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -53279,8 +53792,8 @@
       "ticker": "EIIA",
       "name": "Eagle Point Institutional Income Fund",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -53351,8 +53864,8 @@
       "ticker": "PC",
       "name": "Premium Catering (Holdings) Ltd",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Specialty Business Services",
       "cap_bucket": null
     },
     {
@@ -53414,15 +53927,6 @@
       "ticker": "ETH",
       "name": "Grayscale Ethereum Staking Mini ETF",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2028699,
-      "ticker": "DYNC",
-      "name": "Dynamix Corp",
-      "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
       "cap_bucket": null
@@ -53500,27 +54004,9 @@
       "cap_bucket": null
     },
     {
-      "cik": 2040491,
-      "ticker": "ASIC",
-      "name": "Ategrity Specialty Insurance Co Holdings",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 2041869,
       "ticker": "SOLC",
       "name": "Canary Marinade Solana ETF",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 2042347,
-      "ticker": "SPTX",
-      "name": "Seaport Therapeutics, Inc.",
       "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
@@ -53662,15 +54148,6 @@
       "cap_bucket": null
     },
     {
-      "cik": 2092897,
-      "ticker": "AACI",
-      "name": "Armada Acquisition Corp. III",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 2094265,
       "ticker": "MLAA",
       "name": "Mountain Lake Acquisition Corp. II",
@@ -53689,21 +54166,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 2100125,
-      "ticker": "CAQ",
-      "name": "Cambridge Acquisition Corp.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 2102713,
       "ticker": "KCAC-UN",
       "name": "Kensington Capital Acquisition Corp. VI",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
       "cap_bucket": null
     },
     {
@@ -53725,27 +54193,9 @@
       "cap_bucket": null
     },
     {
-      "cik": 1652044,
-      "ticker": "GOOG",
-      "name": "Alphabet Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 36104,
       "ticker": "USB-PA",
       "name": "US BANCORP DE",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1067983,
-      "ticker": "BRK-A",
-      "name": "BERKSHIRE HATHAWAY INC",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
@@ -53756,8 +54206,8 @@
       "ticker": "JPM-PC",
       "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53765,8 +54215,8 @@
       "ticker": "BML-PG",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53774,8 +54224,8 @@
       "ticker": "BML-PL",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53783,8 +54233,8 @@
       "ticker": "BAC-PB",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53792,8 +54242,8 @@
       "ticker": "BAC-PK",
       "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53810,8 +54260,8 @@
       "ticker": "WFC-PY",
       "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53819,8 +54269,8 @@
       "ticker": "WFC-PL",
       "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
       "cap_bucket": null
     },
     {
@@ -53833,21 +54283,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 72971,
-      "ticker": "WFC-PC",
-      "name": "WELLS FARGO & COMPANY/MN",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 36104,
       "ticker": "USB-PH",
       "name": "US BANCORP DE",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -53855,8 +54296,8 @@
       "ticker": "CTA-PB",
       "name": "EIDP, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Basic Materials",
+      "industry": "Agricultural Inputs",
       "cap_bucket": null
     },
     {
@@ -53864,8 +54305,8 @@
       "ticker": "USB-PP",
       "name": "US BANCORP DE",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -53873,17 +54314,8 @@
       "ticker": "MS-PK",
       "name": "MORGAN STANLEY",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1119639,
-      "ticker": "PBR-A",
-      "name": "PETROBRAS - PETROLEO BRASILEIRO SA",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -53891,8 +54323,8 @@
       "ticker": "MS-PE",
       "name": "MORGAN STANLEY",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -53909,8 +54341,8 @@
       "ticker": "SPG-PJ",
       "name": "SIMON PROPERTY GROUP INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -53918,8 +54350,8 @@
       "ticker": "CTA-PA",
       "name": "EIDP, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Basic Materials",
+      "industry": "Agricultural Inputs",
       "cap_bucket": null
     },
     {
@@ -53927,8 +54359,8 @@
       "ticker": "MET-PA",
       "name": "METLIFE INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Insurance - Life",
       "cap_bucket": null
     },
     {
@@ -53936,8 +54368,8 @@
       "ticker": "MET-PE",
       "name": "METLIFE INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Insurance - Life",
       "cap_bucket": null
     },
     {
@@ -53945,44 +54377,8 @@
       "ticker": "PSA-PH",
       "name": "Public Storage",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 899051,
-      "ticker": "ALL-PH",
-      "name": "ALLSTATE CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 920760,
-      "ticker": "LEN-B",
-      "name": "LENNAR CORP /NEW/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 46619,
-      "ticker": "HEI-A",
-      "name": "HEICO CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1160330,
-      "ticker": "BBDO",
-      "name": "BANK BRADESCO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
       "cap_bucket": null
     },
     {
@@ -53990,26 +54386,8 @@
       "ticker": "DLR-PK",
       "name": "DIGITAL REALTY TRUST, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1754301,
-      "ticker": "FOX",
-      "name": "Fox Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 63754,
-      "ticker": "MKC-V",
-      "name": "MCCORMICK & CO INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
       "cap_bucket": null
     },
     {
@@ -54022,57 +54400,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1560385,
-      "ticker": "FWONK",
-      "name": "Liberty Media Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1617640,
-      "ticker": "Z",
-      "name": "ZILLOW GROUP, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 93751,
       "ticker": "STT-PG",
       "name": "STATE STREET CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1564708,
-      "ticker": "NWS",
-      "name": "NEWS CORP",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 12208,
-      "ticker": "BIO-B",
-      "name": "BIO-RAD LABORATORIES, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 91576,
-      "ticker": "KEY-PK",
-      "name": "KEYCORP /NEW/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -54080,8 +54413,8 @@
       "ticker": "APO-PA",
       "name": "Apollo Global Management, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -54089,8 +54422,8 @@
       "ticker": "KEY-PI",
       "name": "KEYCORP /NEW/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -54103,21 +54436,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 105016,
-      "ticker": "WSO-B",
-      "name": "WATSCO INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 912595,
       "ticker": "MAA-PI",
       "name": "MID AMERICA APARTMENT COMMUNITIES INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
       "cap_bucket": null
     },
     {
@@ -54125,8 +54449,8 @@
       "ticker": "RF-PC",
       "name": "REGIONS FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -54134,71 +54458,8 @@
       "ticker": "LBRDK",
       "name": "Liberty Broadband Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 14693,
-      "ticker": "BF-B",
-      "name": "BROWN FORMAN CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 4457,
-      "ticker": "UHAL-B",
-      "name": "U-Haul Holding Co /NV/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 24545,
-      "ticker": "TAP-A",
-      "name": "MOLSON COORS BEVERAGE CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1157557,
-      "ticker": "CIG-C",
-      "name": "ENERGY CO OF MINAS GERAIS",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1570585,
-      "ticker": "LBTYB",
-      "name": "Liberty Global Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1884082,
-      "ticker": "PSNYW",
-      "name": "Polestar Automotive Holding UK PLC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1567683,
-      "ticker": "CWEN-A",
-      "name": "Clearway Energy, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
       "cap_bucket": null
     },
     {
@@ -54206,8 +54467,8 @@
       "ticker": "VNO-PL",
       "name": "VORNADO REALTY TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
       "cap_bucket": null
     },
     {
@@ -54215,8 +54476,8 @@
       "ticker": "VNO-PM",
       "name": "VORNADO REALTY TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
       "cap_bucket": null
     },
     {
@@ -54224,8 +54485,8 @@
       "ticker": "VOYA-PB",
       "name": "Voya Financial, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Financial Conglomerates",
       "cap_bucket": null
     },
     {
@@ -54238,21 +54499,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1786205,
-      "ticker": "ACLX",
-      "name": "Arcellx, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1040971,
       "ticker": "SLG-PI",
       "name": "SL GREEN REALTY CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Office",
       "cap_bucket": null
     },
     {
@@ -54260,15 +54512,6 @@
       "ticker": "UNMA",
       "name": "Unum Group",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1012019,
-      "ticker": "RUSHB",
-      "name": "RUSH ENTERPRISES INC \\TX\\",
-      "exchange": "NASDAQ",
       "sector": null,
       "industry": null,
       "cap_bucket": null
@@ -54301,15 +54544,6 @@
       "cap_bucket": null
     },
     {
-      "cik": 1178879,
-      "ticker": "FOLD",
-      "name": "AMICUS THERAPEUTICS, INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1004980,
       "ticker": "PCG-PH",
       "name": "PG&E Corp",
@@ -54332,23 +54566,14 @@
       "ticker": "AXS-PE",
       "name": "AXIS CAPITAL HOLDINGS LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Insurance - Specialty",
       "cap_bucket": null
     },
     {
       "cik": 936340,
       "ticker": "DTW",
       "name": "DTE ENERGY CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 925261,
-      "ticker": "AKO-B",
-      "name": "ANDINA BOTTLING CO INC",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
@@ -54368,17 +54593,8 @@
       "ticker": "SLMBP",
       "name": "SLM Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1570585,
-      "ticker": "LBTYK",
-      "name": "Liberty Global Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Credit Services",
       "cap_bucket": null
     },
     {
@@ -54386,26 +54602,8 @@
       "ticker": "SF-PB",
       "name": "STIFEL FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 729580,
-      "ticker": "BELFB",
-      "name": "BEL FUSE INC /NJ",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 925261,
-      "ticker": "AKO-A",
-      "name": "ANDINA BOTTLING CO INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
       "cap_bucket": null
     },
     {
@@ -54413,26 +54611,8 @@
       "ticker": "TWO-PC",
       "name": "TWO HARBORS INVESTMENT CORP.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 67887,
-      "ticker": "MOG-B",
-      "name": "MOOG INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1958140,
-      "ticker": "BATRK",
-      "name": "Atlanta Braves Holdings, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54440,17 +54620,8 @@
       "ticker": "VLYPP",
       "name": "VALLEY NATIONAL BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 43920,
-      "ticker": "GEF-B",
-      "name": "GREIF, INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -54458,8 +54629,8 @@
       "ticker": "TWO-PB",
       "name": "TWO HARBORS INVESTMENT CORP.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54467,8 +54638,8 @@
       "ticker": "TWO-PA",
       "name": "TWO HARBORS INVESTMENT CORP.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54485,8 +54656,8 @@
       "ticker": "WBS-PF",
       "name": "WEBSTER FINANCIAL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -54494,8 +54665,8 @@
       "ticker": "VLYPO",
       "name": "VALLEY NATIONAL BANCORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
       "cap_bucket": null
     },
     {
@@ -54503,8 +54674,8 @@
       "ticker": "RLJ-PA",
       "name": "RLJ Lodging Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Hotel & Motel",
       "cap_bucket": null
     },
     {
@@ -54512,8 +54683,8 @@
       "ticker": "PEB-PF",
       "name": "Pebblebrook Hotel Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Hotel & Motel",
       "cap_bucket": null
     },
     {
@@ -54521,8 +54692,8 @@
       "ticker": "PEB-PE",
       "name": "Pebblebrook Hotel Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Hotel & Motel",
       "cap_bucket": null
     },
     {
@@ -54530,8 +54701,8 @@
       "ticker": "CIM-PA",
       "name": "CHIMERA INVESTMENT CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54544,21 +54715,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1336917,
-      "ticker": "UA",
-      "name": "Under Armour, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 1660734,
       "ticker": "TRTN-PA",
       "name": "Triton International Ltd",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Rental & Leasing Services",
       "cap_bucket": null
     },
     {
@@ -54566,8 +54728,8 @@
       "ticker": "NSA-PA",
       "name": "National Storage Affiliates Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
       "cap_bucket": null
     },
     {
@@ -54575,8 +54737,8 @@
       "ticker": "SRG-PA",
       "name": "Seritage Growth Properties",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
       "cap_bucket": null
     },
     {
@@ -54584,35 +54746,8 @@
       "ticker": "LXP-PC",
       "name": "LXP Industrial Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 887733,
-      "ticker": "CENTA",
-      "name": "CENTRAL GARDEN & PET CO",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 107140,
-      "ticker": "WLYB",
-      "name": "JOHN WILEY & SONS, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1831840,
-      "ticker": "SEMR",
-      "name": "SEMrush Holdings, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
       "cap_bucket": null
     },
     {
@@ -54620,26 +54755,8 @@
       "ticker": "GDV-PH",
       "name": "GABELLI DIVIDEND & INCOME TRUST",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1553079,
-      "ticker": "FISK",
-      "name": "Empire State Realty OP, L.P.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1712184,
-      "ticker": "LILAK",
-      "name": "Liberty Latin America Ltd.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Asset Management",
       "cap_bucket": null
     },
     {
@@ -54647,8 +54764,8 @@
       "ticker": "NGL-PC",
       "name": "NGL Energy Partners LP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
       "cap_bucket": null
     },
     {
@@ -54656,17 +54773,8 @@
       "ticker": "BFS-PD",
       "name": "SAUL CENTERS, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1553079,
-      "ticker": "OGCP",
-      "name": "Empire State Realty OP, L.P.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
       "cap_bucket": null
     },
     {
@@ -54674,17 +54782,8 @@
       "ticker": "PMT-PA",
       "name": "PennyMac Mortgage Investment Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 845877,
-      "ticker": "AGM-A",
-      "name": "FEDERAL AGRICULTURAL MORTGAGE CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54692,8 +54791,8 @@
       "ticker": "PMT-PB",
       "name": "PennyMac Mortgage Investment Trust",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Real Estate",
+      "industry": "REIT - Mortgage",
       "cap_bucket": null
     },
     {
@@ -54710,17 +54809,8 @@
       "ticker": "CODI-PB",
       "name": "Compass Diversified Holdings",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1464343,
-      "ticker": "ATLC",
-      "name": "Atlanticus Holdings Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Conglomerates",
       "cap_bucket": null
     },
     {
@@ -54728,8 +54818,8 @@
       "ticker": "GLOP-PA",
       "name": "GasLog Partners LP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
       "cap_bucket": null
     },
     {
@@ -54737,17 +54827,8 @@
       "ticker": "HL-PB",
       "name": "HECLA MINING CO/DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 88948,
-      "ticker": "SENEA",
-      "name": "Seneca Foods Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Basic Materials",
+      "industry": "Other Precious Metals & Mining",
       "cap_bucket": null
     },
     {
@@ -54760,66 +54841,12 @@
       "cap_bucket": null
     },
     {
-      "cik": 1726173,
-      "ticker": "BH",
-      "name": "Biglari Holdings Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
       "cik": 2079013,
       "ticker": "HCACU",
       "name": "Hall Chadwick Acquisition Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1643615,
-      "ticker": "MEG",
-      "name": "Montrose Environmental Group, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 351834,
-      "ticker": "STKL",
-      "name": "SunOpta Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 43196,
-      "ticker": "GTN-A",
-      "name": "GRAY MEDIA, INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1071255,
-      "ticker": "GDEN",
-      "name": "NEW ROYAL HOLDCO I INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 800457,
-      "ticker": "DGICB",
-      "name": "DONEGAL GROUP INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
+      "sector": "Financial Services",
+      "industry": "Shell Companies",
       "cap_bucket": null
     },
     {
@@ -54827,41 +54854,14 @@
       "ticker": "CMRE-PC",
       "name": "Costamare Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 216085,
-      "ticker": "HVT-A",
-      "name": "HAVERTY FURNITURE COMPANIES INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
+      "sector": "Industrials",
+      "industry": "Marine Shipping",
       "cap_bucket": null
     },
     {
       "cik": 921671,
       "ticker": "GGT-PE",
       "name": "GABELLI MULTIMEDIA TRUST INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 55135,
-      "ticker": "KELYB",
-      "name": "KELLY SERVICES INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "cap_bucket": null
-    },
-    {
-      "cik": 1087786,
-      "ticker": "NXJ",
-      "name": "NUVEEN NEW JERSEY QUALITY MUNICIPAL INCOME FUND",
       "exchange": "NYSE",
       "sector": null,
       "industry": null,
