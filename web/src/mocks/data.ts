@@ -12,6 +12,7 @@ import type {
   AnalystSubtask,
   AnalystTask,
   ChatSession,
+  ChatTask,
   DataInventoryRow,
   DataItem,
   KnowledgeNote,
@@ -279,6 +280,7 @@ export const mockAnalystConversations: Record<string, MasterAgentMessage[]> = {
 function makeSession(
   id: string,
   ownerKey: string,
+  taskId: string,
   title: string,
   lastMessageAt: string,
   messages: MasterAgentMessage[],
@@ -287,6 +289,7 @@ function makeSession(
   return {
     id,
     ownerKey,
+    taskId,
     title,
     lastMessageAt,
     preview: last?.text?.replace(/\s+/g, ' ').slice(0, 90) ?? '',
@@ -294,9 +297,34 @@ function makeSession(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Chat tasks (slice 17 — groups sessions by task)
+// ---------------------------------------------------------------------------
+
+export const mockChatTasks: ChatTask[] = [
+  // Maria
+  { id: 't-maria-nvda',  ownerKey: 'maria-chen',  title: 'NVDA / AVGO networking thesis', status: 'active', createdAt: '2026-05-11T10:00:00Z', updatedAt: '2026-05-12T09:16:00Z' },
+  { id: 't-maria-tsm',   ownerKey: 'maria-chen',  title: 'TSM capex read-through',        status: 'done',   createdAt: '2026-05-09T10:00:00Z', updatedAt: '2026-05-09T11:12:00Z' },
+
+  // David
+  { id: 't-david-soc',   ownerKey: 'david-park',  title: 'SOC restart catalyst tracking', status: 'active', createdAt: '2026-05-10T08:00:00Z', updatedAt: '2026-05-12T08:35:00Z' },
+  { id: 't-david-oxy',   ownerKey: 'david-park',  title: 'OXY Permian model refresh',     status: 'done',   createdAt: '2026-05-10T14:00:00Z', updatedAt: '2026-05-10T14:22:00Z' },
+
+  // Aisha
+  { id: 't-aisha-nim',   ownerKey: 'aisha-patel', title: 'Bank NIM divergence trade',     status: 'active', createdAt: '2026-05-12T08:00:00Z', updatedAt: '2026-05-12T08:51:00Z' },
+
+  // Tom
+  { id: 't-tom-cost',    ownerKey: 'tom-kovacs',  title: 'COST coverage refresh',         status: 'active', createdAt: '2026-05-12T08:00:00Z', updatedAt: '2026-05-12T08:06:00Z' },
+  { id: 't-tom-hd-low',  ownerKey: 'tom-kovacs',  title: 'HD vs LOW pair trade',          status: 'done',   createdAt: '2026-05-08T17:00:00Z', updatedAt: '2026-05-08T17:10:00Z' },
+
+  // Master
+  { id: 't-master-ops',  ownerKey: 'master',      title: 'Daily PM operations',           status: 'active', createdAt: '2026-05-12T08:00:00Z', updatedAt: '2026-05-12T08:15:00Z' },
+  { id: 't-master-audit',ownerKey: 'master',      title: 'Position audits',                status: 'paused', createdAt: '2026-05-09T15:00:00Z', updatedAt: '2026-05-09T15:30:00Z' },
+];
+
 export const mockSessions: ChatSession[] = [
   // Maria’s first session — agent ends by asking the PM a clarifying question
-  makeSession('s-maria-1', 'maria-chen', 'AVGO vs NVDA networking', '2026-05-12T09:16:00Z', [
+  makeSession('s-maria-1', 'maria-chen', 't-maria-nvda', 'AVGO vs NVDA networking', '2026-05-12T09:16:00Z', [
     ...mockAnalystConversations['maria-chen']!,
     {
       id: 'maria-ask-1',
@@ -330,13 +358,13 @@ export const mockSessions: ChatSession[] = [
       },
     },
   ]),
-  makeSession('s-maria-2', 'maria-chen', 'NVDA Q1 read-through', '2026-05-11T18:42:00Z', [
+  makeSession('s-maria-2', 'maria-chen', 't-maria-nvda', 'NVDA Q1 read-through', '2026-05-11T18:42:00Z', [
     { id: 'sm2-1', role: 'pm', text: 'Quick pre-call read on NVDA tonight?', ts: '2026-05-11T18:40:00Z' },
     { id: 'sm2-2', role: 'master',
       text: 'Street ~$50.1B revenue, ~70% GM. Watch: Networking attach, Blackwell timing color, and any commentary on sovereign deals. The asymmetry tonight is sovereign — if they raise a sovereign run rate, multiple expands.',
       ts: '2026-05-11T18:42:00Z' },
   ]),
-  makeSession('s-maria-3', 'maria-chen', 'TSM capex implications', '2026-05-09T11:12:00Z', [
+  makeSession('s-maria-3', 'maria-chen', 't-maria-tsm', 'TSM capex implications', '2026-05-09T11:12:00Z', [
     { id: 'sm3-1', role: 'pm', text: 'TSM raised capex on the call. How does that flow into the semi-cap names?', ts: '2026-05-09T11:10:00Z' },
     { id: 'sm3-2', role: 'master',
       text: "ASML is the cleanest beneficiary: TSM's capex bump is ~$3B above the prior range and most of that is leading-edge, which is ~85% EUV-bound. AMAT/LRCX get the trailing-edge spillover. The interesting low-correlation play is KLA — metrology attach is structurally rising.",
@@ -344,7 +372,7 @@ export const mockSessions: ChatSession[] = [
   ]),
 
   // David’s first session has a rich todo list mid-conversation (inline)
-  makeSession('s-david-1', 'david-park', 'SOC catalyst map', '2026-05-12T08:34:30Z', [
+  makeSession('s-david-1', 'david-park', 't-david-soc', 'SOC catalyst map', '2026-05-12T08:34:30Z', [
     ...mockAnalystConversations['david-park']!,
     {
       id: 'david-todos-1',
@@ -360,27 +388,27 @@ export const mockSessions: ChatSession[] = [
       ],
     },
   ]),
-  makeSession('s-david-2', 'david-park', 'OXY Permian decline curves', '2026-05-10T14:22:00Z', [
+  makeSession('s-david-2', 'david-park', 't-david-oxy', 'OXY Permian decline curves', '2026-05-10T14:22:00Z', [
     { id: 'sd2-1', role: 'pm', text: "Are OXY's Permian decline curves still tracking?", ts: '2026-05-10T14:20:00Z' },
     { id: 'sd2-2', role: 'master',
       text: "Yes — Q1 wedge production was 528 MBoe/d (Street 521). Type-curve assumptions held. The story to watch is CrownRock integration: G&A synergies are ahead of plan but base decline on the acquired acreage is steeper than they guided. Net-net: thesis intact, but the multi-year FCF bridge needs a wider error band.",
       ts: '2026-05-10T14:22:00Z' },
   ]),
 
-  makeSession('s-aisha-1', 'aisha-patel', 'NIM divergence — long C / short JPM', '2026-05-12T08:51:00Z',
+  makeSession('s-aisha-1', 'aisha-patel', 't-aisha-nim', 'NIM divergence — long C / short JPM', '2026-05-12T08:51:00Z',
     mockAnalystConversations['aisha-patel']!),
 
-  makeSession('s-tom-1', 'tom-kovacs', 'COST renewal dynamics', '2026-05-12T08:06:15Z',
+  makeSession('s-tom-1', 'tom-kovacs', 't-tom-cost', 'COST renewal dynamics', '2026-05-12T08:06:15Z',
     mockAnalystConversations['tom-kovacs']!),
-  makeSession('s-tom-2', 'tom-kovacs', 'HD vs LOW spread', '2026-05-08T17:10:00Z', [
+  makeSession('s-tom-2', 'tom-kovacs', 't-tom-hd-low', 'HD vs LOW spread', '2026-05-08T17:10:00Z', [
     { id: 'st2-1', role: 'pm', text: 'Why has HD been widening vs LOW the last 30 days?', ts: '2026-05-08T17:08:00Z' },
     { id: 'st2-2', role: 'master',
       text: "Three things: (1) HD pro-customer mix is back to 50%+ — pricing power that LOW lacks, (2) hurricane rebuild tailwind started Q1, (3) HD raised gross margin guide while LOW held. The catch: HD now trades at a richer EV/EBITDA — most of the alpha has been collected. I'd trim the long-HD leg, hold the short.",
       ts: '2026-05-08T17:10:00Z' },
   ]),
 
-  makeSession('s-master-1', 'master', 'Morning round-up', '2026-05-12T08:15:04Z', mockMasterMessages),
-  makeSession('s-master-2', 'master', 'Bear-case audit on top longs', '2026-05-09T15:30:00Z', [
+  makeSession('s-master-1', 'master', 't-master-ops', 'Morning round-up', '2026-05-12T08:15:04Z', mockMasterMessages),
+  makeSession('s-master-2', 'master', 't-master-audit', 'Bear-case audit on top longs', '2026-05-09T15:30:00Z', [
     { id: 'sma2-1', role: 'pm', text: 'Run the strongest bear case on each of our top 5 longs. One paragraph each.', ts: '2026-05-09T15:28:00Z' },
     { id: 'sma2-2', role: 'master',
       text: 'Working through them — asking each covering analyst to deliver in their voice. Maria has NVDA + ASML, David has SOC, Aisha has JPM, Tom has COST. ETA 90 min. Saving the output as a knowledge-base entry.',

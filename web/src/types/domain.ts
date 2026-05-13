@@ -216,10 +216,28 @@ export type TickerCoverage = {
   artifacts: Artifact[];
 };
 
+export type ChatTaskStatus = 'active' | 'paused' | 'done';
+
+/** A logical bucket of work the PM has assigned to an analyst (or to the master agent).
+ *  Tasks group multiple chat sessions and are mutually independent — pausing one
+ *  doesn't affect any other. Slice 16's pipeline tasks eventually map onto these;
+ *  for now ChatTask is a sidebar-only grouping in the chat UI. */
+export type ChatTask = {
+  id: string;
+  /** 'maria-chen' | 'david-park' | … | 'master' */
+  ownerKey: string;
+  title: string;
+  status: ChatTaskStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ChatSession = {
   id: string;
   /** Owner: analyst slug, or 'master' for the master agent's threads. */
   ownerKey: string;
+  /** Slice 17: every session lives under a task. */
+  taskId: string;
   title: string;
   /** ISO date of the last message — drives the sort + "x minutes ago" rendering. */
   lastMessageAt: string;

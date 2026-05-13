@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Send, Brain, Plus, MessageCircle } from 'lucide-react';
+import { Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { mockSessions } from '@/mocks/data';
+import { mockChatTasks, mockSessions } from '@/mocks/data';
 import { InlineTodoList } from '@/components/chat/InlineTodoList';
 import { AskUserQuestionPanel } from '@/components/chat/AskUserQuestionPanel';
 import { OnboardingBanner } from '@/components/chat/OnboardingBanner';
-import type { AskAnswers, ChatSession, MasterAgentMessage } from '@/types/domain';
+import type {
+  AskAnswers,
+  ChatSession,
+  ChatTask,
+  ChatTaskStatus,
+  MasterAgentMessage,
+} from '@/types/domain';
 
 export type RightRailTab = {
   id: string;
@@ -55,8 +61,16 @@ export function ChatPane({
   rightRailTabs,
   initialRailTab,
 }: Props) {
-  // Snapshot of mock sessions for this owner, sorted most-recent first.
-  // Local mutations (new sessions, new messages) stay in component state.
+  // Snapshot of mock tasks + sessions for this owner. Local mutations stay
+  // in component state — sessions newly-created or messages appended on the
+  // fly don't get rewritten to the mock file.
+  const initialTasks = useMemo(
+    () =>
+      mockChatTasks
+        .filter((t) => t.ownerKey === ownerKey)
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    [ownerKey],
+  );
   const initialSessions = useMemo(
     () =>
       mockSessions
@@ -65,18 +79,26 @@ export function ChatPane({
     [ownerKey],
   );
 
+  const [tasks, setTasks] = useState<ChatTask[]>(initialTasks);
   const [sessions, setSessions] = useState<ChatSession[]>(initialSessions);
+  const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(
+    () => new Set(initialTasks.filter((t) => t.status === 'active').map((t) => t.id)),
+  );
   const [activeId, setActiveId] = useState<string | null>(initialSessions[0]?.id ?? null);
   const [input, setInput] = useState('');
   const [model, setModel] = useState<ChatModel>('claude-sonnet-4-6');
   const [thinking, setThinking] = useState<ThinkingMode>('standard');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset sessions when ownerKey changes (switching analysts).
+  // Reset state when ownerKey changes (switching analysts).
   useEffect(() => {
+    setTasks(initialTasks);
     setSessions(initialSessions);
+    setExpandedTaskIds(
+      new Set(initialTasks.filter((t) => t.status === 'active').map((t) => t.id)),
+    );
     setActiveId(initialSessions[0]?.id ?? null);
-  }, [ownerKey, initialSessions]);
+  }, [ownerKey, initialTasks, initialSessions]);
 
   const active = sessions.find((s) => s.id === activeId);
 
@@ -113,18 +135,43 @@ export function ChatPane({
     );
   }
 
-  function newSession() {
+  function newSession(taskId: string) {
     const fresh: ChatSession = {
       id: 'new-' + Date.now(),
       ownerKey,
+      taskId,
       title: 'New session',
       lastMessageAt: new Date().toISOString(),
       preview: '',
       messages: [],
     };
-    setSessions([fresh, ...sessions]);
+    setSessions((prev) => [fresh, ...prev]);
     setActiveId(fresh.id);
+    setExpandedTaskIds((prev) => new Set([...prev, taskId]));
     setInput('');
+  }
+
+  function newTask() {
+    const taskId = 'task-' + Date.now();
+    const now = new Date().toISOString();
+    const fresh: ChatTask = {
+      id: taskId,
+      ownerKey,
+      title: 'New task',
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+    };
+    setTasks((prev) => [fresh, ...prev]);
+    newSession(taskId);
+  }
+
+  function toggleTask(taskId: string) {
+    setExpandedTaskIds((prev) => {
+      const next = new Set(prev);
+      next.has(taskId) ? next.delete(taskId) : next.add(taskId);
+      return next;
+    });
   }
 
   function send(text: string) {
@@ -181,50 +228,105 @@ export function ChatPane({
         hasRail ? 'grid-cols-[200px_minmax(0,1fr)_300px]' : 'grid-cols-[200px_minmax(0,1fr)]',
       )}
     >
-      {/* Sessions list */}
+      {/* Tasks → sessions list */}
       <aside className="border-r border-border bg-background/40 flex flex-col">
         <div className="px-3 pt-3 pb-2 flex items-center justify-between">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-            Sessions
+            Tasks
           </div>
           <button
-            onClick={newSession}
+            onClick={newTask}
             className="text-muted-foreground hover:text-foreground transition-colors"
-            title="New session"
+            title="New task"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
-        <ul className="px-2 pb-3 flex-1 overflow-y-auto scrollbar-thin space-y-0.5">
-          {sessions.length === 0 && (
-            <li className="px-2 py-2 text-[11px] text-muted-foreground italic">No sessions.</li>
+        <ul className="px-2 pb-3 flex-1 overflow-y-auto scrollbar-thin space-y-1">
+          {tasks.length === 0 && (
+            <li className="px-2 py-2 text-[11px] text-muted-foreground italic">No tasks yet.</li>
           )}
-          {sessions.map((s) => {
-            const isActive = s.id === activeId;
+          {tasks.map((t) => {
+            const taskSessions = sessions
+              .filter((s) => s.taskId === t.id)
+              .sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
+            const isExpanded = expandedTaskIds.has(t.id);
+            const hasActiveSession = taskSessions.some((s) => s.id === activeId);
             return (
-              <li key={s.id}>
-                <button
-                  onClick={() => setActiveId(s.id)}
+              <li key={t.id}>
+                <div
                   className={cn(
-                    'w-full text-left px-2 py-2 rounded-md transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-accent/40 text-foreground',
+                    'rounded-md',
+                    hasActiveSession && !isExpanded && 'bg-accent/40',
                   )}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <MessageCircle className="w-3 h-3 text-muted-foreground shrink-0" />
-                    <span className="text-xs font-medium truncate">{s.title}</span>
+                  <div className="flex items-center gap-1 group">
+                    <button
+                      onClick={() => toggleTask(t.id)}
+                      className="flex-1 flex items-center gap-1 px-2 py-1.5 rounded-md hover:bg-accent/40 transition-colors text-left"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                      )}
+                      <FolderOpen className="w-3 h-3 text-muted-foreground shrink-0" />
+                      <span className="text-xs font-medium truncate flex-1">
+                        {t.title}
+                      </span>
+                      {taskSessions.length > 0 && (
+                        <span className="text-[9px] text-muted-foreground tabular-nums shrink-0">
+                          {taskSessions.length}
+                        </span>
+                      )}
+                      <TaskStatusDot status={t.status} />
+                    </button>
+                    <button
+                      onClick={() => newSession(t.id)}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all px-1"
+                      title="New session in this task"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
                   </div>
-                  {s.preview && (
-                    <div className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5 pl-4">
-                      {s.preview}
-                    </div>
+
+                  {isExpanded && (
+                    <ul className="ml-3 border-l border-border space-y-0.5 my-0.5">
+                      {taskSessions.length === 0 ? (
+                        <li className="pl-3 py-1.5 text-[10px] italic text-muted-foreground">
+                          No sessions in this task yet.
+                        </li>
+                      ) : (
+                        taskSessions.map((s) => {
+                          const isActive = s.id === activeId;
+                          return (
+                            <li key={s.id}>
+                              <button
+                                onClick={() => setActiveId(s.id)}
+                                className={cn(
+                                  'w-full text-left pl-3 pr-2 py-1.5 rounded-r-md transition-colors',
+                                  isActive
+                                    ? 'bg-accent text-accent-foreground'
+                                    : 'hover:bg-accent/40 text-foreground',
+                                )}
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <MessageCircle className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+                                  <span className="text-[11px] font-medium truncate">
+                                    {s.title}
+                                  </span>
+                                </div>
+                                <div className="text-[9px] text-muted-foreground mt-0.5 pl-4 uppercase tracking-wider">
+                                  {fmtRelative(s.lastMessageAt)}
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })
+                      )}
+                    </ul>
                   )}
-                  <div className="text-[9px] text-muted-foreground mt-0.5 pl-4 uppercase tracking-wider">
-                    {fmtRelative(s.lastMessageAt)}
-                  </div>
-                </button>
+                </div>
               </li>
             );
           })}
@@ -400,6 +502,21 @@ function Bubble({
         )}
       </div>
     </div>
+  );
+}
+
+function TaskStatusDot({ status }: { status: ChatTaskStatus }) {
+  const color =
+    status === 'active'
+      ? 'bg-emerald-500'
+      : status === 'paused'
+        ? 'bg-amber-500'
+        : 'bg-muted-foreground/50';
+  return (
+    <span
+      className={cn('w-1.5 h-1.5 rounded-full inline-block shrink-0', color)}
+      title={status}
+    />
   );
 }
 
