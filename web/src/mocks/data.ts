@@ -4,6 +4,13 @@
  * Everything in this file gets replaced by real backend calls when the
  * data model is wired in. Until then, the React components consume these
  * objects directly so the design can be evaluated without a commitment.
+ *
+ * `FRESH_INSTALL` flips every user-data export to an empty array/record,
+ * which lets you see the "brand-new install" UX (no analysts hired, no
+ * coverages, no sessions). Flip to `false` to seed the app with the
+ * demo data defined further down for design iteration. UI-affordance
+ * exports (suggested prompts) and structural exports (stage definitions)
+ * stay populated either way.
  */
 
 import type {
@@ -21,11 +28,16 @@ import type {
   TickerInfo,
 } from '@/types/domain';
 
+const FRESH_INSTALL = true;
+const empty = <T>(seed: T[]): T[] => (FRESH_INSTALL ? [] : seed);
+const emptyRec = <T>(seed: Record<string, T>): Record<string, T> =>
+  FRESH_INSTALL ? {} : seed;
+
 // ---------------------------------------------------------------------------
 // Analysts
 // ---------------------------------------------------------------------------
 
-export const mockAnalysts: Analyst[] = [
+export const mockAnalysts: Analyst[] = empty([
   {
     id: 'a1',
     slug: 'maria-chen',
@@ -90,13 +102,13 @@ export const mockAnalysts: Analyst[] = [
     stats: { memos: 4, tasksDone: 8, activeTasks: 1 },
     currentFocus: 'COST morning note',
   },
-];
+]);
 
 // ---------------------------------------------------------------------------
 // Ticker universe
 // ---------------------------------------------------------------------------
 
-export const mockUniverse: TickerInfo[] = [
+export const mockUniverse: TickerInfo[] = empty([
   { symbol: 'NVDA', name: 'NVIDIA Corporation',          sector: 'Technology',  industry: 'Semiconductors',         exchange: 'NASDAQ', price: 487.20, dayChangePct: 2.1,  marketCapB: 1190, coveredBy: ['maria-chen'] },
   { symbol: 'AMD',  name: 'Advanced Micro Devices',      sector: 'Technology',  industry: 'Semiconductors',         exchange: 'NASDAQ', price: 152.40, dayChangePct: 1.5,  marketCapB: 245,  coveredBy: ['maria-chen'] },
   { symbol: 'INTC', name: 'Intel Corporation',           sector: 'Technology',  industry: 'Semiconductors',         exchange: 'NASDAQ', price: 31.55,  dayChangePct: -0.8, marketCapB: 132,  coveredBy: ['maria-chen'] },
@@ -122,29 +134,29 @@ export const mockUniverse: TickerInfo[] = [
   { symbol: 'TSLA', name: 'Tesla, Inc.',                 sector: 'Consumer',    industry: 'Auto Manufacturers',     exchange: 'NASDAQ', price: 348.70, dayChangePct: -2.1, marketCapB: 1110, coveredBy: [] },
   { symbol: 'META', name: 'Meta Platforms',              sector: 'Technology',  industry: 'Internet Content',       exchange: 'NASDAQ', price: 612.30, dayChangePct: 0.8,  marketCapB: 1540, coveredBy: [] },
   { symbol: 'GOOG', name: 'Alphabet Inc.',               sector: 'Technology',  industry: 'Internet Content',       exchange: 'NASDAQ', price: 198.40, dayChangePct: 0.5,  marketCapB: 2450, coveredBy: [] },
-];
+]);
 
 // ---------------------------------------------------------------------------
 // Memos + tasks + knowledge
 // ---------------------------------------------------------------------------
 
-export const mockMemos: AnalystMemo[] = [
+export const mockMemos: AnalystMemo[] = empty([
   { id: 'm1', analystSlug: 'david-park',  ticker: 'SOC',  type: 'pitch',             title: 'SOC — Pitch Memo',                    date: '2026-05-12', excerpt: 'Sable Offshore is a zero-revenue California offshore oil producer carrying a $921.6M PIK term loan at 15% that matures by March 2027…', citationCount: 18 },
   { id: 'm2', analystSlug: 'maria-chen',  ticker: 'NVDA', type: 'earnings-reaction', title: 'NVDA — Q1 Earnings Reaction',         date: '2026-05-11', excerpt: 'Revenue $52.4B vs Street $50.1B (+4.5% beat). Data Center segment +212% YoY at $44.3B. Networking attach now 19% of DC rev…', citationCount: 12 },
   { id: 'm3', analystSlug: 'maria-chen',  ticker: 'AMD',  type: 'maintenance',       title: 'AMD — Q2 Maintenance Update',         date: '2026-05-09', excerpt: 'Thesis intact. MI350 ramp tracking schedule. Software stack (ROCm) still the bottleneck vs CUDA — discount to NVDA justified…', citationCount: 8 },
   { id: 'm4', analystSlug: 'tom-kovacs',  ticker: 'COST', type: 'morning-note',      title: 'COST — Morning Note',                 date: '2026-05-12', excerpt: 'April comp +5.2% (Street 4.6%). Membership renewals tracking 92%. Watch fee hike commentary on next call…', citationCount: 5 },
   { id: 'm5', analystSlug: 'aisha-patel', ticker: 'JPM',  type: 'deep-dive',         title: 'JPM — Deep Dive: Net Interest Margin', date: '2026-05-07', excerpt: 'NIM compression deeper than peers in Q1 (3.78% vs 3.92% Q4). Reciprocal-deposit mix shifted; not yet a thesis killer but worth watching…', citationCount: 14 },
-];
+]);
 
-export const mockTasks: AnalystTask[] = [
+export const mockTasks: AnalystTask[] = empty([
   { id: 't1', analystSlug: 'maria-chen', type: 'earnings-reaction', ticker: 'NVDA', status: 'running', description: 'NVDA earnings reaction — call drops at 5pm ET', createdAt: '2026-05-12T20:45:00Z', durationSec: 312 },
   { id: 't2', analystSlug: 'tom-kovacs', type: 'morning-note',      ticker: 'COST', status: 'running', description: 'COST morning note',                       createdAt: '2026-05-12T21:00:00Z', durationSec: 47 },
   { id: 't3', analystSlug: 'david-park', type: 'pitch',             ticker: 'SOC',  status: 'done',    description: 'SOC pitch memo',                        createdAt: '2026-05-12T15:20:00Z', durationSec: 265 },
   { id: 't4', analystSlug: 'maria-chen', type: 'fetch_filing',      ticker: 'AVGO', status: 'done',    description: 'Fetch AVGO 10-K',                       createdAt: '2026-05-12T13:00:00Z', durationSec: 18 },
   { id: 't5', analystSlug: 'aisha-patel',type: 'deep-dive',         ticker: 'JPM',  status: 'done',    description: 'JPM NIM deep dive',                     createdAt: '2026-05-07T16:30:00Z', durationSec: 412 },
-];
+]);
 
-export const mockNotes: KnowledgeNote[] = [
+export const mockNotes: KnowledgeNote[] = empty([
   {
     id: 'n1',
     title: 'PIK debt as a tell in distressed E&P',
@@ -195,13 +207,13 @@ export const mockNotes: KnowledgeNote[] = [
     source: 'memo',
     linkCount: 5,
   },
-];
+]);
 
 // ---------------------------------------------------------------------------
 // Master agent messages + suggested prompts
 // ---------------------------------------------------------------------------
 
-export const mockMasterMessages: MasterAgentMessage[] = [
+export const mockMasterMessages: MasterAgentMessage[] = empty([
   { id: 'mm1', role: 'pm', text: 'Who covers semis?', ts: '2026-05-12T08:14:00Z' },
   { id: 'mm2', role: 'master',
     text: 'Maria Chen covers semis and semi-cap: NVDA, AMD, INTC, TSM, ASML, AVGO, MRVL. Her latest work is an earnings reaction on NVDA (yesterday) and a maintenance update on AMD (last Thursday). She is actively working on tonight\'s NVDA Q1 earnings reaction.',
@@ -210,7 +222,7 @@ export const mockMasterMessages: MasterAgentMessage[] = [
   { id: 'mm4', role: 'master',
     text: 'Three pieces of work in the last 24h. David Park shipped the SOC pitch memo (18 citations). Maria Chen is on tonight\'s NVDA earnings call. Tom Kovacs is finishing a COST morning note. No activity from Aisha; her last deliverable was the JPM NIM deep dive on May 7. Want me to queue something for her?',
     ts: '2026-05-12T08:15:04Z' },
-];
+]);
 
 export const mockSuggestedPrompts: string[] = [
   'Synthesize today\'s morning notes',
@@ -224,7 +236,7 @@ export const mockSuggestedPrompts: string[] = [
 // Per-analyst conversations (re-used by sessions)
 // ---------------------------------------------------------------------------
 
-export const mockAnalystConversations: Record<string, MasterAgentMessage[]> = {
+export const mockAnalystConversations: Record<string, MasterAgentMessage[]> = emptyRec({
   'maria-chen': [
     { id: 'maria-1', role: 'master',
       text: "Morning. Reading the AVGO 10-K I just pulled (ev#42-58). Three things stand out so far: VMware integration is tracking ahead on opex synergies, networking attach in AI clusters is now 22% of accelerator dollars (vs my 18% model), and they're guiding sequential capex *down* — first time in five quarters. Want a full memo or just the AI-networking angle?",
@@ -271,7 +283,7 @@ export const mockAnalystConversations: Record<string, MasterAgentMessage[]> = {
       text: "Three precedents (2008, 2015, 2020). All three preceded comp deceleration within 2 quarters, R² ~0.72. 90% renewal is the hard floor; below that, multiple compresses ~3-4 turns. Currently at 92% — not a screaming sell, but the asymmetry is no longer favorable.",
       ts: '2026-05-12T08:06:15Z' },
   ],
-};
+});
 
 // ---------------------------------------------------------------------------
 // Chat sessions (slice 13 — multiple threads per chat owner)
@@ -301,13 +313,13 @@ function makeSession(
 // Chat tasks (slice 17 — groups sessions by task)
 // ---------------------------------------------------------------------------
 
-export const mockChatTasks: ChatTask[] = [
-  // Maria
-  { id: 't-maria-nvda',  ownerKey: 'maria-chen',  title: 'NVDA / AVGO networking thesis', status: 'active', createdAt: '2026-05-11T10:00:00Z', updatedAt: '2026-05-12T09:16:00Z' },
+export const mockChatTasks: ChatTask[] = empty([
+  // Maria — NVDA task ties to the NVDA coverage pipeline
+  { id: 't-maria-nvda',  ownerKey: 'maria-chen',  title: 'NVDA / AVGO networking thesis', status: 'active', createdAt: '2026-05-11T10:00:00Z', updatedAt: '2026-05-12T09:16:00Z', coverageTicker: 'NVDA' },
   { id: 't-maria-tsm',   ownerKey: 'maria-chen',  title: 'TSM capex read-through',        status: 'done',   createdAt: '2026-05-09T10:00:00Z', updatedAt: '2026-05-09T11:12:00Z' },
 
-  // David
-  { id: 't-david-soc',   ownerKey: 'david-park',  title: 'SOC restart catalyst tracking', status: 'active', createdAt: '2026-05-10T08:00:00Z', updatedAt: '2026-05-12T08:35:00Z' },
+  // David — SOC task ties to the SOC coverage pipeline
+  { id: 't-david-soc',   ownerKey: 'david-park',  title: 'SOC restart catalyst tracking', status: 'active', createdAt: '2026-05-10T08:00:00Z', updatedAt: '2026-05-12T08:35:00Z', coverageTicker: 'SOC' },
   { id: 't-david-oxy',   ownerKey: 'david-park',  title: 'OXY Permian model refresh',     status: 'done',   createdAt: '2026-05-10T14:00:00Z', updatedAt: '2026-05-10T14:22:00Z' },
 
   // Aisha
@@ -317,12 +329,16 @@ export const mockChatTasks: ChatTask[] = [
   { id: 't-tom-cost',    ownerKey: 'tom-kovacs',  title: 'COST coverage refresh',         status: 'active', createdAt: '2026-05-12T08:00:00Z', updatedAt: '2026-05-12T08:06:00Z' },
   { id: 't-tom-hd-low',  ownerKey: 'tom-kovacs',  title: 'HD vs LOW pair trade',          status: 'done',   createdAt: '2026-05-08T17:00:00Z', updatedAt: '2026-05-08T17:10:00Z' },
 
-  // Master
+  // Master — operational, not tied to a single coverage
   { id: 't-master-ops',  ownerKey: 'master',      title: 'Daily PM operations',           status: 'active', createdAt: '2026-05-12T08:00:00Z', updatedAt: '2026-05-12T08:15:00Z' },
   { id: 't-master-audit',ownerKey: 'master',      title: 'Position audits',                status: 'paused', createdAt: '2026-05-09T15:00:00Z', updatedAt: '2026-05-09T15:30:00Z' },
-];
+]);
 
-export const mockSessions: ChatSession[] = [
+// `mockSessions` is special: each entry spreads from `mockAnalystConversations`,
+// which is itself emptied by FRESH_INSTALL. The eager `empty(...)` helper
+// would still evaluate the spread (and crash) — so use a ternary here so
+// the literal is only built when seeding is requested.
+export const mockSessions: ChatSession[] = FRESH_INSTALL ? [] : [
   // Maria’s first session — agent ends by asking the PM a clarifying question
   makeSession('s-maria-1', 'maria-chen', 't-maria-nvda', 'AVGO vs NVDA networking', '2026-05-12T09:16:00Z', [
     ...mockAnalystConversations['maria-chen']!,
@@ -420,7 +436,7 @@ export const mockSessions: ChatSession[] = [
 // Skills catalog
 // ---------------------------------------------------------------------------
 
-export const mockSkills: Skill[] = [
+export const mockSkills: Skill[] = empty([
   {
     slug: 'coverage-planner',
     name: 'Coverage planner',
@@ -600,19 +616,19 @@ export const mockSkills: Skill[] = [
     outputs: ['txt'],
     usedBy: [],
   },
-];
+]);
 
 // ---------------------------------------------------------------------------
 // Data inventory
 // ---------------------------------------------------------------------------
 
-export const mockDataInventory: DataInventoryRow[] = [
+export const mockDataInventory: DataInventoryRow[] = empty([
   { category: 'filings',    count: 14, lastUpdated: '2026-05-12', tickers: ['SOC', 'NVDA', 'AMD', 'AVGO', 'COST', 'JPM'] },
   { category: 'snapshots',  count: 8,  lastUpdated: '2026-05-12', tickers: ['SOC', 'NVDA', 'AVGO', 'COST', 'JPM', 'AMD', 'AAPL', 'TSLA'] },
   { category: 'transcripts',count: 0,  lastUpdated: null,         tickers: [] },
   { category: 'news',       count: 0,  lastUpdated: null,         tickers: [] },
   { category: 'ir-pages',   count: 0,  lastUpdated: null,         tickers: [] },
-];
+]);
 
 // ---------------------------------------------------------------------------
 // Per-analyst session subtasks (for the TaskProgressPill above the composer)
@@ -623,7 +639,7 @@ export const mockDataInventory: DataInventoryRow[] = [
  * subtasks (fetch → analyze → compose → deliver). The pill above the chat
  * composer shows progress through these. Keyed by analyst slug for now.
  */
-export const mockAnalystSubtasks: Record<string, AnalystSubtask[]> = {
+export const mockAnalystSubtasks: Record<string, AnalystSubtask[]> = emptyRec({
   'david-park': [
     { id: 'd-st-1', title: 'Re-fetch SOC 10-K + 10-Q',                                status: 'done',        whyNext: 'Already pulled; confirms current liquidity math.' },
     { id: 'd-st-2', title: 'Run worst-case operating-cash-burn',                       status: 'in-progress', whyNext: 'In flight — modeling no-revenue path through Q3.', nextActionPrompt: 'Continue the burn-rate model with March 2027 maturity stress.' },
@@ -637,9 +653,9 @@ export const mockAnalystSubtasks: Record<string, AnalystSubtask[]> = {
     { id: 'm-st-3', title: 'Write the AI-networking one-pager',                        status: 'pending' },
     { id: 'm-st-4', title: 'Add structural-bad-list for NVDA networking ramp',          status: 'pending',     whyNext: 'The PM asked for names beyond NVDA where AVGO ramp is structurally bad.' },
   ],
-};
+});
 
-export const mockDataItems: DataItem[] = [
+export const mockDataItems: DataItem[] = empty([
   { category: 'filings',   ticker: 'SOC',  type: '10-K',     date: '2026-02-27', size: '580 KB' },
   { category: 'filings',   ticker: 'NVDA', type: '10-K',     date: '2026-02-19', size: '912 KB' },
   { category: 'filings',   ticker: 'AVGO', type: '10-K',     date: '2026-01-30', size: '772 KB' },
@@ -651,4 +667,4 @@ export const mockDataItems: DataItem[] = [
   { category: 'snapshots', ticker: 'AVGO', type: 'snapshot', date: '2026-05-12', size: '7 KB'   },
   { category: 'snapshots', ticker: 'COST', type: 'snapshot', date: '2026-05-12', size: '6 KB'   },
   { category: 'snapshots', ticker: 'JPM',  type: 'snapshot', date: '2026-05-12', size: '6 KB'   },
-];
+]);

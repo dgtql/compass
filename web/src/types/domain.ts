@@ -230,6 +230,13 @@ export type ChatTask = {
   status: ChatTaskStatus;
   createdAt: string;
   updatedAt: string;
+  /**
+   * Optional ticker this chat task is tied to. When set, the right-rail
+   * Progress view renders the pipeline tasks from the matching coverage
+   * (see `mockCoverages` in `mocks/pipeline.ts`); otherwise the rail
+   * shows an empty state inviting the PM to tie it.
+   */
+  coverageTicker?: string;
 };
 
 export type ChatSession = {

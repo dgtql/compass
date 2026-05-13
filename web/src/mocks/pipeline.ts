@@ -5,6 +5,10 @@
  * stages + artifacts on disk. Wires together with the existing mock
  * skills + analysts but lives in its own file to keep `data.ts` from
  * growing past readability.
+ *
+ * `FRESH_INSTALL` matches `mocks/data.ts`: flip to `false` to seed the
+ * demo coverages (NVDA, SOC); leave `true` to see the brand-new-install
+ * UX with no coverages on file.
  */
 
 import type {
@@ -14,6 +18,8 @@ import type {
   StageId,
   TickerCoverage,
 } from '@/types/domain';
+
+const FRESH_INSTALL = true;
 
 export const STAGES: { id: StageId; label: string; description: string }[] = [
   { id: 'setup',    label: 'Setup',    description: 'Initial Q&A · scope · thesis sketch' },
@@ -160,10 +166,12 @@ const NVDA_ARTIFACTS: Artifact[] = [
   { path: 'memos/earnings-reaction/2026-05-11.md',                             stage: 'compose', type: 'memo',      name: 'Earnings reaction',    taskId: 'nvda-5', size: '4.2 KB', updatedAt: '2026-05-11' },
 ];
 
-export const mockCoverages: TickerCoverage[] = [
-  { ticker: 'SOC',  analystSlug: 'david-park',  brief: SOC_BRIEF,  tasks: SOC_TASKS,  artifacts: SOC_ARTIFACTS },
-  { ticker: 'NVDA', analystSlug: 'maria-chen',  brief: NVDA_BRIEF, tasks: NVDA_TASKS, artifacts: NVDA_ARTIFACTS },
-];
+export const mockCoverages: TickerCoverage[] = FRESH_INSTALL
+  ? []
+  : [
+      { ticker: 'SOC',  analystSlug: 'david-park',  brief: SOC_BRIEF,  tasks: SOC_TASKS,  artifacts: SOC_ARTIFACTS },
+      { ticker: 'NVDA', analystSlug: 'maria-chen',  brief: NVDA_BRIEF, tasks: NVDA_TASKS, artifacts: NVDA_ARTIFACTS },
+    ];
 
 export function getCoverage(ticker: string): TickerCoverage | undefined {
   return mockCoverages.find((c) => c.ticker === ticker.toUpperCase());

@@ -26,6 +26,21 @@ export type RightRailTab = {
   content: ReactNode;
 };
 
+/**
+ * Context the right-rail builder receives. Lets a rail tab react to which
+ * task / session is selected without lifting state up to every caller.
+ */
+export type ChatPaneCtx = {
+  activeTask: ChatTask | null;
+  activeSession: ChatSession | null;
+  /** All tasks for this owner (already filtered + sorted). */
+  tasks: ChatTask[];
+};
+
+export type RightRailTabsProp =
+  | RightRailTab[]
+  | ((ctx: ChatPaneCtx) => RightRailTab[]);
+
 export type ChatModel = 'claude-sonnet-4-6' | 'claude-haiku-4-5' | 'claude-opus-4-7';
 export type ThinkingMode = 'standard' | 'extended';
 
@@ -47,8 +62,10 @@ type Props = {
   placeholder?: string;
   /** Right rail content as a single panel (no tabs). */
   rightRail?: ReactNode;
-  /** Right rail content split across tabs. Mutually exclusive with rightRail. */
-  rightRailTabs?: RightRailTab[];
+  /** Right rail content split across tabs. Mutually exclusive with rightRail.
+   *  Either a static array or a function that receives the live chat context
+   *  (active task, active session, tasks list) so tabs can react to selection. */
+  rightRailTabs?: RightRailTabsProp;
   /** Initial right-rail tab id (defaults to first). */
   initialRailTab?: string;
 };
@@ -101,23 +118,36 @@ export function ChatPane({
   }, [ownerKey, initialTasks, initialSessions]);
 
   const active = sessions.find((s) => s.id === activeId);
+  const activeTask = active ? tasks.find((t) => t.id === active.taskId) ?? null : null;
+
+  // Resolve `rightRailTabs` (which may be a static array OR a builder
+  // function) against the current chat context. Recomputes whenever the
+  // active task/session changes, so tab content can react to selection.
+  const resolvedRailTabs: RightRailTab[] = useMemo(() => {
+    if (!rightRailTabs) return [];
+    if (typeof rightRailTabs === 'function') {
+      return rightRailTabs({ activeTask, activeSession: active ?? null, tasks });
+    }
+    return rightRailTabs;
+  }, [rightRailTabs, activeTask, active, tasks]);
 
   const [railTab, setRailTab] = useState<string | null>(
-    initialRailTab ?? rightRailTabs?.[0]?.id ?? null,
+    initialRailTab ?? resolvedRailTabs[0]?.id ?? null,
   );
   useEffect(() => {
-    // If the consumer re-shapes the rail (e.g. switching analysts changed
-    // the available tabs), make sure the selected tab still exists.
-    if (rightRailTabs && !rightRailTabs.find((t) => t.id === railTab)) {
-      setRailTab(rightRailTabs[0]?.id ?? null);
+    // If the consumer re-shapes the rail (e.g. switching analysts or
+    // selecting a different task changed the available tabs), make sure
+    // the selected tab still exists.
+    if (resolvedRailTabs.length > 0 && !resolvedRailTabs.find((t) => t.id === railTab)) {
+      setRailTab(resolvedRailTabs[0]?.id ?? null);
     }
-  }, [rightRailTabs, railTab]);
+  }, [resolvedRailTabs, railTab]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [active?.messages.length, activeId]);
 
-  const hasRail = Boolean(rightRail) || Boolean(rightRailTabs && rightRailTabs.length > 0);
+  const hasRail = Boolean(rightRail) || resolvedRailTabs.length > 0;
 
   function handleAskSubmit(qid: string, answers: AskAnswers) {
     if (!active) return;
@@ -417,11 +447,11 @@ export function ChatPane({
 
       {hasRail && (
         <aside className="border-l border-border bg-background/40 overflow-y-auto scrollbar-thin flex flex-col">
-          {rightRailTabs && rightRailTabs.length > 0 ? (
+          {resolvedRailTabs.length > 0 ? (
             <>
-              {rightRailTabs.length > 1 && (
+              {resolvedRailTabs.length > 1 && (
                 <div className="flex border-b border-border bg-background/60 sticky top-0 z-10">
-                  {rightRailTabs.map((t) => {
+                  {resolvedRailTabs.map((t) => {
                     const isActive = t.id === railTab;
                     return (
                       <button
@@ -449,7 +479,7 @@ export function ChatPane({
                 </div>
               )}
               <div className="flex-1 overflow-y-auto scrollbar-thin">
-                {rightRailTabs.find((t) => t.id === railTab)?.content ?? null}
+                {resolvedRailTabs.find((t) => t.id === railTab)?.content ?? null}
               </div>
             </>
           ) : (
