@@ -13,10 +13,11 @@ import { CheckCircle2, Clock, Circle, AlertCircle, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { mockCoverages, STAGES } from '@/mocks/pipeline';
-import type { ChatTask, PipelineTask, PipelineTaskStatus } from '@/types/domain';
+import type { PipelineTask, PipelineTaskStatus } from '@/types/domain';
+import type { ApiChatTask } from '@/lib/api';
 
 type Props = {
-  task: ChatTask | null;
+  task: ApiChatTask | null;
 };
 
 const STATUS_ICON: Record<PipelineTaskStatus, React.ReactNode> = {

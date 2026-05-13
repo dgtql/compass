@@ -1,40 +1,50 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react';
+/**
+ * ChatPane — analyst (or master agent) chat surface.
+ *
+ * Tasks + sessions + messages are persisted via `/api/chats/{ownerKey}`
+ * (see `compass/chats.py`). Navigating away and coming back resumes
+ * exactly where the PM left off.
+ *
+ *   ┌───────┬──────────────────────────┬───────┐
+ *   │ Tasks │  Conversation + composer │ Right │  ← optional right rail
+ *   │  /    │                          │ rail  │     (per-task progress,
+ *   │ Sess. │                          │       │      analyst sidebar)
+ *   └───────┴──────────────────────────┴───────┘
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
+  FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
+} from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { mockChatTasks, mockSessions } from '@/mocks/data';
-import { InlineTodoList } from '@/components/chat/InlineTodoList';
-import { AskUserQuestionPanel } from '@/components/chat/AskUserQuestionPanel';
-import { OnboardingBanner } from '@/components/chat/OnboardingBanner';
-import type {
-  AskAnswers,
-  ChatSession,
-  ChatTask,
-  ChatTaskStatus,
-  MasterAgentMessage,
-} from '@/types/domain';
+import {
+  createChatSession,
+  createChatTask,
+  deleteChatTask,
+  getChats,
+  postChatMessage,
+  type ApiChatMessage,
+  type ApiChatSession,
+  type ApiChatTask,
+} from '@/lib/api';
 
 export type RightRailTab = {
   id: string;
   label: string;
-  /** Optional small badge (e.g. open-task count) rendered next to the label. */
   badge?: string | number;
   content: ReactNode;
 };
 
-/**
- * Context the right-rail builder receives. Lets a rail tab react to which
- * task / session is selected without lifting state up to every caller.
- */
 export type ChatPaneCtx = {
-  activeTask: ChatTask | null;
-  activeSession: ChatSession | null;
-  /** All tasks for this owner (already filtered + sorted). */
-  tasks: ChatTask[];
+  activeTask: ApiChatTask | null;
+  activeSession: ApiChatSession | null;
+  tasks: ApiChatTask[];
 };
 
 export type RightRailTabsProp =
@@ -55,74 +65,90 @@ type CounterpartyAvatar = {
   color: string;
 };
 
+/** Task-type chips on the welcome screen. Click → creates a task with
+ *  that label as the title, opens a session in it, focuses the composer. */
+const TASK_TYPE_CHIPS: { id: string; label: string; icon: ReactNode }[] = [
+  { id: 'memo',          label: 'Memo',          icon: <FileText className="w-3 h-3" /> },
+  { id: 'morning-brief', label: 'Morning brief', icon: <Sunrise className="w-3 h-3" /> },
+  { id: 'find-data',     label: 'Find data',     icon: <Search className="w-3 h-3" /> },
+  { id: 'data-analysis', label: 'Data analysis', icon: <BarChart3 className="w-3 h-3" /> },
+  { id: 'catalysts',     label: 'Catalysts',     icon: <CalendarClock className="w-3 h-3" /> },
+];
+
 type Props = {
-  /** 'maria-chen' | 'master' — selects which sessions belong here. */
+  /** 'maria-chen' | 'master' — selects which chats belong here. */
   ownerKey: string;
   counterparty: CounterpartyAvatar;
+  /** Friendly name to greet with on the welcome screen ('Hey boss, …'). */
+  counterpartyName?: string;
   placeholder?: string;
-  /** Right rail content as a single panel (no tabs). */
   rightRail?: ReactNode;
-  /** Right rail content split across tabs. Mutually exclusive with rightRail.
-   *  Either a static array or a function that receives the live chat context
-   *  (active task, active session, tasks list) so tabs can react to selection. */
   rightRailTabs?: RightRailTabsProp;
-  /** Initial right-rail tab id (defaults to first). */
   initialRailTab?: string;
 };
 
 export function ChatPane({
   ownerKey,
   counterparty,
+  counterpartyName,
   placeholder,
   rightRail,
   rightRailTabs,
   initialRailTab,
 }: Props) {
-  // Snapshot of mock tasks + sessions for this owner. Local mutations stay
-  // in component state — sessions newly-created or messages appended on the
-  // fly don't get rewritten to the mock file.
-  const initialTasks = useMemo(
-    () =>
-      mockChatTasks
-        .filter((t) => t.ownerKey === ownerKey)
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-    [ownerKey],
-  );
-  const initialSessions = useMemo(
-    () =>
-      mockSessions
-        .filter((s) => s.ownerKey === ownerKey)
-        .sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt)),
-    [ownerKey],
-  );
-
-  const [tasks, setTasks] = useState<ChatTask[]>(initialTasks);
-  const [sessions, setSessions] = useState<ChatSession[]>(initialSessions);
-  const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(
-    () => new Set(initialTasks.filter((t) => t.status === 'active').map((t) => t.id)),
-  );
-  const [activeId, setActiveId] = useState<string | null>(initialSessions[0]?.id ?? null);
+  const [tasks, setTasks] = useState<ApiChatTask[]>([]);
+  const [sessions, setSessions] = useState<ApiChatSession[]>([]);
+  const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
   const [model, setModel] = useState<ChatModel>('claude-sonnet-4-6');
   const [thinking, setThinking] = useState<ThinkingMode>('standard');
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset state when ownerKey changes (switching analysts).
+  // Fetch chats for this owner whenever the owner key changes. Owner key
+  // is stable per analyst view, so this happens on mount + on each switch
+  // (Dashboard → Analyst → back) — which is exactly what fixes the "tasks
+  // disappear when I navigate away" bug.
+  const refresh = useCallback(async (preserveActive = true) => {
+    setLoading(true);
+    try {
+      const data = await getChats(ownerKey);
+      // Newest-first ordering matches the backend (insert at index 0).
+      const sortedTasks = [...data.tasks].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      const sortedSessions = [...data.sessions].sort((a, b) =>
+        b.lastMessageAt.localeCompare(a.lastMessageAt),
+      );
+      setTasks(sortedTasks);
+      setSessions(sortedSessions);
+      setExpandedTaskIds(
+        new Set(sortedTasks.filter((t) => t.status === 'active').map((t) => t.id)),
+      );
+      if (!preserveActive) {
+        setActiveId(null);
+      } else {
+        // If the active session still exists, keep it; otherwise clear.
+        setActiveId((prev) =>
+          prev && sortedSessions.some((s) => s.id === prev) ? prev : null,
+        );
+      }
+    } catch {
+      setTasks([]);
+      setSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [ownerKey]);
+
   useEffect(() => {
-    setTasks(initialTasks);
-    setSessions(initialSessions);
-    setExpandedTaskIds(
-      new Set(initialTasks.filter((t) => t.status === 'active').map((t) => t.id)),
-    );
-    setActiveId(initialSessions[0]?.id ?? null);
-  }, [ownerKey, initialTasks, initialSessions]);
+    setActiveId(null);  // reset on owner change
+    refresh(false);
+  }, [ownerKey, refresh]);
 
   const active = sessions.find((s) => s.id === activeId);
   const activeTask = active ? tasks.find((t) => t.id === active.taskId) ?? null : null;
 
-  // Resolve `rightRailTabs` (which may be a static array OR a builder
-  // function) against the current chat context. Recomputes whenever the
-  // active task/session changes, so tab content can react to selection.
   const resolvedRailTabs: RightRailTab[] = useMemo(() => {
     if (!rightRailTabs) return [];
     if (typeof rightRailTabs === 'function') {
@@ -135,9 +161,6 @@ export function ChatPane({
     initialRailTab ?? resolvedRailTabs[0]?.id ?? null,
   );
   useEffect(() => {
-    // If the consumer re-shapes the rail (e.g. switching analysts or
-    // selecting a different task changed the available tabs), make sure
-    // the selected tab still exists.
     if (resolvedRailTabs.length > 0 && !resolvedRailTabs.find((t) => t.id === railTab)) {
       setRailTab(resolvedRailTabs[0]?.id ?? null);
     }
@@ -149,51 +172,46 @@ export function ChatPane({
 
   const hasRail = Boolean(rightRail) || resolvedRailTabs.length > 0;
 
-  function handleAskSubmit(qid: string, answers: AskAnswers) {
-    if (!active) return;
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.id !== active.id
-          ? s
-          : {
-              ...s,
-              messages: s.messages.map((m) =>
-                m.ask?.requestId === qid ? { ...m, answers } : m,
-              ),
-            },
-      ),
-    );
+  // --- mutations ----------------------------------------------------------
+
+  async function newSession(taskId: string, title?: string) {
+    try {
+      const s = await createChatSession(ownerKey, { task_id: taskId, title });
+      setSessions((prev) => [s, ...prev]);
+      setActiveId(s.id);
+      setExpandedTaskIds((prev) => new Set([...prev, taskId]));
+      setInput('');
+    } catch {
+      refresh();
+    }
   }
 
-  function newSession(taskId: string) {
-    const fresh: ChatSession = {
-      id: 'new-' + Date.now(),
-      ownerKey,
-      taskId,
-      title: 'New session',
-      lastMessageAt: new Date().toISOString(),
-      preview: '',
-      messages: [],
-    };
-    setSessions((prev) => [fresh, ...prev]);
-    setActiveId(fresh.id);
-    setExpandedTaskIds((prev) => new Set([...prev, taskId]));
-    setInput('');
+  async function newTask(title = 'New task') {
+    try {
+      const t = await createChatTask(ownerKey, { title });
+      setTasks((prev) => [t, ...prev]);
+      setExpandedTaskIds((prev) => new Set([...prev, t.id]));
+      // Auto-open a session under the new task.
+      await newSession(t.id);
+    } catch {
+      refresh();
+    }
   }
 
-  function newTask() {
-    const taskId = 'task-' + Date.now();
-    const now = new Date().toISOString();
-    const fresh: ChatTask = {
-      id: taskId,
-      ownerKey,
-      title: 'New task',
-      status: 'active',
-      createdAt: now,
-      updatedAt: now,
-    };
-    setTasks((prev) => [fresh, ...prev]);
-    newSession(taskId);
+  async function handleDeleteTask(taskId: string) {
+    const t = tasks.find((x) => x.id === taskId);
+    if (!t) return;
+    const confirmed = window.confirm(`Delete task "${t.title}" and its sessions?`);
+    if (!confirmed) return;
+    // Optimistic
+    setTasks((prev) => prev.filter((x) => x.id !== taskId));
+    setSessions((prev) => prev.filter((s) => s.taskId !== taskId));
+    if (active?.taskId === taskId) setActiveId(null);
+    try {
+      await deleteChatTask(ownerKey, taskId);
+    } catch {
+      refresh();
+    }
   }
 
   function toggleTask(taskId: string) {
@@ -204,51 +222,48 @@ export function ChatPane({
     });
   }
 
-  function send(text: string) {
+  async function send(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || !active) return;
-    const userMsg: MasterAgentMessage = {
-      id: 'pm-' + Date.now(),
-      role: 'pm',
-      text: trimmed,
-      ts: new Date().toISOString(),
-    };
-    const reply: MasterAgentMessage = {
-      id: 'r-' + Date.now(),
-      role: 'master',
-      text: `(mocked · model=${model} · thinking=${thinking}) backend wiring lands in a future slice.`,
-      ts: new Date(Date.now() + 500).toISOString(),
-    };
-    // Update active session with new messages + title (if empty)
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.id !== active.id
-          ? s
-          : {
-              ...s,
-              title: s.messages.length === 0 ? trimmed.slice(0, 40) : s.title,
-              messages: [...s.messages, userMsg],
-              lastMessageAt: userMsg.ts,
-              preview: trimmed.slice(0, 90),
-            },
-      ),
-    );
+    if (!trimmed) return;
+    let sessionId = active?.id;
+    // If no session selected, create a fresh task + session named from text.
+    if (!sessionId) {
+      try {
+        const newT = await createChatTask(ownerKey, { title: trimmed.slice(0, 40) });
+        const newS = await createChatSession(ownerKey, { task_id: newT.id });
+        setTasks((prev) => [newT, ...prev]);
+        setSessions((prev) => [newS, ...prev]);
+        setExpandedTaskIds((prev) => new Set([...prev, newT.id]));
+        setActiveId(newS.id);
+        sessionId = newS.id;
+      } catch {
+        refresh();
+        return;
+      }
+    }
     setInput('');
-    // Simulate reply
-    setTimeout(() => {
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id !== active.id
-            ? s
-            : {
-                ...s,
-                messages: [...s.messages, reply],
-                lastMessageAt: reply.ts,
-                preview: reply.text.slice(0, 90),
-              },
-        ),
-      );
-    }, 600);
+    setSending(true);
+    try {
+      const updated = await postChatMessage(ownerKey, sessionId!, { role: 'pm', text: trimmed });
+      setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    } catch {
+      refresh();
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function startTaskFromChip(title: string) {
+    try {
+      const t = await createChatTask(ownerKey, { title });
+      const s = await createChatSession(ownerKey, { task_id: t.id });
+      setTasks((prev) => [t, ...prev]);
+      setSessions((prev) => [s, ...prev]);
+      setExpandedTaskIds((prev) => new Set([...prev, t.id]));
+      setActiveId(s.id);
+    } catch {
+      refresh();
+    }
   }
 
   return (
@@ -265,7 +280,7 @@ export function ChatPane({
             Tasks
           </div>
           <button
-            onClick={newTask}
+            onClick={() => newTask()}
             className="text-muted-foreground hover:text-foreground transition-colors"
             title="New task"
           >
@@ -273,7 +288,10 @@ export function ChatPane({
           </button>
         </div>
         <ul className="px-2 pb-3 flex-1 overflow-y-auto scrollbar-thin space-y-1">
-          {tasks.length === 0 && (
+          {loading && (
+            <li className="px-2 py-2 text-[11px] text-muted-foreground italic">Loading…</li>
+          )}
+          {!loading && tasks.length === 0 && (
             <li className="px-2 py-2 text-[11px] text-muted-foreground italic">No tasks yet.</li>
           )}
           {tasks.map((t) => {
@@ -293,7 +311,7 @@ export function ChatPane({
                   <div className="flex items-center gap-1 group">
                     <button
                       onClick={() => toggleTask(t.id)}
-                      className="flex-1 flex items-center gap-1 px-2 py-1.5 rounded-md hover:bg-accent/40 transition-colors text-left"
+                      className="flex-1 flex items-center gap-1 px-2 py-1.5 rounded-md hover:bg-accent/40 transition-colors text-left min-w-0"
                     >
                       {isExpanded ? (
                         <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
@@ -311,13 +329,23 @@ export function ChatPane({
                       )}
                       <TaskStatusDot status={t.status} />
                     </button>
-                    <button
-                      onClick={() => newSession(t.id)}
-                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all px-1"
-                      title="New session in this task"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
+                    {/* Per-task hover actions */}
+                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => newSession(t.id)}
+                        className="text-muted-foreground hover:text-foreground px-1"
+                        title="New session in this task"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTask(t.id)}
+                        className="text-muted-foreground hover:text-rose-500 px-1"
+                        title={`Delete task "${t.title}"`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
 
                   {isExpanded && (
@@ -369,28 +397,21 @@ export function ChatPane({
           ref={scrollRef}
           className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4 max-w-3xl w-full mx-auto"
         >
-          {!active && (
-            <div className="text-sm text-muted-foreground italic mt-12 text-center">
-              Pick a session, or start a new one.
-            </div>
-          )}
-          {active && active.messages.length === 0 && (
-            <OnboardingBanner
-              title="New session"
-              body="Drop a question, paste a snippet, or pick a Quick task on the right. The analyst will pick it up from there."
-              cta="Try: morning thesis sweep"
-              template="Run a 1-minute thesis sweep across your covered names. For each: is the thesis intact, what's the single most important data point this week, and is there an action item?"
-              onInject={(t) => setInput(t)}
-            />
-          )}
-          {active?.messages.map((m) => (
-            <Bubble
-              key={m.id}
-              msg={m}
+          {!active ? (
+            <WelcomePanel
               counterparty={counterparty}
-              onAskSubmit={handleAskSubmit}
+              counterpartyName={counterpartyName}
+              onChip={(title) => startTaskFromChip(title)}
             />
-          ))}
+          ) : active.messages.length === 0 ? (
+            <div className="mt-12 text-center text-sm text-muted-foreground italic">
+              Type to start. Shift+Enter for newline.
+            </div>
+          ) : (
+            active.messages.map((m) => (
+              <Bubble key={m.id} msg={m} counterparty={counterparty} />
+            ))
+          )}
         </div>
 
         <div className="border-t border-border bg-background/80 px-4 py-3">
@@ -406,7 +427,7 @@ export function ChatPane({
                 }
               }}
               className="min-h-[56px] max-h-[160px] resize-none"
-              disabled={!active}
+              disabled={sending}
             />
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -436,7 +457,7 @@ export function ChatPane({
                   </span>
                 )}
               </div>
-              <Button onClick={() => send(input)} disabled={!input.trim() || !active} size="sm">
+              <Button onClick={() => send(input)} disabled={!input.trim() || sending} size="sm">
                 <Send className="w-3.5 h-3.5" />
                 Send
               </Button>
@@ -491,14 +512,51 @@ export function ChatPane({
   );
 }
 
+function WelcomePanel({
+  counterparty,
+  counterpartyName,
+  onChip,
+}: {
+  counterparty: CounterpartyAvatar;
+  counterpartyName?: string;
+  onChip: (title: string) => void;
+}) {
+  const greeting = counterpartyName
+    ? `Hey boss — what would you like ${counterpartyName} to work on?`
+    : `Hey boss — what would you like to work on?`;
+  return (
+    <div className="mt-8 max-w-2xl mx-auto text-center space-y-5">
+      <div className="flex items-center justify-center gap-3">
+        <Avatar initials={counterparty.initials} color={counterparty.color} size="md" />
+      </div>
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">{greeting}</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Pick a task type to start, or just type below.
+        </p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2 pt-2">
+        {TASK_TYPE_CHIPS.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => onChip(c.label)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground border border-border hover:bg-accent hover:border-primary/40 transition-colors"
+          >
+            {c.icon}
+            {c.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Bubble({
   msg,
   counterparty,
-  onAskSubmit,
 }: {
-  msg: MasterAgentMessage;
+  msg: ApiChatMessage;
   counterparty: CounterpartyAvatar;
-  onAskSubmit: (requestId: string, answers: AskAnswers) => void;
 }) {
   const isPM = msg.role === 'pm';
   return (
@@ -518,24 +576,13 @@ function Bubble({
           )}
         >
           <div className="whitespace-pre-line">{msg.text}</div>
-          {!isPM && msg.todos && msg.todos.length > 0 && (
-            <InlineTodoList todos={msg.todos} />
-          )}
         </div>
-        {!isPM && msg.ask && (
-          <AskUserQuestionPanel
-            requestId={msg.ask.requestId}
-            questions={msg.ask.questions}
-            answers={msg.answers}
-            onSubmit={onAskSubmit}
-          />
-        )}
       </div>
     </div>
   );
 }
 
-function TaskStatusDot({ status }: { status: ChatTaskStatus }) {
+function TaskStatusDot({ status }: { status: ApiChatTask['status'] }) {
   const color =
     status === 'active'
       ? 'bg-emerald-500'

@@ -133,6 +133,7 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
               initials: analyst.avatar_initials,
               color: analyst.avatar_color,
             }}
+            counterpartyName={analyst.name}
             placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
             rightRailTabs={({ activeTask }) => {
               // Progress tab is scoped to the selected chat task: when the

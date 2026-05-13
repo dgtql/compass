@@ -204,3 +204,107 @@ export function lookupTickers(tickers: string[]): Promise<{ count: number; ticke
     body: JSON.stringify({ tickers }),
   });
 }
+
+// --- Chats (per-owner tasks + sessions + messages) ------------------------
+
+export type ApiChatMessage = {
+  id: string;
+  role: 'pm' | 'master';
+  text: string;
+  ts: string;
+};
+
+export type ApiChatSession = {
+  id: string;
+  ownerKey: string;
+  taskId: string;
+  title: string;
+  lastMessageAt: string;
+  preview: string;
+  messages: ApiChatMessage[];
+};
+
+export type ApiChatTask = {
+  id: string;
+  ownerKey: string;
+  title: string;
+  status: 'active' | 'paused' | 'done';
+  createdAt: string;
+  updatedAt: string;
+  coverageTicker: string | null;
+};
+
+export type ApiChatsForOwner = {
+  owner_key: string;
+  tasks: ApiChatTask[];
+  sessions: ApiChatSession[];
+};
+
+const jpost = <T>(path: string, body: unknown): Promise<T> =>
+  getJson<T>(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+const jpatch = <T>(path: string, body: unknown): Promise<T> =>
+  getJson<T>(path, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+const jdelete = <T>(path: string): Promise<T> =>
+  getJson<T>(path, { method: 'DELETE' });
+
+export function getChats(ownerKey: string): Promise<ApiChatsForOwner> {
+  return getJson<ApiChatsForOwner>(`/api/chats/${encodeURIComponent(ownerKey)}`);
+}
+
+export function createChatTask(
+  ownerKey: string,
+  body: { title: string; coverage_ticker?: string },
+): Promise<ApiChatTask> {
+  return jpost<ApiChatTask>(`/api/chats/${encodeURIComponent(ownerKey)}/tasks`, body);
+}
+
+export function updateChatTask(
+  ownerKey: string,
+  taskId: string,
+  patch: Partial<{ title: string; status: 'active' | 'paused' | 'done'; coverage_ticker: string }>,
+): Promise<ApiChatTask> {
+  return jpatch<ApiChatTask>(
+    `/api/chats/${encodeURIComponent(ownerKey)}/tasks/${encodeURIComponent(taskId)}`,
+    patch,
+  );
+}
+
+export function deleteChatTask(ownerKey: string, taskId: string): Promise<{ task_count: number }> {
+  return jdelete(`/api/chats/${encodeURIComponent(ownerKey)}/tasks/${encodeURIComponent(taskId)}`);
+}
+
+export function createChatSession(
+  ownerKey: string,
+  body: { task_id: string; title?: string },
+): Promise<ApiChatSession> {
+  return jpost<ApiChatSession>(`/api/chats/${encodeURIComponent(ownerKey)}/sessions`, body);
+}
+
+export function deleteChatSession(ownerKey: string, sessionId: string): Promise<unknown> {
+  return jdelete(
+    `/api/chats/${encodeURIComponent(ownerKey)}/sessions/${encodeURIComponent(sessionId)}`,
+  );
+}
+
+/** Append a PM message — server returns the session with both user + mock
+ *  master reply appended. Will route to a real LLM in a later slice. */
+export function postChatMessage(
+  ownerKey: string,
+  sessionId: string,
+  body: { role?: 'pm' | 'master'; text: string },
+): Promise<ApiChatSession> {
+  return jpost<ApiChatSession>(
+    `/api/chats/${encodeURIComponent(ownerKey)}/sessions/${encodeURIComponent(sessionId)}/messages`,
+    body,
+  );
+}

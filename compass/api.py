@@ -61,6 +61,15 @@ from compass.analysts import (
     update_analyst,
     update_analyst_coverage,
 )
+from compass.chats import (
+    append_message as chats_append_message,
+    create_session as chats_create_session,
+    create_task as chats_create_task,
+    delete_session as chats_delete_session,
+    delete_task as chats_delete_task,
+    list_for_owner as chats_list_for_owner,
+    update_task as chats_update_task,
+)
 
 load_dotenv()
 
@@ -430,6 +439,107 @@ def put_analyst_coverage(slug: str, req: UpdateCoverageReq) -> dict:
 def delete_analyst_by_slug(slug: str) -> dict:
     delete_analyst(slug)
     return {"slug": slug}
+
+
+# --- chats (per-owner tasks + sessions + messages) -------------------------
+
+
+class CreateChatTaskReq(BaseModel):
+    title: str
+    coverage_ticker: str | None = None
+
+
+class UpdateChatTaskReq(BaseModel):
+    title: str | None = None
+    status: str | None = None
+    coverage_ticker: str | None = None
+
+
+class CreateChatSessionReq(BaseModel):
+    task_id: str
+    title: str | None = None
+
+
+class AppendMessageReq(BaseModel):
+    role: str = "pm"
+    text: str
+
+
+@app.get("/api/chats/{owner_key}")
+def get_chats_for_owner(owner_key: str) -> dict:
+    owner = chats_list_for_owner(owner_key)
+    return {
+        "owner_key": owner_key,
+        "tasks": [t.to_dict() for t in owner.tasks],
+        "sessions": [s.to_dict() for s in owner.sessions],
+    }
+
+
+@app.post("/api/chats/{owner_key}/tasks", status_code=201)
+def post_chat_task(owner_key: str, req: CreateChatTaskReq) -> dict:
+    task = chats_create_task(owner_key, title=req.title, coverage_ticker=req.coverage_ticker)
+    return task.to_dict()
+
+
+@app.patch("/api/chats/{owner_key}/tasks/{task_id}")
+def patch_chat_task(owner_key: str, task_id: str, req: UpdateChatTaskReq) -> dict:
+    try:
+        task = chats_update_task(
+            owner_key, task_id,
+            title=req.title, status=req.status, coverage_ticker=req.coverage_ticker,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return task.to_dict()
+
+
+@app.delete("/api/chats/{owner_key}/tasks/{task_id}")
+def delete_chat_task(owner_key: str, task_id: str) -> dict:
+    owner = chats_delete_task(owner_key, task_id)
+    return {
+        "owner_key": owner_key,
+        "task_id": task_id,
+        "task_count": len(owner.tasks),
+        "session_count": len(owner.sessions),
+    }
+
+
+@app.post("/api/chats/{owner_key}/sessions", status_code=201)
+def post_chat_session(owner_key: str, req: CreateChatSessionReq) -> dict:
+    try:
+        session = chats_create_session(
+            owner_key, req.task_id, title=req.title or "New session",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return session.to_dict()
+
+
+@app.delete("/api/chats/{owner_key}/sessions/{session_id}")
+def delete_chat_session(owner_key: str, session_id: str) -> dict:
+    chats_delete_session(owner_key, session_id)
+    return {"owner_key": owner_key, "session_id": session_id}
+
+
+@app.post("/api/chats/{owner_key}/sessions/{session_id}/messages")
+def post_chat_message(owner_key: str, session_id: str, req: AppendMessageReq) -> dict:
+    """Append a PM message; the API tacks on a mock 'master' reply for now.
+
+    Replacing the canned reply with a real LLM call is a single-spot change
+    here (see the inline mock below).
+    """
+    try:
+        session = chats_append_message(owner_key, session_id, role=req.role, text=req.text)
+        if req.role == "pm" and req.text.strip():
+            # Canned reply so the UI sees a response. When the LLM is wired
+            # in this is the seam to call out to it instead.
+            reply = (
+                "(mocked reply — backend LLM wiring lands in a future slice.)"
+            )
+            session = chats_append_message(owner_key, session_id, role="master", text=reply)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return session.to_dict()
 
 
 # --- skill / template listings ---------------------------------------------

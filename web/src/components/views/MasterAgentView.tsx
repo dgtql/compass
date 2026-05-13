@@ -23,6 +23,7 @@ export function MasterAgentView() {
         <ChatPane
           ownerKey="master"
           counterparty={{ initials: 'MA', color: 'cyan' }}
+          counterpartyName="the master agent"
           placeholder="Ask the master agent anything — your pod, your memos, your notes."
           rightRail={
             <div className="p-4 space-y-4">
