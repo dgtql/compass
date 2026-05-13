@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { cn, fmtElapsed } from '@/lib/utils';
 import { ChatPane } from '@/components/ChatPane';
+import { SessionTasksRail } from '@/components/chat/SessionTasksRail';
 import {
   mockAnalysts,
+  mockAnalystSubtasks,
   mockMemos,
   mockTasks,
   mockUniverse,
@@ -99,17 +101,49 @@ export function AnalystDetailView({ slug }: Props) {
 
       {/* Tab body */}
       <div className="flex-1 min-h-0">
-        {tab === 'chat' && (
-          <ChatPane
-            ownerKey={analyst.slug}
-            counterparty={{
-              initials: analyst.avatarInitials,
-              color: analyst.avatarColor,
-            }}
-            placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
-            rightRail={<AnalystRightRail analyst={analyst} memos={memos} tasks={tasks} />}
-          />
-        )}
+        {tab === 'chat' && (() => {
+          const subtasks = mockAnalystSubtasks[analyst.slug] ?? [];
+          const nextSubtask =
+            subtasks.find((t) => t.status === 'in-progress') ??
+            subtasks.find((t) => t.status === 'pending') ??
+            null;
+          const openTaskCount = subtasks.filter(
+            (t) => t.status === 'pending' || t.status === 'in-progress',
+          ).length;
+          return (
+            <ChatPane
+              ownerKey={analyst.slug}
+              counterparty={{
+                initials: analyst.avatarInitials,
+                color: analyst.avatarColor,
+              }}
+              placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
+              rightRailTabs={[
+                {
+                  id: 'current',
+                  label: 'Current',
+                  content: (
+                    <AnalystRightRail analyst={analyst} memos={memos} tasks={tasks} />
+                  ),
+                },
+                {
+                  id: 'tasks',
+                  label: 'Tasks',
+                  badge: openTaskCount > 0 ? openTaskCount : undefined,
+                  content: (
+                    <SessionTasksRail
+                      tasks={subtasks}
+                      nextTask={nextSubtask}
+                      onUsePrompt={() => {
+                        /* injection into composer is wired via ChatPane state; for now this is a no-op until we expose setInput */
+                      }}
+                    />
+                  ),
+                },
+              ]}
+            />
+          );
+        })()}
 
         {tab === 'coverage' && (
           <div className="overflow-y-auto scrollbar-thin h-full p-6 max-w-5xl mx-auto">

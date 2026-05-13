@@ -4,13 +4,21 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { mockAnalystSubtasks, mockSessions } from '@/mocks/data';
+import { mockSessions } from '@/mocks/data';
 import { InlineTodoList } from '@/components/chat/InlineTodoList';
-import { TaskProgressPill } from '@/components/chat/TaskProgressPill';
 import { AskUserQuestionPanel } from '@/components/chat/AskUserQuestionPanel';
 import { OnboardingBanner } from '@/components/chat/OnboardingBanner';
 import type { AskAnswers, ChatSession, MasterAgentMessage } from '@/types/domain';
+
+export type RightRailTab = {
+  id: string;
+  label: string;
+  /** Optional small badge (e.g. open-task count) rendered next to the label. */
+  badge?: string | number;
+  content: ReactNode;
+};
 
 export type ChatModel = 'claude-sonnet-4-6' | 'claude-haiku-4-5' | 'claude-opus-4-7';
 export type ThinkingMode = 'standard' | 'extended';
@@ -31,11 +39,22 @@ type Props = {
   ownerKey: string;
   counterparty: CounterpartyAvatar;
   placeholder?: string;
-  /** Right rail content (Quick tasks / Suggested prompts / etc). */
+  /** Right rail content as a single panel (no tabs). */
   rightRail?: ReactNode;
+  /** Right rail content split across tabs. Mutually exclusive with rightRail. */
+  rightRailTabs?: RightRailTab[];
+  /** Initial right-rail tab id (defaults to first). */
+  initialRailTab?: string;
 };
 
-export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Props) {
+export function ChatPane({
+  ownerKey,
+  counterparty,
+  placeholder,
+  rightRail,
+  rightRailTabs,
+  initialRailTab,
+}: Props) {
   // Snapshot of mock sessions for this owner, sorted most-recent first.
   // Local mutations (new sessions, new messages) stay in component state.
   const initialSessions = useMemo(
@@ -60,15 +79,23 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
   }, [ownerKey, initialSessions]);
 
   const active = sessions.find((s) => s.id === activeId);
-  const subtasks = mockAnalystSubtasks[ownerKey] ?? [];
-  const nextSubtask =
-    subtasks.find((t) => t.status === 'in-progress') ??
-    subtasks.find((t) => t.status === 'pending') ??
-    null;
+
+  const [railTab, setRailTab] = useState<string | null>(
+    initialRailTab ?? rightRailTabs?.[0]?.id ?? null,
+  );
+  useEffect(() => {
+    // If the consumer re-shapes the rail (e.g. switching analysts changed
+    // the available tabs), make sure the selected tab still exists.
+    if (rightRailTabs && !rightRailTabs.find((t) => t.id === railTab)) {
+      setRailTab(rightRailTabs[0]?.id ?? null);
+    }
+  }, [rightRailTabs, railTab]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [active?.messages.length, activeId]);
+
+  const hasRail = Boolean(rightRail) || Boolean(rightRailTabs && rightRailTabs.length > 0);
 
   function handleAskSubmit(qid: string, answers: AskAnswers) {
     if (!active) return;
@@ -151,7 +178,7 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
     <div
       className={cn(
         'h-full grid',
-        rightRail ? 'grid-cols-[200px_minmax(0,1fr)_300px]' : 'grid-cols-[200px_minmax(0,1fr)]',
+        hasRail ? 'grid-cols-[200px_minmax(0,1fr)_300px]' : 'grid-cols-[200px_minmax(0,1fr)]',
       )}
     >
       {/* Sessions list */}
@@ -236,13 +263,6 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
 
         <div className="border-t border-border bg-background/80 px-4 py-3">
           <div className="max-w-3xl mx-auto space-y-2">
-            {subtasks.length > 0 && (
-              <TaskProgressPill
-                tasks={subtasks}
-                nextTask={nextSubtask}
-                onStartTask={(prompt) => prompt && setInput(prompt)}
-              />
-            )}
             <Textarea
               placeholder={placeholder ?? 'Ask anything. Shift+Enter for newline.'}
               value={input}
@@ -293,9 +313,46 @@ export function ChatPane({ ownerKey, counterparty, placeholder, rightRail }: Pro
         </div>
       </div>
 
-      {rightRail && (
-        <aside className="border-l border-border bg-background/40 overflow-y-auto scrollbar-thin">
-          {rightRail}
+      {hasRail && (
+        <aside className="border-l border-border bg-background/40 overflow-y-auto scrollbar-thin flex flex-col">
+          {rightRailTabs && rightRailTabs.length > 0 ? (
+            <>
+              {rightRailTabs.length > 1 && (
+                <div className="flex border-b border-border bg-background/60 sticky top-0 z-10">
+                  {rightRailTabs.map((t) => {
+                    const isActive = t.id === railTab;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => setRailTab(t.id)}
+                        className={cn(
+                          'flex-1 px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px flex items-center justify-center gap-1.5',
+                          isActive
+                            ? 'text-foreground border-primary'
+                            : 'text-muted-foreground hover:text-foreground border-transparent',
+                        )}
+                      >
+                        {t.label}
+                        {t.badge != null && t.badge !== '' && (
+                          <Badge
+                            variant={isActive ? 'default' : 'secondary'}
+                            className="text-[9px] h-4 px-1.5"
+                          >
+                            {t.badge}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="flex-1 overflow-y-auto scrollbar-thin">
+                {rightRailTabs.find((t) => t.id === railTab)?.content ?? null}
+              </div>
+            </>
+          ) : (
+            rightRail
+          )}
         </aside>
       )}
     </div>
