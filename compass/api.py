@@ -42,6 +42,12 @@ from compass.universe import (
     filter_tickers,
     load_universe,
 )
+from compass.watchlist import (
+    add_ticker as watchlist_add,
+    hydrate as watchlist_hydrate,
+    load_watchlist,
+    remove_ticker as watchlist_remove,
+)
 
 load_dotenv()
 
@@ -204,6 +210,50 @@ def get_sectors() -> list[str]:
 @app.get("/api/universe/exchanges")
 def get_exchanges() -> list[str]:
     return list(ALLOWED_EXCHANGES)
+
+
+# --- my universe (PM's personal watchlist) ---------------------------------
+
+
+class AddToWatchlistReq(BaseModel):
+    ticker: str
+    note: str | None = None
+
+
+@app.get("/api/my-universe")
+def get_my_universe() -> dict:
+    """Return the watchlist with each entry hydrated from the universe.
+
+    Each row carries the watchlist metadata (added_at, note) plus the
+    universe-derived fields (name, exchange, sector, industry, market_cap)
+    so the UI can render a single table without a second fetch.
+    """
+    wl = load_watchlist()
+    rows = watchlist_hydrate(wl)
+    return {
+        "as_of": wl.as_of,
+        "count": len(rows),
+        "tickers": rows,
+    }
+
+
+@app.post("/api/my-universe", status_code=201)
+def add_to_my_universe(req: AddToWatchlistReq) -> dict:
+    """Add a ticker to the watchlist. Idempotent."""
+    try:
+        wl = watchlist_add(req.ticker, note=req.note)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return {"ticker": req.ticker.upper(), "count": len(wl.tickers)}
+
+
+@app.delete("/api/my-universe/{ticker}")
+def remove_from_my_universe(ticker: str) -> dict:
+    """Remove a ticker from the watchlist. Idempotent."""
+    wl = watchlist_remove(ticker)
+    return {"ticker": ticker.upper(), "count": len(wl.tickers)}
 
 
 # --- skill / template listings ---------------------------------------------

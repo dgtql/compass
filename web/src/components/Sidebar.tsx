@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Library,
   Database,
+  Bookmark,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
@@ -24,6 +25,7 @@ export type View =
   | { kind: 'dashboard' }
   | { kind: 'master-agent' }
   | { kind: 'universe' }
+  | { kind: 'my-universe' }
   | { kind: 'knowledge' }
   | { kind: 'skills' }
   | { kind: 'data' }
@@ -180,6 +182,12 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
               label="Data"
               active={view.kind === 'data'}
               onClick={() => onNavigate({ kind: 'data' })}
+            />
+            <NavItem
+              icon={Bookmark}
+              label="My universe"
+              active={view.kind === 'my-universe'}
+              onClick={() => onNavigate({ kind: 'my-universe' })}
             />
             <NavItem
               icon={Globe}

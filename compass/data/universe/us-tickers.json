@@ -8,1800 +8,1800 @@
       "ticker": "NVDA",
       "name": "NVIDIA CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 5442375778304.0
     },
     {
       "cik": 1652044,
       "ticker": "GOOGL",
       "name": "Alphabet Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "market_cap": 4757734817792.0
     },
     {
       "cik": 320193,
       "ticker": "AAPL",
       "name": "Apple Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "market_cap": 4344813715456.0
     },
     {
       "cik": 789019,
       "ticker": "MSFT",
       "name": "MICROSOFT CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 3002461847552.0
     },
     {
       "cik": 1018724,
       "ticker": "AMZN",
       "name": "AMAZON COM INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "market_cap": 2860046614528.0
     },
     {
       "cik": 1730168,
       "ticker": "AVGO",
       "name": "Broadcom Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1326801,
-      "ticker": "META",
-      "name": "Meta Platforms, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 1936837181440.0
     },
     {
       "cik": 1318605,
       "ticker": "TSLA",
       "name": "Tesla, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "market_cap": 1652574912512.0
+    },
+    {
+      "cik": 1326801,
+      "ticker": "META",
+      "name": "Meta Platforms, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "market_cap": 1538919104512.0
     },
     {
       "cik": 104169,
       "ticker": "WMT",
       "name": "Walmart Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Discount Stores",
+      "market_cap": 1049140985856.0
     },
     {
       "cik": 1067983,
       "ticker": "BRK-B",
       "name": "BERKSHIRE HATHAWAY INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Insurance - Diversified",
+      "market_cap": 1046537764864.0
     },
     {
       "cik": 59478,
       "ticker": "LLY",
       "name": "ELI LILLY & Co",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 19617,
-      "ticker": "JPM",
-      "name": "JPMORGAN CHASE & CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 893092364288.0
     },
     {
       "cik": 723125,
       "ticker": "MU",
       "name": "MICRON TECHNOLOGY INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 892545073152.0
     },
     {
-      "cik": 34088,
-      "ticker": "XOM",
-      "name": "EXXON MOBIL CORP",
+      "cik": 19617,
+      "ticker": "JPM",
+      "name": "JPMORGAN CHASE & CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1403161,
-      "ticker": "V",
-      "name": "VISA INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 808703295488.0
     },
     {
       "cik": 2488,
       "ticker": "AMD",
       "name": "ADVANCED MICRO DEVICES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 710420070400.0
     },
     {
-      "cik": 200406,
-      "ticker": "JNJ",
-      "name": "JOHNSON & JOHNSON",
+      "cik": 34088,
+      "ticker": "XOM",
+      "name": "EXXON MOBIL CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 627089014784.0
     },
     {
-      "cik": 937966,
-      "ticker": "ASML",
-      "name": "ASML HOLDING NV",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1341439,
-      "ticker": "ORCL",
-      "name": "ORACLE CORP",
+      "cik": 1403161,
+      "ticker": "V",
+      "name": "VISA INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "market_cap": 615157071872.0
     },
     {
       "cik": 50863,
       "ticker": "INTC",
       "name": "INTEL CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 591057584128.0
+    },
+    {
+      "cik": 937966,
+      "ticker": "ASML",
+      "name": "ASML HOLDING NV",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "market_cap": 588170526720.0
+    },
+    {
+      "cik": 200406,
+      "ticker": "JNJ",
+      "name": "JOHNSON & JOHNSON",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 548580655104.0
+    },
+    {
+      "cik": 1341439,
+      "ticker": "ORCL",
+      "name": "ORACLE CORP",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 542839308288.0
     },
     {
       "cik": 909832,
       "ticker": "COST",
       "name": "COSTCO WHOLESALE CORP /NEW",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Discount Stores",
+      "market_cap": 459331207168.0
     },
     {
       "cik": 1141391,
       "ticker": "MA",
       "name": "Mastercard Inc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "market_cap": 438354771968.0
     },
     {
       "cik": 18230,
       "ticker": "CAT",
       "name": "CATERPILLAR INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1065280,
-      "ticker": "NFLX",
-      "name": "NETFLIX INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 93410,
-      "ticker": "CVX",
-      "name": "CHEVRON CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 70858,
-      "ticker": "BAC",
-      "name": "BANK OF AMERICA CORP /DE/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1551152,
-      "ticker": "ABBV",
-      "name": "AbbVie Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Farm & Heavy Construction Machinery",
+      "market_cap": 414194237440.0
     },
     {
       "cik": 858877,
       "ticker": "CSCO",
       "name": "CISCO SYSTEMS, INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "market_cap": 396016287744.0
     },
     {
-      "cik": 1321655,
-      "ticker": "PLTR",
-      "name": "Palantir Technologies Inc.",
+      "cik": 93410,
+      "ticker": "CVX",
+      "name": "CHEVRON CORP",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 369282056192.0
+    },
+    {
+      "cik": 1065280,
+      "ticker": "NFLX",
+      "name": "NETFLIX INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "market_cap": 366760558592.0
+    },
+    {
+      "cik": 1551152,
+      "ticker": "ABBV",
+      "name": "AbbVie Inc.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 364948717568.0
     },
     {
       "cik": 731766,
       "ticker": "UNH",
       "name": "UNITEDHEALTH GROUP INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 21344,
-      "ticker": "KO",
-      "name": "COCA COLA CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 80424,
-      "ticker": "PG",
-      "name": "PROCTER & GAMBLE Co",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1577552,
-      "ticker": "BABA",
-      "name": "Alibaba Group Holding Ltd",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Healthcare Plans",
+      "market_cap": 361500508160.0
     },
     {
       "cik": 707549,
       "ticker": "LRCX",
       "name": "LAM RESEARCH CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "market_cap": 361046081536.0
     },
     {
-      "cik": 354950,
-      "ticker": "HD",
-      "name": "HOME DEPOT, INC.",
+      "cik": 70858,
+      "ticker": "BAC",
+      "name": "BANK OF AMERICA CORP /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 358732660736.0
+    },
+    {
+      "cik": 21344,
+      "ticker": "KO",
+      "name": "COCA COLA CO",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "market_cap": 346651000832.0
+    },
+    {
+      "cik": 1577552,
+      "ticker": "BABA",
+      "name": "Alibaba Group Holding Ltd",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "market_cap": 344443682816.0
     },
     {
       "cik": 6951,
       "ticker": "AMAT",
       "name": "APPLIED MATERIALS INC /DE",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "market_cap": 336323936256.0
+    },
+    {
+      "cik": 80424,
+      "ticker": "PG",
+      "name": "PROCTER & GAMBLE Co",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "market_cap": 334503247872.0
+    },
+    {
+      "cik": 1321655,
+      "ticker": "PLTR",
+      "name": "Palantir Technologies Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 316541075456.0
     },
     {
       "cik": 1089113,
       "ticker": "HSBC",
       "name": "HSBC HOLDINGS PLC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 895421,
-      "ticker": "MS",
-      "name": "MORGAN STANLEY",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 308256145408.0
     },
     {
       "cik": 40545,
       "ticker": "GE",
       "name": "GENERAL ELECTRIC CO",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 307190366208.0
     },
     {
-      "cik": 1996810,
-      "ticker": "GEV",
-      "name": "GE Vernova Inc.",
+      "cik": 354950,
+      "ticker": "HD",
+      "name": "HOME DEPOT, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Home Improvement Retail",
+      "market_cap": 303489646592.0
     },
     {
-      "cik": 901832,
-      "ticker": "AZN",
-      "name": "ASTRAZENECA PLC",
+      "cik": 895421,
+      "ticker": "MS",
+      "name": "MORGAN STANLEY",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 310158,
-      "ticker": "MRK",
-      "name": "Merck & Co., Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1114448,
-      "ticker": "NVS",
-      "name": "NOVARTIS AG",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 886982,
-      "ticker": "GS",
-      "name": "GOLDMAN SACHS GROUP INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "market_cap": 302144684032.0
     },
     {
       "cik": 1413329,
       "ticker": "PM",
       "name": "Philip Morris International Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "market_cap": 294240321536.0
+    },
+    {
+      "cik": 901832,
+      "ticker": "AZN",
+      "name": "ASTRAZENECA PLC",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 287883952128.0
+    },
+    {
+      "cik": 1114448,
+      "ticker": "NVS",
+      "name": "NOVARTIS AG",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 285467705344.0
+    },
+    {
+      "cik": 1996810,
+      "ticker": "GEV",
+      "name": "GE Vernova Inc.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "market_cap": 282979598336.0
+    },
+    {
+      "cik": 886982,
+      "ticker": "GS",
+      "name": "GOLDMAN SACHS GROUP INC",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "market_cap": 278782017536.0
+    },
+    {
+      "cik": 310158,
+      "ticker": "MRK",
+      "name": "Merck & Co., Inc.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 278583836672.0
     },
     {
       "cik": 97476,
       "ticker": "TXN",
       "name": "TEXAS INSTRUMENTS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1306965,
-      "ticker": "SHEL",
-      "name": "Shell plc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 277218820096.0
     },
     {
       "cik": 1000275,
       "ticker": "RY",
       "name": "ROYAL BANK OF CANADA",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 72971,
-      "ticker": "WFC",
-      "name": "WELLS FARGO & COMPANY/MN",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 254130782208.0
     },
     {
       "cik": 101829,
       "ticker": "RTX",
       "name": "RTX Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 238793916416.0
+    },
+    {
+      "cik": 1306965,
+      "ticker": "SHEL",
+      "name": "Shell plc",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 237218447360.0
     },
     {
       "cik": 1707925,
       "ticker": "LIN",
       "name": "LINDE PLC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "market_cap": 236888260608.0
     },
     {
       "cik": 319201,
       "ticker": "KLAC",
       "name": "KLA CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1094517,
-      "ticker": "TM",
-      "name": "TOYOTA MOTOR CORP/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 831001,
-      "ticker": "C",
-      "name": "CITIGROUP INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 4962,
-      "ticker": "AXP",
-      "name": "AMERICAN EXPRESS CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1596532,
-      "ticker": "ANET",
-      "name": "Arista Networks, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1973239,
-      "ticker": "ARM",
-      "name": "ARM HOLDINGS PLC /UK",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 51143,
-      "ticker": "IBM",
-      "name": "INTERNATIONAL BUSINESS MACHINES CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 77476,
-      "ticker": "PEP",
-      "name": "PEPSICO INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1283699,
-      "ticker": "TMUS",
-      "name": "T-Mobile US, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 879764,
-      "ticker": "TTE",
-      "name": "TotalEnergies SE",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1000184,
-      "ticker": "SAP",
-      "name": "SAP SE",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 63908,
-      "ticker": "MCD",
-      "name": "MCDONALDS CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 753308,
-      "ticker": "NEE",
-      "name": "NEXTERA ENERGY INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 732712,
-      "ticker": "VZ",
-      "name": "VERIZON COMMUNICATIONS INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 67088,
-      "ticker": "MUFG",
-      "name": "MITSUBISHI UFJ FINANCIAL GROUP INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "market_cap": 235250221056.0
     },
     {
       "cik": 811809,
       "ticker": "BHP",
       "name": "BHP Group Ltd",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "market_cap": 228415127552.0
     },
     {
-      "cik": 353278,
-      "ticker": "NVO",
-      "name": "NOVO NORDISK A S",
+      "cik": 72971,
+      "ticker": "WFC",
+      "name": "WELLS FARGO & COMPANY/MN",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 228045307904.0
     },
     {
-      "cik": 6281,
-      "ticker": "ADI",
-      "name": "ANALOG DEVICES INC",
+      "cik": 1973239,
+      "ticker": "ARM",
+      "name": "ARM HOLDINGS PLC /UK",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 2023554,
-      "ticker": "SNDK",
-      "name": "Sandisk Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 732717,
-      "ticker": "T",
-      "name": "AT&T INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1744489,
-      "ticker": "DIS",
-      "name": "Walt Disney Co",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 947263,
-      "ticker": "TD",
-      "name": "TORONTO DOMINION BANK",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 226328461312.0
     },
     {
       "cik": 804328,
       "ticker": "QCOM",
       "name": "QUALCOMM INC/DE",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 222104158208.0
     },
     {
-      "cik": 12927,
-      "ticker": "BA",
-      "name": "BOEING CO",
+      "cik": 1094517,
+      "ticker": "TM",
+      "name": "TOYOTA MOTOR CORP/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "market_cap": 222078959616.0
     },
     {
-      "cik": 318154,
-      "ticker": "AMGN",
-      "name": "AMGEN INC",
+      "cik": 831001,
+      "ticker": "C",
+      "name": "CITIGROUP INC",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 213683208192.0
+    },
+    {
+      "cik": 4962,
+      "ticker": "AXP",
+      "name": "AMERICAN EXPRESS CO",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "market_cap": 212254720000.0
+    },
+    {
+      "cik": 67088,
+      "ticker": "MUFG",
+      "name": "MITSUBISHI UFJ FINANCIAL GROUP INC",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 211642449920.0
+    },
+    {
+      "cik": 1283699,
+      "ticker": "TMUS",
+      "name": "T-Mobile US, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 210975801344.0
     },
     {
-      "cik": 820313,
-      "ticker": "APH",
-      "name": "AMPHENOL CORP /DE/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 97745,
-      "ticker": "TMO",
-      "name": "THERMO FISHER SCIENTIFIC INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 109198,
-      "ticker": "TJX",
-      "name": "TJX COMPANIES INC /DE/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 891478,
-      "ticker": "SAN",
-      "name": "Banco Santander, S.A.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1594805,
-      "ticker": "SHOP",
-      "name": "SHOPIFY INC.",
+      "cik": 6281,
+      "ticker": "ADI",
+      "name": "ANALOG DEVICES INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 210415992832.0
     },
     {
-      "cik": 1137789,
-      "ticker": "STX",
-      "name": "Seagate Technology Holdings plc",
+      "cik": 2023554,
+      "ticker": "SNDK",
+      "name": "Sandisk Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "market_cap": 209990533120.0
     },
     {
-      "cik": 882095,
-      "ticker": "GILD",
-      "name": "GILEAD SCIENCES, INC.",
+      "cik": 353278,
+      "ticker": "NVO",
+      "name": "NOVO NORDISK A S",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 208742957056.0
+    },
+    {
+      "cik": 77476,
+      "ticker": "PEP",
+      "name": "PEPSICO INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "market_cap": 207460630528.0
     },
     {
-      "cik": 1551182,
-      "ticker": "ETN",
-      "name": "Eaton Corp plc",
+      "cik": 879764,
+      "ticker": "TTE",
+      "name": "TotalEnergies SE",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 202214440960.0
     },
     {
-      "cik": 2012383,
-      "ticker": "BLK",
-      "name": "BlackRock, Inc.",
+      "cik": 51143,
+      "ticker": "IBM",
+      "name": "INTERNATIONAL BUSINESS MACHINES CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 863064,
-      "ticker": "RIO",
-      "name": "RIO TINTO PLC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 316709,
-      "ticker": "SCHW",
-      "name": "SCHWAB CHARLES CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1035267,
-      "ticker": "ISRG",
-      "name": "INTUITIVE SURGICAL INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1751008,
-      "ticker": "APP",
-      "name": "AppLovin Corp",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 100885,
-      "ticker": "UNP",
-      "name": "UNION PACIFIC CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 315189,
-      "ticker": "DE",
-      "name": "DEERE & CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 766704,
-      "ticker": "WELL",
-      "name": "WELLTOWER INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1800,
-      "ticker": "ABT",
-      "name": "ABBOTT LABORATORIES",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1163165,
-      "ticker": "COP",
-      "name": "CONOCOPHILLIPS",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1543151,
-      "ticker": "UBER",
-      "name": "Uber Technologies, Inc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1108524,
-      "ticker": "CRM",
-      "name": "Salesforce, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 106040,
-      "ticker": "WDC",
-      "name": "WESTERN DIGITAL CORP",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "market_cap": 201130754048.0
     },
     {
       "cik": 1393818,
       "ticker": "BX",
       "name": "Blackstone Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "market_cap": 200150695936.0
+    },
+    {
+      "cik": 732712,
+      "ticker": "VZ",
+      "name": "VERIZON COMMUNICATIONS INC",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 200051277824.0
+    },
+    {
+      "cik": 753308,
+      "ticker": "NEE",
+      "name": "NEXTERA ENERGY INC",
+      "exchange": "NYSE",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "market_cap": 197356716032.0
+    },
+    {
+      "cik": 63908,
+      "ticker": "MCD",
+      "name": "MCDONALDS CORP",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "market_cap": 196305584128.0
+    },
+    {
+      "cik": 1000184,
+      "ticker": "SAP",
+      "name": "SAP SE",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 188652765184.0
+    },
+    {
+      "cik": 12927,
+      "ticker": "BA",
+      "name": "BOEING CO",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 187182465024.0
+    },
+    {
+      "cik": 1596532,
+      "ticker": "ANET",
+      "name": "Arista Networks, Inc.",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "market_cap": 183630970880.0
+    },
+    {
+      "cik": 1744489,
+      "ticker": "DIS",
+      "name": "Walt Disney Co",
+      "exchange": "NYSE",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "market_cap": 182489989120.0
+    },
+    {
+      "cik": 947263,
+      "ticker": "TD",
+      "name": "TORONTO DOMINION BANK",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 181420097536.0
+    },
+    {
+      "cik": 863064,
+      "ticker": "RIO",
+      "name": "RIO TINTO PLC",
+      "exchange": "NYSE",
+      "sector": "Basic Materials",
+      "industry": "Other Industrial Metals & Mining",
+      "market_cap": 181131886592.0
+    },
+    {
+      "cik": 1137789,
+      "ticker": "STX",
+      "name": "Seagate Technology Holdings plc",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "market_cap": 180142211072.0
+    },
+    {
+      "cik": 318154,
+      "ticker": "AMGN",
+      "name": "AMGEN INC",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 179697811456.0
     },
     {
       "cik": 1327567,
       "ticker": "PANW",
       "name": "Palo Alto Networks Inc",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 176830431232.0
     },
     {
-      "cik": 78003,
-      "ticker": "PFE",
-      "name": "PFIZER INC",
+      "cik": 732717,
+      "ticker": "T",
+      "name": "AT&T INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 176453058560.0
     },
     {
-      "cik": 1668717,
-      "ticker": "BUD",
-      "name": "Anheuser-Busch InBev SA/NV",
+      "cik": 891478,
+      "ticker": "SAN",
+      "name": "Banco Santander, S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1835632,
-      "ticker": "MRVL",
-      "name": "Marvell Technology, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1119639,
-      "ticker": "PBR",
-      "name": "PETROBRAS - PETROLEO BRASILEIRO SA",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1737806,
-      "ticker": "PDD",
-      "name": "PDD Holdings Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1381197,
-      "ticker": "IBKR",
-      "name": "Interactive Brokers Group, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1571996,
-      "ticker": "DELL",
-      "name": "Dell Technologies Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 171220041728.0
     },
     {
       "cik": 24741,
       "ticker": "GLW",
       "name": "CORNING INC /NY",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "market_cap": 171017355264.0
+    },
+    {
+      "cik": 2012383,
+      "ticker": "BLK",
+      "name": "BlackRock, Inc.",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "market_cap": 168971419648.0
+    },
+    {
+      "cik": 97745,
+      "ticker": "TMO",
+      "name": "THERMO FISHER SCIENTIFIC INC.",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "market_cap": 168320368640.0
+    },
+    {
+      "cik": 882095,
+      "ticker": "GILD",
+      "name": "GILEAD SCIENCES, INC.",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 164681826304.0
+    },
+    {
+      "cik": 106040,
+      "ticker": "WDC",
+      "name": "WESTERN DIGITAL CORP",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "market_cap": 164275519488.0
+    },
+    {
+      "cik": 109198,
+      "ticker": "TJX",
+      "name": "TJX COMPANIES INC /DE/",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "market_cap": 164257644544.0
+    },
+    {
+      "cik": 100885,
+      "ticker": "UNP",
+      "name": "UNION PACIFIC CORP",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Railroads",
+      "market_cap": 158847959040.0
+    },
+    {
+      "cik": 315189,
+      "ticker": "DE",
+      "name": "DEERE & CO",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Farm & Heavy Construction Machinery",
+      "market_cap": 158396317696.0
     },
     {
       "cik": 1001838,
       "ticker": "SCCO",
       "name": "SOUTHERN COPPER CORP/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Basic Materials",
+      "industry": "Copper",
+      "market_cap": 158313299968.0
+    },
+    {
+      "cik": 316709,
+      "ticker": "SCHW",
+      "name": "SCHWAB CHARLES CORP",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "market_cap": 158243930112.0
+    },
+    {
+      "cik": 1551182,
+      "ticker": "ETN",
+      "name": "Eaton Corp plc",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "market_cap": 157032398848.0
+    },
+    {
+      "cik": 1571996,
+      "ticker": "DELL",
+      "name": "Dell Technologies Inc.",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "market_cap": 155733213184.0
+    },
+    {
+      "cik": 1668717,
+      "ticker": "BUD",
+      "name": "Anheuser-Busch InBev SA/NV",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Brewers",
+      "market_cap": 154756120576.0
+    },
+    {
+      "cik": 1835632,
+      "ticker": "MRVL",
+      "name": "Marvell Technology, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "market_cap": 154346258432.0
+    },
+    {
+      "cik": 820313,
+      "ticker": "APH",
+      "name": "AMPHENOL CORP /DE/",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "market_cap": 153496354816.0
+    },
+    {
+      "cik": 1751008,
+      "ticker": "APP",
+      "name": "AppLovin Corp",
+      "exchange": "NASDAQ",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "market_cap": 153269043200.0
+    },
+    {
+      "cik": 1543151,
+      "ticker": "UBER",
+      "name": "Uber Technologies, Inc",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 152924372992.0
+    },
+    {
+      "cik": 1035267,
+      "ticker": "ISRG",
+      "name": "INTUITIVE SURGICAL INC",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "market_cap": 152697307136.0
+    },
+    {
+      "cik": 766704,
+      "ticker": "WELL",
+      "name": "WELLTOWER INC.",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Healthcare Facilities",
+      "market_cap": 152661049344.0
     },
     {
       "cik": 1610520,
       "ticker": "UBS",
       "name": "UBS Group AG",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 150598746112.0
+    },
+    {
+      "cik": 78003,
+      "ticker": "PFE",
+      "name": "PFIZER INC",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 147644104704.0
+    },
+    {
+      "cik": 1800,
+      "ticker": "ABT",
+      "name": "ABBOTT LABORATORIES",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "market_cap": 145545904128.0
+    },
+    {
+      "cik": 1381197,
+      "ticker": "IBKR",
+      "name": "Interactive Brokers Group, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Capital Markets",
+      "market_cap": 143178907648.0
     },
     {
       "cik": 1022837,
       "ticker": "SMFG",
       "name": "SUMITOMO MITSUI FINANCIAL GROUP, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 142793326592.0
     },
     {
-      "cik": 773840,
-      "ticker": "HON",
-      "name": "HONEYWELL INTERNATIONAL INC",
+      "cik": 1163165,
+      "ticker": "COP",
+      "name": "CONOCOPHILLIPS",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "market_cap": 142589132800.0
+    },
+    {
+      "cik": 1737806,
+      "ticker": "PDD",
+      "name": "PDD Holdings Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1045609,
-      "ticker": "PLD",
-      "name": "Prologis, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1075531,
-      "ticker": "BKNG",
-      "name": "Booking Holdings Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 217410,
-      "ticker": "UL",
-      "name": "UNILEVER PLC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1144967,
-      "ticker": "HDB",
-      "name": "HDFC BANK LTD",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1674101,
-      "ticker": "VRT",
-      "name": "Vertiv Holdings Co",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "market_cap": 142581628928.0
     },
     {
       "cik": 1303523,
       "ticker": "BTI",
       "name": "British American Tobacco p.l.c.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 896159,
-      "ticker": "CB",
-      "name": "Chubb Ltd",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 64040,
-      "ticker": "SPGI",
-      "name": "S&P Global Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 60667,
-      "ticker": "LOW",
-      "name": "LOWES COMPANIES INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 313616,
-      "ticker": "DHR",
-      "name": "DANAHER CORP /DE/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 764180,
-      "ticker": "MO",
-      "name": "ALTRIA GROUP, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 313807,
-      "ticker": "BP",
-      "name": "BP PLC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 927628,
-      "ticker": "COF",
-      "name": "CAPITAL ONE FINANCIAL CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 829224,
-      "ticker": "SBUX",
-      "name": "STARBUCKS CORP",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 936468,
-      "ticker": "LMT",
-      "name": "LOCKHEED MARTIN CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 895728,
-      "ticker": "ENB",
-      "name": "ENBRIDGE INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "market_cap": 140561154048.0
     },
     {
       "cik": 1535527,
       "ticker": "CRWD",
       "name": "CrowdStrike Holdings, Inc.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 140215255040.0
     },
     {
-      "cik": 1170858,
-      "ticker": "SBS",
-      "name": "COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO-SABESP",
+      "cik": 1674101,
+      "ticker": "VRT",
+      "name": "Vertiv Holdings Co",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "market_cap": 139450695680.0
     },
     {
-      "cik": 14272,
-      "ticker": "BMY",
-      "name": "BRISTOL MYERS SQUIBB CO",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 80661,
-      "ticker": "PGR",
-      "name": "PROGRESSIVE CORP/OH/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1868275,
-      "ticker": "CEG",
-      "name": "Constellation Energy Corp",
+      "cik": 773840,
+      "ticker": "HON",
+      "name": "HONEYWELL INTERNATIONAL INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Conglomerates",
+      "market_cap": 138237771776.0
     },
     {
-      "cik": 842180,
-      "ticker": "BBVA",
-      "name": "BANCO BILBAO VIZCAYA ARGENTARIA, S.A.",
+      "cik": 1108524,
+      "ticker": "CRM",
+      "name": "Salesforce, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 138152919040.0
     },
     {
       "cik": 313838,
       "ticker": "SONY",
       "name": "Sony Group Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "market_cap": 135501381632.0
+    },
+    {
+      "cik": 1045609,
+      "ticker": "PLD",
+      "name": "Prologis, Inc.",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Industrial",
+      "market_cap": 133697257472.0
+    },
+    {
+      "cik": 1119639,
+      "ticker": "PBR",
+      "name": "PETROBRAS - PETROLEO BRASILEIRO SA",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 130820628480.0
     },
     {
       "cik": 1164727,
       "ticker": "NEM",
       "name": "NEWMONT Corp /DE/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Basic Materials",
+      "industry": "Gold",
+      "market_cap": 127161548800.0
     },
     {
-      "cik": 1050915,
-      "ticker": "PWR",
-      "name": "QUANTA SERVICES, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 896878,
-      "ticker": "INTU",
-      "name": "INTUIT INC.",
+      "cik": 1594805,
+      "ticker": "SHOP",
+      "name": "SHOPIFY INC.",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 126508351488.0
     },
     {
-      "cik": 310764,
-      "ticker": "SYK",
-      "name": "STRYKER CORP",
+      "cik": 217410,
+      "ticker": "UL",
+      "name": "UNILEVER PLC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "market_cap": 126467145728.0
     },
     {
-      "cik": 1467373,
-      "ticker": "ACN",
-      "name": "Accenture plc",
+      "cik": 896159,
+      "ticker": "CB",
+      "name": "Chubb Ltd",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "market_cap": 124995665920.0
     },
     {
-      "cik": 76334,
-      "ticker": "PH",
-      "name": "Parker-Hannifin Corp",
+      "cik": 60667,
+      "ticker": "LOW",
+      "name": "LOWES COMPANIES INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Home Improvement Retail",
+      "market_cap": 124289163264.0
     },
     {
-      "cik": 875320,
-      "ticker": "VRTX",
-      "name": "VERTEX PHARMACEUTICALS INC / MA",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 92122,
-      "ticker": "SO",
-      "name": "SOUTHERN CO",
+      "cik": 1144967,
+      "ticker": "HDB",
+      "name": "HDFC BANK LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1466258,
-      "ticker": "TT",
-      "name": "Trane Technologies plc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1101239,
-      "ticker": "EQIX",
-      "name": "EQUINIX INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 927971,
-      "ticker": "BMO",
-      "name": "BANK OF MONTREAL /CAN/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1156375,
-      "ticker": "CME",
-      "name": "CME GROUP INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 123722784768.0
     },
     {
       "cik": 64803,
       "ticker": "CVS",
       "name": "CVS HEALTH Corp",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Healthcare Plans",
+      "market_cap": 123509768192.0
     },
     {
-      "cik": 1121404,
-      "ticker": "SNY",
-      "name": "Sanofi",
+      "cik": 829224,
+      "ticker": "SBUX",
+      "name": "STARBUCKS CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "market_cap": 122768482304.0
     },
     {
-      "cik": 1140625,
-      "ticker": "EQNR",
-      "name": "EQUINOR ASA",
+      "cik": 1075531,
+      "ticker": "BKNG",
+      "name": "Booking Holdings Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "market_cap": 121849634816.0
+    },
+    {
+      "cik": 842180,
+      "ticker": "BBVA",
+      "name": "BANCO BILBAO VIZCAYA ARGENTARIA, S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 121076318208.0
+    },
+    {
+      "cik": 64040,
+      "ticker": "SPGI",
+      "name": "S&P Global Inc.",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "market_cap": 120876040192.0
+    },
+    {
+      "cik": 895728,
+      "ticker": "ENB",
+      "name": "ENBRIDGE INC",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "market_cap": 120517984256.0
+    },
+    {
+      "cik": 764180,
+      "ticker": "MO",
+      "name": "ALTRIA GROUP, INC.",
+      "exchange": "NYSE",
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "market_cap": 118754312192.0
+    },
+    {
+      "cik": 936468,
+      "ticker": "LMT",
+      "name": "LOCKHEED MARTIN CORP",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 118681468928.0
+    },
+    {
+      "cik": 80661,
+      "ticker": "PGR",
+      "name": "PROGRESSIVE CORP/OH/",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "market_cap": 117206204416.0
+    },
+    {
+      "cik": 313616,
+      "ticker": "DHR",
+      "name": "DANAHER CORP /DE/",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "market_cap": 117086486528.0
+    },
+    {
+      "cik": 14272,
+      "ticker": "BMY",
+      "name": "BRISTOL MYERS SQUIBB CO",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 114873663488.0
+    },
+    {
+      "cik": 875320,
+      "ticker": "VRTX",
+      "name": "VERTEX PHARMACEUTICALS INC / MA",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "market_cap": 114118533120.0
+    },
+    {
+      "cik": 927628,
+      "ticker": "COF",
+      "name": "CAPITAL ONE FINANCIAL CORP",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "market_cap": 114091163648.0
+    },
+    {
+      "cik": 313807,
+      "ticker": "BP",
+      "name": "BP PLC",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 113325621248.0
+    },
+    {
+      "cik": 1050915,
+      "ticker": "PWR",
+      "name": "QUANTA SERVICES, INC.",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "market_cap": 113213628416.0
+    },
+    {
+      "cik": 310764,
+      "ticker": "SYK",
+      "name": "STRYKER CORP",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "market_cap": 113168105472.0
+    },
+    {
+      "cik": 76334,
+      "ticker": "PH",
+      "name": "Parker-Hannifin Corp",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "market_cap": 111374630912.0
     },
     {
       "cik": 1335730,
       "ticker": "MFG",
       "name": "MIZUHO FINANCIAL GROUP INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 796343,
-      "ticker": "ADBE",
-      "name": "ADOBE INC.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1131399,
-      "ticker": "GSK",
-      "name": "GSK plc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1045520,
-      "ticker": "CM",
-      "name": "CANADIAN IMPERIAL BANK OF COMMERCE /CAN/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1001085,
-      "ticker": "BN",
-      "name": "BROOKFIELD Corp /ON/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1613103,
-      "ticker": "MDT",
-      "name": "Medtronic plc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1017413,
-      "ticker": "CNQ",
-      "name": "CANADIAN NATURAL RESOURCES LTD",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1326160,
-      "ticker": "DUK",
-      "name": "Duke Energy CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 927653,
-      "ticker": "MCK",
-      "name": "MCKESSON CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1166691,
-      "ticker": "CMCSA",
-      "name": "COMCAST CORP",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 813672,
-      "ticker": "CDNS",
-      "name": "CADENCE DESIGN SYSTEMS INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 109426647040.0
     },
     {
       "cik": 4281,
       "ticker": "HWM",
       "name": "Howmet Aerospace Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 107823923200.0
     },
     {
-      "cik": 1404912,
-      "ticker": "KKR",
-      "name": "KKR & Co. Inc.",
+      "cik": 927971,
+      "ticker": "BMO",
+      "name": "BANK OF MONTREAL /CAN/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 107704713216.0
+    },
+    {
+      "cik": 896878,
+      "ticker": "INTU",
+      "name": "INTUIT INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 106784890880.0
+    },
+    {
+      "cik": 1101239,
+      "ticker": "EQIX",
+      "name": "EQUINIX INC",
+      "exchange": "NASDAQ",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "market_cap": 105492938752.0
+    },
+    {
+      "cik": 1156375,
+      "ticker": "CME",
+      "name": "CME GROUP INC.",
+      "exchange": "NASDAQ",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "market_cap": 105105956864.0
+    },
+    {
+      "cik": 92122,
+      "ticker": "SO",
+      "name": "SOUTHERN CO",
+      "exchange": "NYSE",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "market_cap": 104681185280.0
+    },
+    {
+      "cik": 1466258,
+      "ticker": "TT",
+      "name": "Trane Technologies plc",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "market_cap": 104165761024.0
+    },
+    {
+      "cik": 1045520,
+      "ticker": "CM",
+      "name": "CANADIAN IMPERIAL BANK OF COMMERCE /CAN/",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 103014776832.0
+    },
+    {
+      "cik": 1121404,
+      "ticker": "SNY",
+      "name": "Sanofi",
+      "exchange": "NASDAQ",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 102530891776.0
+    },
+    {
+      "cik": 1131399,
+      "ticker": "GSK",
+      "name": "GSK plc",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "market_cap": 102483492864.0
+    },
+    {
+      "cik": 1001085,
+      "ticker": "BN",
+      "name": "BROOKFIELD Corp /ON/",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "market_cap": 102303907840.0
+    },
+    {
+      "cik": 1467373,
+      "ticker": "ACN",
+      "name": "Accenture plc",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Information Technology Services",
+      "market_cap": 100205150208.0
+    },
+    {
+      "cik": 813672,
+      "ticker": "CDNS",
+      "name": "CADENCE DESIGN SYSTEMS INC",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 99133792256.0
+    },
+    {
+      "cik": 1017413,
+      "ticker": "CNQ",
+      "name": "CANADIAN NATURAL RESOURCES LTD",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "market_cap": 98090934272.0
     },
     {
       "cik": 883241,
       "ticker": "SNPS",
       "name": "SYNOPSYS INC",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "market_cap": 97666940928.0
     },
     {
-      "cik": 1373715,
-      "ticker": "NOW",
-      "name": "ServiceNow, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 860730,
-      "ticker": "HCA",
-      "name": "HCA Healthcare, Inc.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 40533,
-      "ticker": "GD",
-      "name": "GENERAL DYNAMICS CORP",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 9631,
-      "ticker": "BNS",
-      "name": "BANK OF NOVA SCOTIA",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1103838,
-      "ticker": "IBN",
-      "name": "ICICI BANK LTD",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1132597,
-      "ticker": "ITUB",
-      "name": "Itau Unibanco Holding S.A.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 107263,
-      "ticker": "WMB",
-      "name": "WILLIAMS COMPANIES, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1048286,
-      "ticker": "MAR",
-      "name": "MARRIOTT INTERNATIONAL INC /MD/",
+      "cik": 1868275,
+      "ticker": "CEG",
+      "name": "Constellation Energy Corp",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Utilities",
+      "industry": "Utilities - Independent Power Producers",
+      "market_cap": 97618829312.0
     },
     {
-      "cik": 1099590,
-      "ticker": "MELI",
-      "name": "MERCADOLIBRE INC",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 823768,
-      "ticker": "WM",
-      "name": "WASTE MANAGEMENT INC",
+      "cik": 1613103,
+      "ticker": "MDT",
+      "name": "Medtronic plc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "market_cap": 97613766656.0
     },
     {
       "cik": 26172,
       "ticker": "CMI",
       "name": "CUMMINS INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1390777,
-      "ticker": "BK",
-      "name": "Bank of New York Mellon Corp",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1639920,
-      "ticker": "SPOT",
-      "name": "Spotify Technology S.A.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "market_cap": 97427873792.0
     },
     {
       "cik": 2809,
       "ticker": "AEM",
       "name": "AGNICO EAGLE MINES LTD",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Basic Materials",
+      "industry": "Gold",
+      "market_cap": 97069531136.0
     },
     {
-      "cik": 1571949,
-      "ticker": "ICE",
-      "name": "Intercontinental Exchange, Inc.",
+      "cik": 1326160,
+      "ticker": "DUK",
+      "name": "Duke Energy CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "market_cap": 96685522944.0
     },
     {
-      "cik": 833444,
-      "ticker": "JCI",
-      "name": "Johnson Controls International plc",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "cik": 796343,
+      "ticker": "ADBE",
+      "name": "ADOBE INC.",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 95678185472.0
     },
     {
-      "cik": 713676,
-      "ticker": "PNC",
-      "name": "PNC FINANCIAL SERVICES GROUP, INC.",
+      "cik": 9631,
+      "ticker": "BNS",
+      "name": "BANK OF NOVA SCOTIA",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 95349907456.0
     },
     {
-      "cik": 1004315,
-      "ticker": "NGG",
-      "name": "NATIONAL GRID PLC",
+      "cik": 1140625,
+      "ticker": "EQNR",
+      "name": "EQUINOR ASA",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 95138283520.0
     },
     {
-      "cik": 36104,
-      "ticker": "USB",
-      "name": "US BANCORP DE",
+      "cik": 860730,
+      "ticker": "HCA",
+      "name": "HCA Healthcare, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "market_cap": 94896414720.0
+    },
+    {
+      "cik": 1048286,
+      "ticker": "MAR",
+      "name": "MARRIOTT INTERNATIONAL INC /MD/",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Lodging",
+      "market_cap": 93075496960.0
+    },
+    {
+      "cik": 1103838,
+      "ticker": "IBN",
+      "name": "ICICI BANK LTD",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 92706709504.0
+    },
+    {
+      "cik": 40533,
+      "ticker": "GD",
+      "name": "GENERAL DYNAMICS CORP",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 92573663232.0
+    },
+    {
+      "cik": 1404912,
+      "ticker": "KKR",
+      "name": "KKR & Co. Inc.",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "market_cap": 92134547456.0
+    },
+    {
+      "cik": 1390777,
+      "ticker": "BK",
+      "name": "Bank of New York Mellon Corp",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 91888992256.0
+    },
+    {
+      "cik": 107263,
+      "ticker": "WMB",
+      "name": "WILLIAMS COMPANIES, INC.",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "market_cap": 91614806016.0
+    },
+    {
+      "cik": 1373715,
+      "ticker": "NOW",
+      "name": "ServiceNow, Inc.",
+      "exchange": "NYSE",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 90734485504.0
     },
     {
       "cik": 1048911,
       "ticker": "FDX",
       "name": "FEDEX CORP",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "market_cap": 89989341184.0
     },
     {
-      "cik": 885725,
-      "ticker": "BSX",
-      "name": "BOSTON SCIENTIFIC CORP",
+      "cik": 1132597,
+      "ticker": "ITUB",
+      "name": "Itau Unibanco Holding S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 89770893312.0
     },
     {
-      "cik": 8670,
-      "ticker": "ADP",
-      "name": "AUTOMATIC DATA PROCESSING INC",
+      "cik": 927653,
+      "ticker": "MCK",
+      "name": "MCKESSON CORP",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Distribution",
+      "market_cap": 89127100416.0
+    },
+    {
+      "cik": 1166691,
+      "ticker": "CMCSA",
+      "name": "COMCAST CORP",
       "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 88930631680.0
     },
     {
-      "cik": 1053507,
-      "ticker": "AMT",
-      "name": "AMERICAN TOWER CORP /MA/",
+      "cik": 1639920,
+      "ticker": "SPOT",
+      "name": "Spotify Technology S.A.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "market_cap": 88760016896.0
     },
     {
-      "cik": 1061219,
-      "ticker": "EPD",
-      "name": "ENTERPRISE PRODUCTS PARTNERS L.P.",
+      "cik": 1571949,
+      "ticker": "ICE",
+      "name": "Intercontinental Exchange, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "market_cap": 87382999040.0
     },
     {
-      "cik": 1690820,
-      "ticker": "CVNA",
-      "name": "CARVANA CO.",
+      "cik": 833444,
+      "ticker": "JCI",
+      "name": "Johnson Controls International plc",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "market_cap": 87045185536.0
     },
     {
-      "cik": 87347,
-      "ticker": "SLB",
-      "name": "SLB LIMITED/NV",
+      "cik": 823768,
+      "ticker": "WM",
+      "name": "WASTE MANAGEMENT INC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Industrials",
+      "industry": "Waste Management",
+      "market_cap": 86639968256.0
     },
     {
-      "cik": 277948,
-      "ticker": "CSX",
-      "name": "CSX CORP",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1002242,
-      "ticker": "E",
-      "name": "ENI SPA",
+      "cik": 1004315,
+      "ticker": "NGG",
+      "name": "NATIONAL GRID PLC",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "market_cap": 86315786240.0
     },
     {
-      "cik": 1559720,
-      "ticker": "ABNB",
-      "name": "Airbnb, Inc.",
-      "exchange": "NASDAQ",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1664703,
-      "ticker": "BE",
-      "name": "Bloom Energy Corp",
+      "cik": 713676,
+      "ticker": "PNC",
+      "name": "PNC FINANCIAL SERVICES GROUP, INC.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1090727,
-      "ticker": "UPS",
-      "name": "UNITED PARCEL SERVICE INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 311337,
-      "ticker": "SU",
-      "name": "SUNCOR ENERGY INC",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 62709,
-      "ticker": "MRSH",
-      "name": "MARSH & MCLENNAN COMPANIES, INC.",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 86095454208.0
     },
     {
       "cik": 1156039,
       "ticker": "ELV",
       "name": "Elevance Health, Inc.",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
-    },
-    {
-      "cik": 1133421,
-      "ticker": "NOC",
-      "name": "NORTHROP GRUMMAN CORP /DE/",
-      "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Healthcare",
+      "industry": "Healthcare Plans",
+      "market_cap": 85531574272.0
     },
     {
       "cik": 1039765,
       "ticker": "ING",
       "name": "ING GROEP NV",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "market_cap": 85323218944.0
+    },
+    {
+      "cik": 1090727,
+      "ticker": "UPS",
+      "name": "UNITED PARCEL SERVICE INC",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "market_cap": 84171874304.0
+    },
+    {
+      "cik": 277948,
+      "ticker": "CSX",
+      "name": "CSX CORP",
+      "exchange": "NASDAQ",
+      "sector": "Industrials",
+      "industry": "Railroads",
+      "market_cap": 83597672448.0
+    },
+    {
+      "cik": 8670,
+      "ticker": "ADP",
+      "name": "AUTOMATIC DATA PROCESSING INC",
+      "exchange": "NASDAQ",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "market_cap": 83584442368.0
+    },
+    {
+      "cik": 36104,
+      "ticker": "USB",
+      "name": "US BANCORP DE",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 83513729024.0
+    },
+    {
+      "cik": 1061219,
+      "ticker": "EPD",
+      "name": "ENTERPRISE PRODUCTS PARTNERS L.P.",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "market_cap": 82927656960.0
+    },
+    {
+      "cik": 87347,
+      "ticker": "SLB",
+      "name": "SLB LIMITED/NV",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "market_cap": 82616885248.0
     },
     {
       "cik": 1129137,
       "ticker": "AMX",
       "name": "AMERICA MOVIL SAB DE CV/",
       "exchange": "NYSE",
-      "sector": null,
-      "industry": null,
-      "market_cap": null
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 81574248448.0
+    },
+    {
+      "cik": 1002242,
+      "ticker": "E",
+      "name": "ENI SPA",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 81322909696.0
+    },
+    {
+      "cik": 1053507,
+      "ticker": "AMT",
+      "name": "AMERICAN TOWER CORP /MA/",
+      "exchange": "NYSE",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "market_cap": 80114974720.0
+    },
+    {
+      "cik": 885725,
+      "ticker": "BSX",
+      "name": "BOSTON SCIENTIFIC CORP",
+      "exchange": "NYSE",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "market_cap": 79965904896.0
+    },
+    {
+      "cik": 1559720,
+      "ticker": "ABNB",
+      "name": "Airbnb, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "market_cap": 79464366080.0
+    },
+    {
+      "cik": 311337,
+      "ticker": "SU",
+      "name": "SUNCOR ENERGY INC",
+      "exchange": "NYSE",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "market_cap": 78861975552.0
+    },
+    {
+      "cik": 1664703,
+      "ticker": "BE",
+      "name": "Bloom Energy Corp",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts",
+      "market_cap": 78507933696.0
+    },
+    {
+      "cik": 62709,
+      "ticker": "MRSH",
+      "name": "MARSH & MCLENNAN COMPANIES, INC.",
+      "exchange": "NYSE",
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "market_cap": 78241021952.0
+    },
+    {
+      "cik": 1133421,
+      "ticker": "NOC",
+      "name": "NORTHROP GRUMMAN CORP /DE/",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "market_cap": 77813030912.0
+    },
+    {
+      "cik": 1099590,
+      "ticker": "MELI",
+      "name": "MERCADOLIBRE INC",
+      "exchange": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "market_cap": 77226008576.0
+    },
+    {
+      "cik": 1690820,
+      "ticker": "CVNA",
+      "name": "CARVANA CO.",
+      "exchange": "NYSE",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "market_cap": 55524270080.0
+    },
+    {
+      "cik": 1170858,
+      "ticker": "SBS",
+      "name": "COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO-SABESP",
+      "exchange": "NYSE",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Water",
+      "market_cap": 20847529984.0
     },
     {
       "cik": 831259,
