@@ -22,7 +22,10 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://127.0.0.1:8000',
+      // Port 8000 sometimes gets stuck on Windows TCP TIME_WAIT after a
+      // crashed uvicorn; 8001 lets us sidestep that without rebooting.
+      // Match this with `compass serve --port 8001`.
+      '/api': 'http://127.0.0.1:8001',
     },
   },
 }));
