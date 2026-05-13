@@ -255,6 +255,68 @@ def delete_analyst(slug: str, *, path: Path | None = None) -> Roster:
     return roster
 
 
+def update_analyst(
+    slug: str,
+    *,
+    name: str | None = None,
+    title: str | None = None,
+    sector: str | None = None,
+    persona: str | None = None,
+    coverage: list[str] | None = None,
+    path: Path | None = None,
+    validate_coverage: bool = True,
+) -> Analyst:
+    """Partial update of an analyst's editable fields.
+
+    Slug + id + hired_at + stats + avatar fields are immutable through
+    this endpoint (the slug is the stable handle for engagement folders;
+    avatar is auto-derived).
+    """
+    from compass.universe import GICS_SECTORS, load_universe
+
+    roster = load_roster(path=path)
+    a = next((x for x in roster.analysts if x.slug == slug), None)
+    if a is None:
+        raise ValueError(f"analyst not found: {slug}")
+
+    if name is not None:
+        clean = name.strip()
+        if not clean:
+            raise ValueError("name cannot be empty")
+        a.name = clean
+        # Initials follow the new name.
+        a.avatar_initials = _initials(clean)
+    if title is not None:
+        a.title = title.strip() or f"Analyst · {a.sector}"
+    if sector is not None:
+        if sector not in GICS_SECTORS:
+            raise ValueError(f"sector must be one of GICS_SECTORS, got {sector!r}")
+        a.sector = sector
+    if persona is not None:
+        a.persona = persona.strip()
+    if coverage is not None:
+        upper: list[str] = []
+        seen: set[str] = set()
+        for c in coverage:
+            t = (c or "").strip().upper()
+            if not t or t in seen:
+                continue
+            seen.add(t)
+            upper.append(t)
+        if validate_coverage and upper:
+            universe = load_universe()
+            if universe is None:
+                raise RuntimeError("universe seed missing.")
+            valid = {t.ticker for t in universe.tickers}
+            unknown = [t for t in upper if t not in valid]
+            if unknown:
+                raise ValueError(f"unknown tickers: {unknown[:5]}")
+        a.coverage = upper
+
+    save_roster(roster, path=path)
+    return a
+
+
 def update_analyst_coverage(
     slug: str,
     coverage: list[str],

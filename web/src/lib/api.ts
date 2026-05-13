@@ -178,3 +178,29 @@ export function updateAnalystCoverage(slug: string, coverage: string[]): Promise
     body: JSON.stringify({ coverage }),
   });
 }
+
+export function updateAnalyst(
+  slug: string,
+  patch: Partial<{
+    name: string;
+    title: string;
+    sector: string;
+    persona: string;
+    coverage: string[];
+  }>,
+): Promise<ApiAnalyst> {
+  return getJson<ApiAnalyst>(`/api/analysts/${encodeURIComponent(slug)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(patch),
+  });
+}
+
+/** Bulk-fetch matching universe rows for a list of ticker symbols. */
+export function lookupTickers(tickers: string[]): Promise<{ count: number; tickers: ApiTicker[] }> {
+  return getJson('/api/universe/lookup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ tickers }),
+  });
+}

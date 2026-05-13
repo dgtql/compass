@@ -53,6 +53,7 @@ export function App() {
             slug={view.slug}
             analysts={analysts}
             onOpenCoverage={(ticker) => setView({ kind: 'ticker-coverage', ticker })}
+            onAnalystUpdated={reloadAnalysts}
           />
         )}
         {view.kind === 'tickers' && <TickersView initialTab={view.tab} />}

@@ -58,6 +58,7 @@ from compass.analysts import (
     delete_analyst,
     get_analyst,
     list_analysts,
+    update_analyst,
     update_analyst_coverage,
 )
 
@@ -340,6 +341,14 @@ class UpdateCoverageReq(BaseModel):
     coverage: list[str]
 
 
+class UpdateAnalystReq(BaseModel):
+    name: str | None = None
+    title: str | None = None
+    sector: str | None = None
+    persona: str | None = None
+    coverage: list[str] | None = None
+
+
 @app.get("/api/analysts")
 def get_analysts() -> dict:
     """List every hired analyst."""
@@ -371,6 +380,41 @@ def get_analyst_by_slug(slug: str) -> dict:
     if analyst is None:
         raise HTTPException(status_code=404, detail=f"analyst not found: {slug}")
     return analyst.to_dict()
+
+
+@app.put("/api/analysts/{slug}")
+def put_analyst(slug: str, req: UpdateAnalystReq) -> dict:
+    """Partial update — any non-null field replaces the current value."""
+    try:
+        analyst = update_analyst(
+            slug,
+            name=req.name,
+            title=req.title,
+            sector=req.sector,
+            persona=req.persona,
+            coverage=req.coverage,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return analyst.to_dict()
+
+
+@app.post("/api/universe/lookup")
+def post_universe_lookup(req: dict) -> dict:
+    """Bulk lookup: given a list of ticker symbols, return matching rows.
+
+    Used by the analyst detail view to render coverage cards without
+    pulling the entire universe.
+    """
+    tickers = [t.strip().upper() for t in (req.get("tickers") or []) if (t or "").strip()]
+    loaded = load_universe()
+    if loaded is None:
+        return {"count": 0, "tickers": []}
+    wanted = set(tickers)
+    matches = [t for t in loaded.tickers if t.ticker in wanted]
+    return {"count": len(matches), "tickers": [t.to_dict() for t in matches]}
 
 
 @app.put("/api/analysts/{slug}/coverage")
