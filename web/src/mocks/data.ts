@@ -220,3 +220,112 @@ export const mockSuggestedPrompts: string[] = [
   'Summarize the SOC thesis in 3 bullets',
   'Which analyst should I ask about banking sector spread comp?',
 ];
+
+/**
+ * Per-analyst conversation history. Used by AnalystDetailView's Chat tab.
+ * Each conversation is a 4–6 message sketch of how a PM might actually
+ * talk with an analyst — opinionated enough to feel real, generic
+ * enough to not pretend to be load-bearing.
+ */
+export const mockAnalystConversations: Record<string, MasterAgentMessage[]> = {
+  'maria-chen': [
+    {
+      id: 'maria-1',
+      role: 'master',
+      text:
+        "Morning. Reading the AVGO 10-K I just pulled (ev#42-58). Three things stand out so far: VMware integration is tracking ahead on opex synergies, networking attach in AI clusters is now 22% of accelerator dollars (vs my 18% model), and they’re guiding sequential capex *down* — first time in five quarters. Want a full memo or just the AI-networking angle?",
+      ts: '2026-05-12T09:14:00Z',
+    },
+    {
+      id: 'maria-2',
+      role: 'pm',
+      text: 'Just the AI-networking angle. And tie it to NVDA — does this make NVDA networking pricing weaker or stronger?',
+      ts: '2026-05-12T09:14:48Z',
+    },
+    {
+      id: 'maria-3',
+      role: 'master',
+      text:
+        "Weaker on a 6–12 month view. AVGO’s Tomahawk 5 + Jericho ramp gives hyperscalers a credible alternative for east-west traffic — exactly the slot NVIDIA InfiniBand has owned. Hyperscaler capex commentary on the next round of calls will confirm. I’ll put a one-pager on your desk by 2pm with the comp tear-down and the bull/bear lines I'd watch.",
+      ts: '2026-05-12T09:15:30Z',
+    },
+    {
+      id: 'maria-4',
+      role: 'pm',
+      text: 'Perfect. Also can you flag any names where the AVGO networking ramp is structurally bad? Not just NVDA.',
+      ts: '2026-05-12T09:16:00Z',
+    },
+  ],
+  'david-park': [
+    {
+      id: 'david-1',
+      role: 'master',
+      text:
+        "Morning. SOC pitch memo is live (memo · 2026-05-12). The headline I'd lead with: the auditor's going-concern paragraph is paired with a hard 90-days-from-first-sales debt trigger — that's not normal distressed E&P math, it's vendor-financing structure. Want me to run the same lens on OXY?",
+      ts: '2026-05-12T08:32:00Z',
+    },
+    {
+      id: 'david-2',
+      role: 'pm',
+      text: 'Not OXY. What are the catalysts I should be watching this quarter for SOC specifically?',
+      ts: '2026-05-12T08:33:10Z',
+    },
+    {
+      id: 'david-3',
+      role: 'master',
+      text:
+        "Four, ranked by impact:\n\n1. Ninth Circuit ruling on the consolidated pipeline petitions — petitioners' opening brief was due March 23.\n2. PHMSA permanent Special Permit decision (the Emergency Special Permit expired Feb 21).\n3. May 20 Coastal Commission hearing in Santa Barbara Superior Court.\n4. OS&T vessel acquisition signaling — they targeted Q1 2026 for acquisition; if no announcement by end of May, the alternative path is slipping.\n\nThe binary one is #1.",
+      ts: '2026-05-12T08:33:42Z',
+    },
+    {
+      id: 'david-4',
+      role: 'pm',
+      text: 'OK. If #1 goes against them, what does the position look like in 30 days?',
+      ts: '2026-05-12T08:34:30Z',
+    },
+  ],
+  'aisha-patel': [
+    {
+      id: 'aisha-1',
+      role: 'master',
+      text:
+        "Hi. Spread comp across my coverage is the most interesting it’s been all year. Q1 NIM divergence: JPM 3.78, BAC 3.85, WFC 3.88, C 3.95. JPM’s outflow story has two readings and they imply opposite trades. Want the deep dive or just the takeaway?",
+      ts: '2026-05-12T08:50:00Z',
+    },
+    {
+      id: 'aisha-2',
+      role: 'pm',
+      text: 'Just the takeaway.',
+      ts: '2026-05-12T08:50:30Z',
+    },
+    {
+      id: 'aisha-3',
+      role: 'master',
+      text:
+        "Long C / Short JPM as a pair. C is the cleanest beneficiary of the higher-for-longer wholesale-funding regime; JPM is paying up for deposits the market hasn't yet priced as costly. Two-quarter half-life on this trade; convergence event is JPM's Q2 NIM print.",
+      ts: '2026-05-12T08:51:00Z',
+    },
+  ],
+  'tom-kovacs': [
+    {
+      id: 'tom-1',
+      role: 'master',
+      text:
+        "Morning note on COST is queued (running, eta ~2 min). Quick read: April comp +5.2% vs Street 4.6%. Membership renewal 92%. The fee-hike commentary on the next call is the only thing that matters for the multiple.",
+      ts: '2026-05-12T08:05:00Z',
+    },
+    {
+      id: 'tom-2',
+      role: 'pm',
+      text: 'What’s the historical pattern when membership renewal drops below 92%?',
+      ts: '2026-05-12T08:05:40Z',
+    },
+    {
+      id: 'tom-3',
+      role: 'master',
+      text:
+        "Three precedents (2008, 2015, 2020). All three preceded comp deceleration within 2 quarters, R² ~0.72. 90% renewal is the hard floor; below that, multiple compresses ~3-4 turns. Currently at 92% — not a screaming sell, but the asymmetry is no longer favorable.",
+      ts: '2026-05-12T08:06:15Z',
+    },
+  ],
+};
