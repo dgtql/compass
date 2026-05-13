@@ -1,6 +1,17 @@
-"""Chat LLM wiring — uses claude-agent-sdk so OAuth auth (Claude Code login)
-works out of the box. ``ANTHROPIC_API_KEY`` also works if you'd rather use
-a direct API key.
+"""Chat LLM wiring.
+
+Two auth paths, tried in order:
+
+1. **API key** (``ANTHROPIC_API_KEY`` in env or ``.env``) — direct call
+   to the Anthropic Messages API via the official ``anthropic`` SDK.
+   Cleanest multi-turn shape, no extra binaries needed.
+2. **Claude Code OAuth** (the ``claude`` CLI logged in) — call through
+   ``claude-agent-sdk``, which spawns the ``claude`` CLI subprocess
+   under the hood. Free if you're already logged in; requires the
+   ``claude`` binary to be on the API process's PATH.
+
+If neither works the error bubbles up and is surfaced inline in the
+chat ("couldn't reach the LLM — …").
 
 Per-owner system prompts shape the voice:
 
@@ -11,26 +22,18 @@ No tools yet — pure text chat. Hooking the analyst skills (fetch-filing,
 web-research, etc.) into the chat agent comes later; for now the chat
 just produces a reasoned reply, and longer-running research flows happen
 through the slice-18 dispatcher.
-
-Multi-turn note: claude-agent-sdk's ``query()`` is single-prompt, so we
-fold the prior conversation into the user prompt as a transcript. Works
-fine for chat; not the same as the Messages API's structured
-multi-turn but the model handles it well.
 """
 
 from __future__ import annotations
 
-from claude_agent_sdk import (
-    AssistantMessage,
-    ClaudeAgentOptions,
-    TextBlock,
-    query,
-)
+import os
+from functools import lru_cache
 
 from compass.analysts import get_analyst, list_analysts
 from compass.chats import Session
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MAX_TOKENS = 1024
 
 
 # ---------------------------------------------------------------------------
@@ -39,9 +42,6 @@ DEFAULT_MODEL = "claude-sonnet-4-6"
 
 
 def build_system_prompt(owner_key: str) -> str:
-    """Compose the system prompt based on which side of the conversation the
-    PM is talking to.
-    """
     if owner_key == "master":
         return _master_system_prompt()
     return _analyst_system_prompt(owner_key)
@@ -111,14 +111,76 @@ async def generate_reply(
     session: Session,
     *,
     model: str = DEFAULT_MODEL,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
 ) -> str:
-    """Send the conversation so far to Claude and return the assistant text.
+    """Return Claude's reply to the session's latest PM message.
 
-    The PM's last message must already be appended to ``session.messages``
-    (the API endpoint does this before calling us).
+    Tries the API-key path first (cleaner, fewer moving parts); falls back
+    to the Claude Code OAuth CLI when no key is set.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
+
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return _reply_via_messages_api(owner_key, session, model=model, max_tokens=max_tokens)
+    return await _reply_via_agent_sdk(owner_key, session, model=model)
+
+
+# --- Path 1: anthropic SDK (API key) ----------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _anthropic_client():
+    from anthropic import Anthropic
+    return Anthropic()
+
+
+def _reply_via_messages_api(
+    owner_key: str,
+    session: Session,
+    *,
+    model: str,
+    max_tokens: int,
+) -> str:
+    history: list[dict[str, str]] = []
+    for m in session.messages:
+        text = (m.text or "").strip()
+        if not text:
+            continue
+        history.append({
+            "role": "user" if m.role == "pm" else "assistant",
+            "content": text,
+        })
+    if not history or history[-1]["role"] != "user":
+        return ""
+    response = _anthropic_client().messages.create(
+        model=model,
+        system=build_system_prompt(owner_key),
+        messages=history,
+        max_tokens=max_tokens,
+    )
+    parts: list[str] = []
+    for block in response.content:
+        t = getattr(block, "text", None)
+        if isinstance(t, str):
+            parts.append(t)
+    return "".join(parts).strip()
+
+
+# --- Path 2: claude-agent-sdk (OAuth via `claude` CLI) ---------------------
+
+
+async def _reply_via_agent_sdk(owner_key: str, session: Session, *, model: str) -> str:
+    """Used when no API key is set. ``claude-agent-sdk.query()`` is
+    single-prompt, so we fold the prior conversation into the user prompt
+    as a transcript.
+    """
+    from claude_agent_sdk import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        TextBlock,
+        query,
+    )
 
     prompt = _build_prompt_from_history(session)
     options = ClaudeAgentOptions(
@@ -135,21 +197,11 @@ async def generate_reply(
 
 
 def _build_prompt_from_history(session: Session) -> str:
-    """Fold prior conversation into a single transcript-style prompt.
-
-    The most recent PM message is the "now respond" turn. Earlier messages
-    are framed as the prior exchange. claude-agent-sdk's ``query()`` is
-    single-prompt, so we encode multi-turn this way rather than using the
-    Messages API directly (which would force the user to set
-    ANTHROPIC_API_KEY explicitly).
-    """
     msgs = [m for m in session.messages if (m.text or "").strip()]
     if not msgs:
         return ""
     if len(msgs) == 1:
-        # First exchange — no history, just the user's message.
         return msgs[0].text.strip()
-
     history_lines: list[str] = []
     for m in msgs[:-1]:
         speaker = "PM" if m.role == "pm" else "You"

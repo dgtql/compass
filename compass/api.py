@@ -540,8 +540,11 @@ async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageR
                 # Surface the failure as an assistant message so the user
                 # sees what went wrong instead of a silent timeout.
                 reply = (
-                    f"(couldn't reach the LLM — {type(exc).__name__}: {exc}.\n"
-                    "Check that ANTHROPIC_API_KEY is set or that you're logged in via `claude`.)"
+                    f"(couldn't reach the LLM — {type(exc).__name__}: {exc}.\n\n"
+                    "Two ways to fix:\n"
+                    "  1. Add ANTHROPIC_API_KEY to your .env (preferred — direct API path).\n"
+                    "  2. Make sure the `claude` CLI is on your PATH and you've run `claude` "
+                    "once to log in (fallback OAuth path).)"
                 )
             if reply:
                 session = chats_append_message(owner_key, session_id, role="master", text=reply)
