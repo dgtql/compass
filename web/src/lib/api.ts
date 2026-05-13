@@ -296,12 +296,18 @@ export function deleteChatSession(ownerKey: string, sessionId: string): Promise<
   );
 }
 
-/** Append a PM message — server returns the session with both user + mock
- *  master reply appended. Will route to a real LLM in a later slice. */
+/** Append a PM message — server returns the session with the user + LLM
+ *  reply appended. ``model`` and ``thinking`` are passed through to the
+ *  backend so the UI's selectors actually shape the call. */
 export function postChatMessage(
   ownerKey: string,
   sessionId: string,
-  body: { role?: 'pm' | 'master'; text: string },
+  body: {
+    role?: 'pm' | 'master';
+    text: string;
+    model?: string;
+    thinking?: 'standard' | 'extended';
+  },
 ): Promise<ApiChatSession> {
   return jpost<ApiChatSession>(
     `/api/chats/${encodeURIComponent(ownerKey)}/sessions/${encodeURIComponent(sessionId)}/messages`,

@@ -254,7 +254,12 @@ export function ChatPane({
     setInput('');
     setSending(true);
     try {
-      const updated = await postChatMessage(ownerKey, sessionId!, { role: 'pm', text: trimmed });
+      const updated = await postChatMessage(ownerKey, sessionId!, {
+        role: 'pm',
+        text: trimmed,
+        model,
+        thinking,
+      });
       setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
     } catch {
       refresh();

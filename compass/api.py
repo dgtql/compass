@@ -463,6 +463,8 @@ class CreateChatSessionReq(BaseModel):
 class AppendMessageReq(BaseModel):
     role: str = "pm"
     text: str
+    model: str | None = None        # 'claude-sonnet-4-6' | 'claude-opus-4-7' | …
+    thinking: str | None = None     # 'standard' | 'extended'
 
 
 @app.get("/api/chats/{owner_key}")
@@ -535,7 +537,11 @@ async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageR
         session = chats_append_message(owner_key, session_id, role=req.role, text=req.text)
         if req.role == "pm" and req.text.strip():
             try:
-                reply = await generate_reply(owner_key, session)
+                reply = await generate_reply(
+                    owner_key, session,
+                    model=req.model,
+                    thinking=req.thinking,
+                )
             except Exception as exc:  # noqa: BLE001
                 # Surface the failure as an assistant message so the user
                 # sees what went wrong instead of a silent timeout.

@@ -110,20 +110,31 @@ async def generate_reply(
     owner_key: str,
     session: Session,
     *,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
+    thinking: str | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
 ) -> str:
     """Return Claude's reply to the session's latest PM message.
 
     Tries the API-key path first (cleaner, fewer moving parts); falls back
     to the Claude Code OAuth CLI when no key is set.
+
+    ``model`` defaults to ``DEFAULT_MODEL`` if not supplied. ``thinking``
+    is a hint string ("standard" | "extended"); extended thinking is
+    surfaced to the Messages API when the API-key path is in use.
     """
     if not session.messages or session.messages[-1].role != "pm":
         return ""
 
+    chosen_model = (model or DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    extended = (thinking or "").lower() == "extended"
+
     if os.environ.get("ANTHROPIC_API_KEY"):
-        return _reply_via_messages_api(owner_key, session, model=model, max_tokens=max_tokens)
-    return await _reply_via_agent_sdk(owner_key, session, model=model)
+        return _reply_via_messages_api(
+            owner_key, session,
+            model=chosen_model, max_tokens=max_tokens, extended_thinking=extended,
+        )
+    return await _reply_via_agent_sdk(owner_key, session, model=chosen_model)
 
 
 # --- Path 1: anthropic SDK (API key) ----------------------------------------
@@ -141,6 +152,7 @@ def _reply_via_messages_api(
     *,
     model: str,
     max_tokens: int,
+    extended_thinking: bool = False,
 ) -> str:
     history: list[dict[str, str]] = []
     for m in session.messages:
@@ -153,12 +165,18 @@ def _reply_via_messages_api(
         })
     if not history or history[-1]["role"] != "user":
         return ""
-    response = _anthropic_client().messages.create(
-        model=model,
-        system=build_system_prompt(owner_key),
-        messages=history,
-        max_tokens=max_tokens,
-    )
+    kwargs: dict = {
+        "model": model,
+        "system": build_system_prompt(owner_key),
+        "messages": history,
+        "max_tokens": max_tokens,
+    }
+    if extended_thinking:
+        # Enable extended thinking — budget half the response tokens for
+        # the chain-of-thought so the user-visible reply still fits.
+        kwargs["max_tokens"] = max(max_tokens, 4096)
+        kwargs["thinking"] = {"type": "enabled", "budget_tokens": 2048}
+    response = _anthropic_client().messages.create(**kwargs)
     parts: list[str] = []
     for block in response.content:
         t = getattr(block, "text", None)
