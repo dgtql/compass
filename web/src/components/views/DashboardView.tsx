@@ -6,10 +6,11 @@ import { Avatar } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { fmtElapsed } from '@/lib/utils';
-import { mockAnalysts, mockMemos, mockTasks, mockNotes } from '@/mocks/data';
-import type { Analyst } from '@/types/domain';
+import { mockMemos, mockTasks, mockNotes } from '@/mocks/data';
+import type { ApiAnalyst } from '@/lib/api';
 
 type Props = {
+  analysts: ApiAnalyst[];
   onOpenAnalyst: (slug: string) => void;
   onOpenMasterAgent: () => void;
   onOpenHire: () => void;
@@ -17,7 +18,7 @@ type Props = {
   onOpenKnowledge: () => void;
 };
 
-function statusColor(s: Analyst['status']) {
+function statusColor(s: ApiAnalyst['status']) {
   if (s === 'working') return 'warning' as const;
   if (s === 'review') return 'default' as const;
   if (s === 'offline') return 'secondary' as const;
@@ -25,6 +26,7 @@ function statusColor(s: Analyst['status']) {
 }
 
 export function DashboardView({
+  analysts,
   onOpenAnalyst,
   onOpenMasterAgent,
   onOpenHire,
@@ -43,8 +45,8 @@ export function DashboardView({
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Good morning</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Your pod has {mockAnalysts.length} analysts covering {' '}
-              {mockAnalysts.reduce((sum, a) => sum + a.coverage.length, 0)} names. {' '}
+              Your pod has {analysts.length} {analysts.length === 1 ? 'analyst' : 'analysts'} covering {' '}
+              {analysts.reduce((sum, a) => sum + a.coverage.length, 0)} names. {' '}
               {activeTasks.length} task{activeTasks.length === 1 ? '' : 's'} running.
             </p>
           </div>
@@ -97,45 +99,58 @@ export function DashboardView({
             + Hire analyst
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {mockAnalysts.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => onOpenAnalyst(a.slug)}
-              className="text-left rounded-lg border border-border bg-card hover:shadow-md transition-all p-4 space-y-2"
-            >
-              <div className="flex items-start gap-3">
-                <Avatar initials={a.avatarInitials} color={a.avatarColor} />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{a.name}</div>
-                  <div className="text-xs text-muted-foreground truncate">{a.title}</div>
+        {analysts.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border p-8 text-center bg-background/40">
+            <div className="text-sm font-medium mb-1">No analysts in your pod yet</div>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto mb-4">
+              Hire your first analyst — pick a sector, optionally a coverage list, and they'll start producing work as soon as you assign a task.
+            </p>
+            <Button onClick={onOpenHire} size="sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              Hire your first analyst
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {analysts.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => onOpenAnalyst(a.slug)}
+                className="text-left rounded-lg border border-border bg-card hover:shadow-md transition-all p-4 space-y-2"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar initials={a.avatar_initials} color={a.avatar_color} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{a.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{a.title}</div>
+                  </div>
+                  <Badge variant={statusColor(a.status)} className="text-[10px] uppercase">
+                    {a.status}
+                  </Badge>
                 </div>
-                <Badge variant={statusColor(a.status)} className="text-[10px] uppercase">
-                  {a.status}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {a.coverage.slice(0, 5).map((t) => (
-                  <span
-                    key={t}
-                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground"
-                  >
-                    {t}
-                  </span>
-                ))}
-                {a.coverage.length > 5 && (
-                  <span className="text-[10px] text-muted-foreground">+{a.coverage.length - 5}</span>
+                <div className="flex flex-wrap gap-1">
+                  {a.coverage.slice(0, 5).map((t) => (
+                    <span
+                      key={t}
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                  {a.coverage.length > 5 && (
+                    <span className="text-[10px] text-muted-foreground">+{a.coverage.length - 5}</span>
+                  )}
+                </div>
+                {a.current_focus && (
+                  <div className="text-xs text-muted-foreground italic">
+                    <Clock className="inline-block w-3 h-3 mr-1 -translate-y-px" />
+                    {a.current_focus}
+                  </div>
                 )}
-              </div>
-              {a.currentFocus && (
-                <div className="text-xs text-muted-foreground italic">
-                  <Clock className="inline-block w-3 h-3 mr-1 -translate-y-px" />
-                  {a.currentFocus}
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Two columns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -154,7 +169,7 @@ export function DashboardView({
               ) : (
                 <ul className="space-y-2">
                   {activeTasks.map((t) => {
-                    const analyst = mockAnalysts.find((a) => a.slug === t.analystSlug);
+                    const analyst = analysts.find((a) => a.slug === t.analystSlug);
                     return (
                       <li
                         key={t.id}
@@ -164,8 +179,8 @@ export function DashboardView({
                         <span className="spinner shrink-0" />
                         {analyst && (
                           <Avatar
-                            initials={analyst.avatarInitials}
-                            color={analyst.avatarColor}
+                            initials={analyst.avatar_initials}
+                            color={analyst.avatar_color}
                             size="sm"
                           />
                         )}
@@ -195,15 +210,15 @@ export function DashboardView({
             <CardContent>
               <ul className="space-y-3">
                 {recentMemos.map((m) => {
-                  const analyst = mockAnalysts.find((a) => a.slug === m.analystSlug);
+                  const analyst = analysts.find((a) => a.slug === m.analystSlug);
                   return (
                     <li key={m.id} className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           {analyst && (
                             <Avatar
-                              initials={analyst.avatarInitials}
-                              color={analyst.avatarColor}
+                              initials={analyst.avatar_initials}
+                              color={analyst.avatar_color}
                               size="sm"
                             />
                           )}
@@ -278,7 +293,7 @@ export function DashboardView({
             <CardContent>
               <div className="space-y-2">
                 {['Technology', 'Energy', 'Financials', 'Consumer'].map((sector) => {
-                  const count = mockAnalysts
+                  const count = analysts
                     .filter((a) => a.sector === sector)
                     .reduce((sum, a) => sum + a.coverage.length, 0);
                   return (

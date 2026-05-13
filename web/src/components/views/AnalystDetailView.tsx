@@ -10,14 +10,15 @@ import { ChatPane } from '@/components/ChatPane';
 import { TaskProgressRail } from '@/components/chat/TaskProgressRail';
 import { mockCoverages } from '@/mocks/pipeline';
 import {
-  mockAnalysts,
   mockMemos,
   mockTasks,
   mockUniverse,
 } from '@/mocks/data';
+import type { ApiAnalyst } from '@/lib/api';
 
 type Props = {
   slug: string;
+  analysts: ApiAnalyst[];
   onOpenCoverage?: (ticker: string) => void;
 };
 
@@ -31,9 +32,9 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'profile', label: 'Profile' },
 ];
 
-export function AnalystDetailView({ slug, onOpenCoverage }: Props) {
+export function AnalystDetailView({ slug, analysts, onOpenCoverage }: Props) {
   const [tab, setTab] = useState<Tab>('chat');
-  const analyst = useMemo(() => mockAnalysts.find((a) => a.slug === slug), [slug]);
+  const analyst = useMemo(() => analysts.find((a) => a.slug === slug), [slug, analysts]);
   const memos = useMemo(() => mockMemos.filter((m) => m.analystSlug === slug), [slug]);
   const tasks = useMemo(() => mockTasks.filter((t) => t.analystSlug === slug), [slug]);
   const coverage = useMemo(
@@ -50,7 +51,7 @@ export function AnalystDetailView({ slug, onOpenCoverage }: Props) {
       <div className="px-8 pt-5 pb-3 border-b border-border bg-background/60">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <Avatar initials={analyst.avatarInitials} color={analyst.avatarColor} size="md" />
+            <Avatar initials={analyst.avatar_initials} color={analyst.avatar_color} size="md" />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-semibold tracking-tight">{analyst.name}</h1>
@@ -70,9 +71,9 @@ export function AnalystDetailView({ slug, onOpenCoverage }: Props) {
               <p className="text-xs text-muted-foreground mt-0.5">
                 {analyst.title} · {analyst.coverage.length} names · hired {analyst.hiredAt}
               </p>
-              {analyst.currentFocus && tab !== 'chat' && (
+              {analyst.current_focus && tab !== 'chat' && (
                 <div className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-300">
-                  <span className="spinner" /> {analyst.currentFocus}
+                  <span className="spinner" /> {analyst.current_focus}
                 </div>
               )}
             </div>
@@ -107,8 +108,8 @@ export function AnalystDetailView({ slug, onOpenCoverage }: Props) {
           <ChatPane
             ownerKey={analyst.slug}
             counterparty={{
-              initials: analyst.avatarInitials,
-              color: analyst.avatarColor,
+              initials: analyst.avatar_initials,
+              color: analyst.avatar_color,
             }}
             placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
             rightRailTabs={({ activeTask }) => {
@@ -310,13 +311,13 @@ function AnalystRightRail({
   memos,
   tasks,
 }: {
-  analyst: ReturnType<typeof mockAnalysts.find> extends infer T ? Exclude<T, undefined> : never;
+  analyst: ApiAnalyst;
   memos: typeof mockMemos;
   tasks: typeof mockTasks;
 }) {
   return (
     <div className="p-4 space-y-4">
-      {analyst.currentFocus && (
+      {analyst.current_focus && (
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
@@ -324,7 +325,7 @@ function AnalystRightRail({
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="spinner shrink-0" />
-              <span className="font-medium">{analyst.currentFocus}</span>
+              <span className="font-medium">{analyst.current_focus}</span>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sidebar, type View } from '@/components/Sidebar';
 import { DashboardView } from '@/components/views/DashboardView';
 import { AnalystDetailView } from '@/components/views/AnalystDetailView';
@@ -9,17 +9,37 @@ import { SkillsView } from '@/components/views/SkillsView';
 import { DataView } from '@/components/views/DataView';
 import { TickerCoverageView } from '@/components/views/TickerCoverageView';
 import { HireAnalystModal } from '@/components/HireAnalystModal';
+import { getAnalysts, type ApiAnalyst } from '@/lib/api';
 
 export function App() {
   const [view, setView] = useState<View>({ kind: 'dashboard' });
   const [hireOpen, setHireOpen] = useState(false);
 
+  // Hired-analyst roster: single source of truth in App, passed down to
+  // Sidebar / Dashboard / AnalystDetail. Refreshed after a successful
+  // `Hire` action so the new analyst appears immediately.
+  const [analysts, setAnalysts] = useState<ApiAnalyst[]>([]);
+
+  const reloadAnalysts = useCallback(() => {
+    getAnalysts()
+      .then((r) => setAnalysts(r.analysts))
+      .catch(() => { /* leave previous list in place if API is down */ });
+  }, []);
+
+  useEffect(() => { reloadAnalysts(); }, [reloadAnalysts]);
+
   return (
     <div className="h-full flex bg-background text-foreground">
-      <Sidebar view={view} onNavigate={setView} onOpenHire={() => setHireOpen(true)} />
+      <Sidebar
+        view={view}
+        onNavigate={setView}
+        onOpenHire={() => setHireOpen(true)}
+        analysts={analysts}
+      />
       <main className="flex-1 min-w-0 flex flex-col">
         {view.kind === 'dashboard' && (
           <DashboardView
+            analysts={analysts}
             onOpenAnalyst={(slug) => setView({ kind: 'analyst-detail', slug })}
             onOpenMasterAgent={() => setView({ kind: 'master-agent' })}
             onOpenHire={() => setHireOpen(true)}
@@ -31,11 +51,11 @@ export function App() {
         {view.kind === 'analyst-detail' && (
           <AnalystDetailView
             slug={view.slug}
+            analysts={analysts}
             onOpenCoverage={(ticker) => setView({ kind: 'ticker-coverage', ticker })}
           />
         )}
         {view.kind === 'tickers' && <TickersView initialTab={view.tab} />}
-        {/* legacy aliases from older callsites — render the same view */}
         {view.kind === 'universe' && <TickersView initialTab="all" />}
         {view.kind === 'my-universe' && <TickersView initialTab="my" />}
         {view.kind === 'knowledge' && <KnowledgeView />}
@@ -43,7 +63,14 @@ export function App() {
         {view.kind === 'data' && <DataView />}
         {view.kind === 'ticker-coverage' && <TickerCoverageView ticker={view.ticker} />}
       </main>
-      <HireAnalystModal open={hireOpen} onClose={() => setHireOpen(false)} />
+      <HireAnalystModal
+        open={hireOpen}
+        onClose={() => setHireOpen(false)}
+        onCreated={(a) => {
+          reloadAnalysts();
+          setView({ kind: 'analyst-detail', slug: a.slug });
+        }}
+      />
     </div>
   );
 }

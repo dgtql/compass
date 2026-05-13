@@ -121,3 +121,59 @@ export function addToMyUniverse(ticker: string, note?: string): Promise<{ ticker
 export function removeFromMyUniverse(ticker: string): Promise<{ ticker: string; count: number }> {
   return getJson(`/api/my-universe/${encodeURIComponent(ticker)}`, { method: 'DELETE' });
 }
+
+// --- Analysts (hired roster) ----------------------------------------------
+
+export type ApiAnalystStats = {
+  memos: number;
+  tasks_done: number;
+  active_tasks: number;
+};
+
+export type ApiAnalyst = {
+  id: string;
+  slug: string;
+  name: string;
+  title: string;
+  sector: string;
+  coverage: string[];
+  persona: string;
+  avatar_color: string;
+  avatar_initials: string;
+  status: 'idle' | 'working' | 'review' | 'offline';
+  hired_at: string;
+  stats: ApiAnalystStats;
+  current_focus: string | null;
+};
+
+export type ApiAnalystList = { count: number; analysts: ApiAnalyst[] };
+
+export function getAnalysts(): Promise<ApiAnalystList> {
+  return getJson<ApiAnalystList>('/api/analysts');
+}
+
+export function createAnalyst(body: {
+  name: string;
+  sector: string;
+  coverage?: string[];
+  persona?: string;
+  title?: string;
+}): Promise<ApiAnalyst> {
+  return getJson<ApiAnalyst>('/api/analysts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAnalyst(slug: string): Promise<{ slug: string }> {
+  return getJson(`/api/analysts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+}
+
+export function updateAnalystCoverage(slug: string, coverage: string[]): Promise<ApiAnalyst> {
+  return getJson<ApiAnalyst>(`/api/analysts/${encodeURIComponent(slug)}/coverage`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ coverage }),
+  });
+}

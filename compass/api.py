@@ -52,6 +52,14 @@ from compass.watchlist import (
     load_watchlist,
     remove_ticker as watchlist_remove,
 )
+from compass.analysts import (
+    Analyst,
+    create_analyst,
+    delete_analyst,
+    get_analyst,
+    list_analysts,
+    update_analyst_coverage,
+)
 
 load_dotenv()
 
@@ -315,6 +323,69 @@ def remove_from_my_universe(ticker: str) -> dict:
     """Remove a ticker from the watchlist. Idempotent."""
     wl = watchlist_remove(ticker)
     return {"ticker": ticker.upper(), "count": len(wl.tickers)}
+
+
+# --- analysts (PM's hired roster) ------------------------------------------
+
+
+class CreateAnalystReq(BaseModel):
+    name: str
+    sector: str
+    coverage: list[str] = []
+    persona: str = ""
+    title: str | None = None
+
+
+class UpdateCoverageReq(BaseModel):
+    coverage: list[str]
+
+
+@app.get("/api/analysts")
+def get_analysts() -> dict:
+    """List every hired analyst."""
+    items = list_analysts()
+    return {"count": len(items), "analysts": [a.to_dict() for a in items]}
+
+
+@app.post("/api/analysts", status_code=201)
+def post_analyst(req: CreateAnalystReq) -> dict:
+    """Hire a new analyst. Coverage tickers are validated against the universe."""
+    try:
+        analyst = create_analyst(
+            name=req.name,
+            sector=req.sector,
+            coverage=req.coverage,
+            persona=req.persona,
+            title=req.title,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return analyst.to_dict()
+
+
+@app.get("/api/analysts/{slug}")
+def get_analyst_by_slug(slug: str) -> dict:
+    analyst = get_analyst(slug)
+    if analyst is None:
+        raise HTTPException(status_code=404, detail=f"analyst not found: {slug}")
+    return analyst.to_dict()
+
+
+@app.put("/api/analysts/{slug}/coverage")
+def put_analyst_coverage(slug: str, req: UpdateCoverageReq) -> dict:
+    try:
+        analyst = update_analyst_coverage(slug, req.coverage)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return analyst.to_dict()
+
+
+@app.delete("/api/analysts/{slug}")
+def delete_analyst_by_slug(slug: str) -> dict:
+    delete_analyst(slug)
+    return {"slug": slug}
 
 
 # --- skill / template listings ---------------------------------------------

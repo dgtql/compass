@@ -18,8 +18,10 @@ import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
-import { mockAnalysts, mockTasks } from '@/mocks/data';
-import type { Analyst } from '@/types/domain';
+import { mockTasks } from '@/mocks/data';
+import type { ApiAnalyst } from '@/lib/api';
+
+type AnalystStatus = ApiAnalyst['status'];
 
 export type View =
   | { kind: 'dashboard' }
@@ -39,9 +41,10 @@ type Props = {
   view: View;
   onNavigate: (v: View) => void;
   onOpenHire: () => void;
+  analysts: ApiAnalyst[];
 };
 
-function statusDot(s: Analyst['status']) {
+function statusDot(s: AnalystStatus) {
   const color =
     s === 'working'
       ? 'bg-amber-500'
@@ -67,7 +70,7 @@ function readFold(): Folded {
   }
 }
 
-export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
+export function Sidebar({ view, onNavigate, onOpenHire, analysts }: Props) {
   const { theme, toggle } = useTheme();
   const [folded, setFolded] = useState<Folded>(readFold);
   const activeTasks = mockTasks.filter((t) => t.status === 'running' || t.status === 'queued');
@@ -138,7 +141,12 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
         />
         {!folded.analysts && (
           <ul className="px-2 space-y-0.5">
-            {mockAnalysts.map((a) => {
+            {analysts.length === 0 && (
+              <li className="px-2 py-2 text-[11px] text-muted-foreground italic">
+                No analysts yet. <button onClick={onOpenHire} className="text-primary hover:underline">Hire one</button>.
+              </li>
+            )}
+            {analysts.map((a) => {
               const isActive = view.kind === 'analyst-detail' && view.slug === a.slug;
               return (
                 <li key={a.id}>
@@ -151,7 +159,7 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
                         : 'hover:bg-accent/50 text-foreground',
                     )}
                   >
-                    <Avatar initials={a.avatarInitials} color={a.avatarColor} size="sm" />
+                    <Avatar initials={a.avatar_initials} color={a.avatar_color} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium leading-tight truncate">{a.name}</div>
                       <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
@@ -214,7 +222,7 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
             <li className="px-2 py-2 text-[10px] text-muted-foreground italic">Idle.</li>
           )}
           {activeTasks.map((t) => {
-            const analyst = mockAnalysts.find((a) => a.slug === t.analystSlug);
+            const analyst = analysts.find((a) => a.slug === t.analystSlug);
             return (
               <li
                 key={t.id}
@@ -225,7 +233,7 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
                   <span className="spinner shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium truncate">{t.description}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{analyst?.name}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{analyst?.name ?? ''}</div>
                   </div>
                 </div>
               </li>
