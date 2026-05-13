@@ -199,16 +199,21 @@ def _reply_via_messages_api(
     extended_thinking: bool = False,
     auth_token: str | None = None,
 ) -> str:
-    """Direct Messages-API call. When ``auth_token`` is provided, the
-    Anthropic SDK sends it as ``Authorization: Bearer ...`` — that's how
-    Claude Code OAuth tokens authenticate. Otherwise the SDK falls back
-    to ``ANTHROPIC_API_KEY`` from the env.
+    """Direct Messages-API call.
+
+    When ``auth_token`` is a Claude Code OAuth token, we pass it via the
+    SDK's ``credentials=StaticToken(...)`` mechanism rather than
+    ``auth_token=`` — that path auto-injects the
+    ``anthropic-beta: oauth-2025-04-20`` header that "unlocks Bearer
+    auth on the API." Without that header the API responds with a
+    generic 429 even when the token is otherwise valid.
     """
     from anthropic import Anthropic
 
     client_kwargs: dict = {}
     if auth_token:
-        client_kwargs["auth_token"] = auth_token
+        from anthropic.lib.credentials import StaticToken
+        client_kwargs["credentials"] = StaticToken(auth_token)
     client = Anthropic(**client_kwargs)
 
     history: list[dict[str, str]] = []
