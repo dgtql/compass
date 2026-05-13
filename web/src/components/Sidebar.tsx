@@ -24,6 +24,9 @@ import type { Analyst } from '@/types/domain';
 export type View =
   | { kind: 'dashboard' }
   | { kind: 'master-agent' }
+  | { kind: 'tickers'; tab?: 'my' | 'all' }
+  // Legacy aliases — old callsites (Dashboard CTAs) may still emit these;
+  // App.tsx routes both to the unified TickersView.
   | { kind: 'universe' }
   | { kind: 'my-universe' }
   | { kind: 'knowledge' }
@@ -184,16 +187,10 @@ export function Sidebar({ view, onNavigate, onOpenHire }: Props) {
               onClick={() => onNavigate({ kind: 'data' })}
             />
             <NavItem
-              icon={Bookmark}
-              label="My universe"
-              active={view.kind === 'my-universe'}
-              onClick={() => onNavigate({ kind: 'my-universe' })}
-            />
-            <NavItem
               icon={Globe}
-              label="Ticker universe"
-              active={view.kind === 'universe'}
-              onClick={() => onNavigate({ kind: 'universe' })}
+              label="Tickers"
+              active={view.kind === 'tickers' || view.kind === 'universe' || view.kind === 'my-universe'}
+              onClick={() => onNavigate({ kind: 'tickers' })}
             />
             <NavItem
               icon={BookOpen}

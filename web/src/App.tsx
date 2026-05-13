@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Sidebar, type View } from '@/components/Sidebar';
 import { DashboardView } from '@/components/views/DashboardView';
 import { AnalystDetailView } from '@/components/views/AnalystDetailView';
-import { UniverseView } from '@/components/views/UniverseView';
-import { MyUniverseView } from '@/components/views/MyUniverseView';
+import { TickersView } from '@/components/views/TickersView';
 import { KnowledgeView } from '@/components/views/KnowledgeView';
 import { MasterAgentView } from '@/components/views/MasterAgentView';
 import { SkillsView } from '@/components/views/SkillsView';
@@ -24,7 +23,7 @@ export function App() {
             onOpenAnalyst={(slug) => setView({ kind: 'analyst-detail', slug })}
             onOpenMasterAgent={() => setView({ kind: 'master-agent' })}
             onOpenHire={() => setHireOpen(true)}
-            onOpenUniverse={() => setView({ kind: 'universe' })}
+            onOpenUniverse={() => setView({ kind: 'tickers', tab: 'all' })}
             onOpenKnowledge={() => setView({ kind: 'knowledge' })}
           />
         )}
@@ -35,10 +34,10 @@ export function App() {
             onOpenCoverage={(ticker) => setView({ kind: 'ticker-coverage', ticker })}
           />
         )}
-        {view.kind === 'universe' && <UniverseView />}
-        {view.kind === 'my-universe' && (
-          <MyUniverseView onOpenUniverse={() => setView({ kind: 'universe' })} />
-        )}
+        {view.kind === 'tickers' && <TickersView initialTab={view.tab} />}
+        {/* legacy aliases from older callsites — render the same view */}
+        {view.kind === 'universe' && <TickersView initialTab="all" />}
+        {view.kind === 'my-universe' && <TickersView initialTab="my" />}
         {view.kind === 'knowledge' && <KnowledgeView />}
         {view.kind === 'skills' && <SkillsView />}
         {view.kind === 'data' && <DataView />}
