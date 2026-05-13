@@ -214,7 +214,7 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
             </label>
             {sector && (
               <span className="text-[10px] text-muted-foreground">
-                {coverage.size} selected · {suggested.length} suggested
+                {coverage.size} selected · {myUniverseMatches.length + universeOnlyMatches.length} suggested
               </span>
             )}
           </div>
