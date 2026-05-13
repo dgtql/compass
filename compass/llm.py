@@ -169,6 +169,18 @@ def _generate_reply_sync(
         "model": model,
         "system_prompt": build_system_prompt(owner_key),
         "max_turns": max_turns,
+        # Hard-disable Claude Code's auto-context loading so the analyst
+        # voice isn't polluted with project CLAUDE.md / memory / settings.
+        # Without these, the CLI inherits whatever's in ~/.claude or the
+        # cwd, leaking 'today's date is …', repo plan notes, dev env
+        # quirks — none of which the analyst persona should ever see.
+        "setting_sources": None,
+        "skills": None,
+        "agents": None,
+        # cwd defaults to the parent process's directory; setting an
+        # explicit harmless value avoids the CLI scanning the repo for a
+        # project-level CLAUDE.md.
+        "cwd": str(Path.home()),
     }
     cli_path = _resolve_claude_cli()
     if cli_path:
