@@ -1,27 +1,32 @@
-"""Tool-call observability for the Compass agent loop.
+"""Tool-call observability for agent-driven skills.
 
-In Slice 3 this is a stdout logger that proves the gate is wired and fires
-on every tool call. In Slice 4 the same hook will be replaced with one
-that writes rows to the SQLite evidence ledger — same shape (a record per
-tool call), different destination.
+This is the PreToolUse hook used by skills that invoke the Claude Agent
+SDK. It does two things:
+
+1. Streams a short line per tool call to stderr so the CLI shows what the
+   agent is doing in real time.
+2. Appends a JSON line to the engagement's ``.pipeline/run.log`` (when an
+   engagement is supplied) and/or fires a user callback.
+
+Slice 18 dropped the SQLite audit table — the run log + the artifacts on
+disk are the durable record now.
 
 Why ``PreToolUse`` and not ``can_use_tool``: the SDK only invokes
 ``can_use_tool`` for tool calls that would otherwise prompt the user.
-Tools auto-allowed via ``allowed_tools`` bypass it entirely. For evidence
-logging we need to observe *every* tool call regardless of permission
-state, which is exactly what a ``PreToolUse`` hook does.
+Tools auto-allowed via ``allowed_tools`` bypass it entirely. For
+observability we need to see *every* tool call regardless of permission
+state — that's what a ``PreToolUse`` hook does.
 """
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from typing import Any, Awaitable, Callable
 
 from claude_agent_sdk import HookContext, PreToolUseHookInput
 
-from compass.db import insert_audit
+from compass.engagement import Engagement
 
 HookFn = Callable[
     [PreToolUseHookInput | dict[str, Any], str | None, HookContext],
@@ -34,25 +39,11 @@ EventFn = Callable[[dict[str, Any]], None]
 def make_tool_logger(
     started_at: float,
     *,
+    engagement: Engagement | None = None,
     session_id: str | None = None,
     on_event: EventFn | None = None,
 ) -> HookFn:
-    """Return a PreToolUse hook that streams to stderr AND audits to SQLite
-    AND (optionally) fires a callback the API layer can buffer for live UI.
-
-    ``on_event`` receives a dict per tool call::
-
-        {
-            "ts": <wall-clock unix time>,
-            "type": "tool",
-            "elapsed": <seconds since ``started_at``>,
-            "tool_name": "Read",
-            "tool_input": {...},
-            "preview": "Read file=…/foo offset=200 limit=300",
-        }
-
-    The hook itself is unchanged for CLI usage (``on_event=None``).
-    """
+    """Return a PreToolUse hook that streams + logs + (optionally) callbacks."""
 
     async def hook(
         inp: PreToolUseHookInput | dict[str, Any],
@@ -69,33 +60,16 @@ def make_tool_logger(
             file=sys.stderr,
         )
 
-        # Audit to SQLite. Read-specific fields get parsed out; other tools
-        # land with file_path/offset NULL but the full tool_input is still
-        # preserved in the JSON column so we don't lose information.
-        file_path: str | None = None
-        offset_start: int | None = None
-        offset_end: int | None = None
-        if isinstance(tool_input, dict):
-            fp = tool_input.get("file_path")
-            if isinstance(fp, str):
-                file_path = fp
-            off = tool_input.get("offset")
-            lim = tool_input.get("limit")
-            if isinstance(off, int):
-                offset_start = off
-                if isinstance(lim, int):
-                    offset_end = off + lim
-        try:
-            insert_audit(
-                tool_name=str(tool_name),
-                tool_input_json=json.dumps(tool_input, default=str),
-                file_path=file_path,
-                offset_start=offset_start,
-                offset_end=offset_end,
-                session_id=session_id,
+        if engagement is not None:
+            engagement.log_event(
+                {
+                    "type": "tool",
+                    "elapsed": round(elapsed, 2),
+                    "session_id": session_id,
+                    "tool_name": str(tool_name),
+                    "tool_input": tool_input if isinstance(tool_input, dict) else {"value": tool_input},
+                }
             )
-        except Exception as exc:  # noqa: BLE001
-            print(f"[audit] insert failed: {exc}", file=sys.stderr, flush=True)
 
         if on_event is not None:
             try:
@@ -110,7 +84,6 @@ def make_tool_logger(
                     }
                 )
             except Exception as exc:  # noqa: BLE001
-                # Event delivery must never break the agent loop either.
                 print(f"[event] callback failed: {exc}", file=sys.stderr, flush=True)
         return {}
 
@@ -118,19 +91,18 @@ def make_tool_logger(
 
 
 def _format_args(args: Any) -> str:
-    """Render tool args so different calls are distinguishable in the log.
-
-    File-path arguments get shortened to basename so the line stays short and
-    the interesting bits (offset, limit, etc.) aren't hidden behind a 200-char
-    absolute path.
-    """
+    """Render tool args so different calls are distinguishable in the log."""
     if not isinstance(args, dict):
         text = repr(args)
         return text if len(text) <= 160 else text[:160] + "..."
     parts = []
     for key, value in args.items():
         if key == "file_path" and isinstance(value, str):
-            parts.append(f"file=…/{value.rsplit(chr(92), 1)[-1].rsplit('/', 1)[-1]}")
+            short = value.replace("\\", "/").rsplit("/", 1)[-1]
+            parts.append(f"file=…/{short}")
         else:
-            parts.append(f"{key}={value!r}")
+            text = repr(value)
+            if len(text) > 80:
+                text = text[:80] + "..."
+            parts.append(f"{key}={text}")
     return " ".join(parts)

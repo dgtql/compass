@@ -1,34 +1,24 @@
 """Yahoo Finance ingestion source — market context for a covered ticker.
 
-Different shape from EDGAR. Where ``EdgarSource`` fetches static prose
-documents (10-Ks, 10-Qs), ``YahooSource`` produces a daily *snapshot*:
-current price, 52-week range, market cap, analyst consensus, recent
-financials at a glance, and the top news headlines. The same Document
-abstraction holds — the snapshot is rendered as a single Markdown
-file and chunked into the evidence ledger like any other doc — so
-downstream skills (pitch-memo, eventual maintenance-update,
-earnings-reaction, morning-brief) can cite Yahoo data alongside
-EDGAR filings.
+Slice 18: write under an explicit engagement root, drop the SQLite ledger
+dependency. The markdown file on disk is the evidence.
 
-Output layout:
+Output layout (relative to ``engagement_root``)::
 
-    data/tickers/<TICKER>_<EXCH>/corpus/snapshots/yahoo/<YYYY-MM-DD>.md
+    corpus/snapshots/yahoo/<YYYY-MM-DD>.md
 
-One snapshot per day; re-running on the same day overwrites the file
-(and re-chunks into the ledger — UNIQUE on the same byte spans makes
-the DB side idempotent).
+One snapshot per day. Re-running on the same day overwrites the file.
 """
 
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import yfinance as yf
 
-from compass.db import chunk_markdown_file, insert_evidence_for_document
 from compass.ingest.base import Document, Source
-from compass.workspace import ensure_workspace
 
 
 class YahooSource(Source):
@@ -40,16 +30,12 @@ class YahooSource(Source):
         self,
         ticker: str,
         *,
+        engagement_root: Path,
         history_period: str = "1y",
     ) -> list[Document]:
-        """Build today's Yahoo snapshot for ``ticker`` and write it to the workspace.
-
-        Returns a one-element list (one snapshot per call) so the signature
-        matches ``EdgarSource.fetch`` and ``Source.fetch``.
-        """
+        """Build today's Yahoo snapshot for ``ticker`` and write it under ``engagement_root``."""
         ticker_upper = ticker.upper()
-        workspace = ensure_workspace(ticker)
-        out_dir = workspace / "corpus" / "snapshots" / "yahoo"
+        out_dir = engagement_root / "corpus" / "snapshots" / "yahoo"
         out_dir.mkdir(parents=True, exist_ok=True)
 
         today = date.today().isoformat()
@@ -83,20 +69,35 @@ class YahooSource(Source):
             local_path=out_path,
             source_url=f"https://finance.yahoo.com/quote/{ticker_upper}/",
         )
-
-        chunks = chunk_markdown_file(out_path)
-        insert_evidence_for_document(
-            doc_id=f"yahoo:{ticker_upper}:{today}",
-            ticker=ticker_upper,
-            source=self.name,
-            source_url=doc.source_url,
-            form_type="snapshot",
-            retrieved_at=retrieved_at,
-            local_path=out_path,
-            chunks=chunks,
-        )
-
         return [doc]
+
+    def fetch_news(
+        self,
+        ticker: str,
+        *,
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Return recent news items for ``ticker`` (raw, no disk write).
+
+        Used by the ``fetch-news`` skill to produce a structured news.json
+        artifact without re-rendering the full Yahoo snapshot.
+        """
+        t = yf.Ticker(ticker.upper())
+        items = _safe_news(t)
+        out: list[dict[str, Any]] = []
+        for item in items[:limit]:
+            title, link, pub, publisher = _news_fields(item)
+            if not title:
+                continue
+            out.append(
+                {
+                    "title": title,
+                    "link": link,
+                    "published": pub,
+                    "publisher": publisher,
+                }
+            )
+        return out
 
 
 # --- yfinance defensive wrappers --------------------------------------------
@@ -123,7 +124,7 @@ def _safe_df(t: yf.Ticker, attr: str):
 def _safe_news(t: yf.Ticker) -> list[dict]:
     try:
         items = t.news or []
-        return items[:10]
+        return items[:20]
     except Exception:
         return []
 
@@ -188,7 +189,6 @@ def _render_snapshot(
     if shares is not None:
         lines.append(f"- **Shares outstanding:** {_fmt_money(shares).lstrip('$')}")
 
-    # 30-day return from history
     if hist is not None and len(hist) >= 21:
         recent_close = float(hist["Close"].iloc[-1])
         prior_close = float(hist["Close"].iloc[-21])
@@ -281,11 +281,11 @@ def _render_snapshot(
         lines.append("## Recent news")
         lines.append("")
         for item in news[:10]:
-            title, link, pub = _news_fields(item)
-            lines.append(f"- {pub or '?'}: [{title}]({link})" if title else f"- {item}")
+            title, link, pub, _publisher = _news_fields(item)
+            if title:
+                lines.append(f"- {pub or '?'}: [{title}]({link})")
         lines.append("")
 
-    # Strip trailing blank line so the final byte isn't a stray \n
     while lines and lines[-1] == "":
         lines.pop()
     return "\n".join(lines) + "\n"
@@ -299,16 +299,14 @@ def _fmt_year(col) -> str:
 
 
 def _pluck_row(df, row_label: str, cols: list) -> list[str] | None:
-    """Look up a row by exact label; return formatted values for ``cols`` or None."""
     if row_label not in df.index:
         return None
     row = df.loc[row_label]
     return [_fmt_money(row[c]) for c in cols]
 
 
-def _news_fields(item: dict) -> tuple[str | None, str | None, str | None]:
+def _news_fields(item: dict) -> tuple[str | None, str | None, str | None, str | None]:
     """yfinance changed its news shape between versions; handle both."""
-    # New (>=0.2.40-ish): item = {"id": ..., "content": {"title": ..., "canonicalUrl": {"url": ...}, "pubDate": ...}}
     content = item.get("content") if isinstance(item, dict) else None
     if isinstance(content, dict):
         title = content.get("title")
@@ -317,8 +315,9 @@ def _news_fields(item: dict) -> tuple[str | None, str | None, str | None]:
         pub = content.get("pubDate")
         if pub and isinstance(pub, str):
             pub = pub.split("T")[0]
-        return title, link, pub
-    # Older flat shape
+        provider = content.get("provider") or {}
+        publisher = provider.get("displayName") if isinstance(provider, dict) else None
+        return title, link, pub, publisher
     if isinstance(item, dict):
-        return item.get("title"), item.get("link"), None
-    return None, None, None
+        return item.get("title"), item.get("link"), None, item.get("publisher")
+    return None, None, None, None

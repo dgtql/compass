@@ -1,21 +1,15 @@
 """SEC EDGAR ingestion source, built on `edgartools`.
 
-Replaced the original ``sec-edgar-downloader`` + hand-rolled BeautifulSoup
-pipeline (Slice 2 + 3.5) with ``edgartools`` (Slice 2.5). The library
-fetches filings, parses HTML and XBRL, and emits clean Markdown directly
-— no separate cleanup step, no XBRL hidden preamble, and structured
-section accessors (``business``, ``risk_factors``, ``management_discussion``,
-``financials``) for later slices that need section-aware retrieval.
+Slice 18: write filings under an explicit engagement root rather than the
+legacy ``data/tickers/<TICKER>/`` workspace. The SQLite evidence ledger is
+gone — the markdown file on disk is the evidence; citations are relative
+paths into the engagement tree.
 
-Output layout in the workspace:
+Output layout (relative to ``engagement_root``)::
 
-    data/tickers/<TICKER>_<EXCH>/
-      corpus/
-        filings/
-          <FORM>/
-            <ACCESSION>/
-              primary.md        # `Filing.markdown()` — agent reads this
-              metadata.json     # filing_date, accession, period, source URL
+    corpus/filings/<FORM>/<ACCESSION>/
+        primary.md      # `Filing.markdown()` — agent reads this
+        metadata.json   # filing_date, accession, period, source URL
 """
 
 from __future__ import annotations
@@ -23,12 +17,11 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from edgar import Company, set_identity
 
-from compass.db import chunk_markdown_file, insert_evidence_for_document
 from compass.ingest.base import Document, Source
-from compass.workspace import ensure_workspace
 
 
 class EdgarConfigError(RuntimeError):
@@ -49,7 +42,6 @@ def _ensure_identity(user_name: str | None, user_email: str | None) -> None:
             "COMPASS_SEC_USER_EMAIL in your environment or .env file. "
             "See https://www.sec.gov/os/accessing-edgar-data"
         )
-    # SEC convention: "Name email@host" in one string.
     set_identity(f"{name} {email}")
     _IDENTITY_INITIALIZED = True
 
@@ -79,13 +71,13 @@ class EdgarSource(Source):
         self,
         ticker: str,
         *,
+        engagement_root: Path,
         form_type: str = "10-K",
         limit: int = 1,
     ) -> list[Document]:
-        """Download the most recent ``limit`` filings of ``form_type`` for ``ticker``."""
+        """Download the most recent ``limit`` filings of ``form_type`` into ``engagement_root``."""
         ticker_upper = ticker.upper()
-        workspace = ensure_workspace(ticker)
-        form_dir = workspace / "corpus" / "filings" / form_type
+        form_dir = engagement_root / "corpus" / "filings" / form_type
         form_dir.mkdir(parents=True, exist_ok=True)
 
         filings_objs = self._select_filings(ticker_upper, form_type, limit)
@@ -134,22 +126,6 @@ class EdgarSource(Source):
                     source_url=filing.filing_url,
                 )
             )
-
-            # Slice 4: chunk the new doc and write rows into the evidence
-            # ledger. UNIQUE(doc_id, char_span_start, char_span_end) makes
-            # this idempotent — re-fetching the same accession is a no-op
-            # on the table.
-            chunks = chunk_markdown_file(primary_md)
-            insert_evidence_for_document(
-                doc_id=accession,
-                ticker=ticker_upper,
-                source=self.name,
-                source_url=filing.filing_url,
-                form_type=form_type,
-                retrieved_at=retrieved_at,
-                local_path=primary_md,
-                chunks=chunks,
-            )
         return documents
 
     @staticmethod
@@ -160,7 +136,5 @@ class EdgarSource(Source):
         if latest_attr is not None and limit == 1:
             latest = getattr(company, latest_attr)
             return [latest] if latest is not None else []
-        # Generic path. ``head(limit)`` returns the first ``limit`` results
-        # (edgartools sorts most-recent-first).
         filings = company.get_filings(form=form_type)
         return list(filings.head(limit))

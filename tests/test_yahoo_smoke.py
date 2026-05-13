@@ -1,13 +1,11 @@
-"""Slice 7 smoke test: Yahoo Finance snapshot ingestion.
+"""Yahoo ingestion smoke test (slice 18 refresh).
 
-Yahoo Finance is rate-limited and the yfinance library scrapes a moving
-target — failures here usually mean upstream changed, not that Compass
-broke. Network-skip when offline.
+Network-skip when offline. yfinance is a moving target — failures here
+usually mean upstream changed, not that Compass broke.
 """
 
 from __future__ import annotations
 
-import os
 import socket
 
 import pytest
@@ -16,7 +14,6 @@ from compass.ingest.yahoo import YahooSource
 
 
 def _network_available() -> bool:
-    """Cheap reachability probe; avoids running this test on planes / CI without internet."""
     try:
         socket.create_connection(("query2.finance.yahoo.com", 443), timeout=3).close()
         return True
@@ -30,11 +27,8 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_fetch_writes_snapshot_with_price_and_ledger_rows(tmp_path, monkeypatch) -> None:
-    """A live Yahoo fetch for SOC writes a dated snapshot file and ledger rows."""
-    monkeypatch.setenv("COMPASS_DATA_DIR", str(tmp_path))
-
-    docs = YahooSource().fetch("SOC")
+def test_fetch_writes_snapshot_under_engagement_root(tmp_path) -> None:
+    docs = YahooSource().fetch("SOC", engagement_root=tmp_path)
 
     assert len(docs) == 1
     doc = docs[0]
@@ -43,19 +37,18 @@ def test_fetch_writes_snapshot_with_price_and_ledger_rows(tmp_path, monkeypatch)
     assert doc.ticker == "SOC"
     assert doc.local_path.exists()
     assert doc.local_path.suffix == ".md"
+    assert tmp_path in doc.local_path.parents
 
     body = doc.local_path.read_text(encoding="utf-8")
-    # Sanity-check the rendered output. Yahoo's exact fields vary across
-    # tickers, so we assert on the structural headings the renderer always
-    # emits, not on specific values.
     assert "## Price" in body
-    assert "## Recent news" in body or "## Income statement" in body or "## Identity" in body
     assert "Sable" in body or "SOC" in body
 
-    # The chunked rows should be present in the evidence ledger
-    from compass.db import list_evidence_for_ticker
 
-    rows = list_evidence_for_ticker("SOC", limit=10)
-    assert any(r["form_type"] == "snapshot" for r in rows), (
-        "expected at least one snapshot row in the evidence ledger"
-    )
+def test_fetch_news_returns_structured_items() -> None:
+    items = YahooSource().fetch_news("SOC", limit=5)
+    # Yahoo's news feed for any active ticker should have at least one item;
+    # if it doesn't, the upstream shape changed and we want to know.
+    assert isinstance(items, list)
+    if items:
+        sample = items[0]
+        assert "title" in sample

@@ -1,8 +1,22 @@
-"""Compass CLI entry point."""
+"""Compass CLI — analyst engagements driven by skills.
+
+Slice-18 rewrite. The old ask/fetch/summarize/research/evidence command
+set is gone; the new surface is built around engagements:
+
+    compass plan <TICKER> <template> [--analyst ...]
+    compass run  <TICKER> [<template>] [--analyst ...] [--phase ...]
+    compass status <TICKER> [--analyst ...]
+    compass skills           # list discovered skills
+    compass templates        # list known planner templates
+    compass engagements      # list materialized engagements
+    compass serve            # start the FastAPI app (web UI in slice 19)
+    compass ask "<prompt>"   # back-compat smoke test (one-shot Claude call)
+"""
 
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from pathlib import Path
 
@@ -10,18 +24,15 @@ import typer
 from dotenv import load_dotenv
 
 from compass import __version__
-from compass.agent import (
-    DEFAULT_MODEL,
-    ask as agent_ask,
-    research as agent_research,
-    summarize as agent_summarize,
+from compass.dispatcher import run_engagement
+from compass.engagement import (
+    DEFAULT_ANALYST_FALLBACK,
+    Engagement,
+    list_engagements,
 )
-from compass.db import get_evidence, list_evidence_for_ticker, recent_audit
-from compass.ingest.edgar import EdgarConfigError, EdgarSource
-from compass.ingest.yahoo import YahooSource
+from compass.planner import list_templates, plan as plan_template
+from compass.skills import list_skills
 
-# Pick up ANTHROPIC_API_KEY (and friends) from a local .env if present.
-# Has no effect if the variables are already set or the file doesn't exist.
 load_dotenv()
 
 
@@ -53,261 +64,243 @@ def _root(
     """Compass — your AI analyst team."""
 
 
-@app.command()
-def ask(
-    prompt: str = typer.Argument(..., help="The prompt to send to Claude."),
-    model: str = typer.Option(
-        DEFAULT_MODEL,
-        "--model",
-        "-m",
-        help="Model ID to use.",
-    ),
-) -> None:
-    """Send a single prompt to Claude and print the response.
-
-    Slice 1 smoke-test entry point. Validates package install, CLI wiring,
-    Claude Agent SDK import, auth resolution (OAuth or API key), and that
-    the async query loop completes.
-    """
-    try:
-        answer = asyncio.run(agent_ask(prompt, model=model))
-    except Exception as exc:  # noqa: BLE001 — surface everything in Slice 1
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(1)
-    typer.echo(answer)
+# ---------------------------------------------------------------------------
+# Plan / run / status
+# ---------------------------------------------------------------------------
 
 
 @app.command()
-def fetch(
-    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
-    form: str = typer.Argument(..., help="SEC form type (e.g. 10-K, 10-Q, 8-K)."),
-    limit: int = typer.Option(
-        1,
-        "--limit",
-        "-n",
-        help="Number of most-recent filings to fetch.",
-    ),
-) -> None:
-    """Fetch SEC filings for a ticker into its workspace.
-
-    Slice 2 entry point. Files land under
-    ``data/tickers/<TICKER>_<EXCH>/corpus/sec-edgar-filings/<TICKER>/<FORM>/``.
-    Requires COMPASS_SEC_USER_NAME and COMPASS_SEC_USER_EMAIL.
-    """
-    try:
-        docs = EdgarSource().fetch(ticker, form_type=form, limit=limit)
-    except EdgarConfigError as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(2)
-    except Exception as exc:  # noqa: BLE001
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(1)
-
-    if not docs:
-        typer.secho(
-            f"No {form} filings found for {ticker}.", fg=typer.colors.YELLOW
-        )
-        return
-
-    typer.echo(f"Fetched {len(docs)} {form} filing(s) for {ticker}:")
-    for doc in docs:
-        typer.echo(f"  {doc.source_id}  →  {doc.local_path}")
-
-
-@app.command()
-def summarize(
-    ticker: str = typer.Argument(..., help="Ticker for context (e.g. SOC)."),
-    path: Path = typer.Argument(
+def plan(
+    ticker: str = typer.Argument(..., help="Ticker (e.g. NVDA, SOC)."),
+    template: str = typer.Argument(
         ...,
-        help="Path to the document file to summarize (HTML or text).",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        resolve_path=True,
+        help="Template name. Use `compass templates` to list.",
     ),
-    model: str = typer.Option(
-        DEFAULT_MODEL,
-        "--model",
-        "-m",
-        help="Model ID to use.",
+    analyst: str = typer.Option(
+        None,
+        "--analyst",
+        "-a",
+        help=f"Analyst slug. Defaults to a per-ticker mapping (fallback: {DEFAULT_ANALYST_FALLBACK}).",
     ),
 ) -> None:
-    """Have the agent read a document and print a one-paragraph summary.
+    """Generate `.pipeline/tasks.json` for an engagement using a named template."""
+    engagement = Engagement.open(ticker, analyst=analyst)
+    if template not in list_templates():
+        typer.secho(
+            f"Unknown template: {template}. Known: {list_templates()}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        sys.exit(2)
+    tasks = plan_template(engagement, template)
+    engagement.save_tasks(tasks, template=template)
+    typer.echo(
+        f"Planned {len(tasks)} tasks for {engagement.ticker} "
+        f"(analyst {engagement.analyst_slug}, template {template})."
+    )
+    typer.echo(f"Wrote {engagement.tasks_path}")
 
-    Slice 3 entry point. The agent uses the Read tool to load the file;
-    every tool call streams to stderr via a PreToolUse hook and is also
-    appended to the SQLite audit log (Slice 4) at compass.db's
-    ``audit`` table.
+
+@app.command("run")
+def run_cmd(
+    ticker: str = typer.Argument(..., help="Ticker (e.g. NVDA, SOC)."),
+    template: str = typer.Argument(
+        None,
+        help="Template name. If omitted, re-runs the engagement's existing tasks.json.",
+    ),
+    analyst: str = typer.Option(
+        None, "--analyst", "-a",
+        help="Override the per-ticker default analyst slug.",
+    ),
+    phase: str = typer.Option(
+        None,
+        "--phase",
+        "-p",
+        help="Run only tasks in this phase (setup/ingest/analyze/compose/maintain).",
+    ),
+    only: str = typer.Option(
+        None,
+        "--only",
+        help="Run only this comma-separated list of task IDs.",
+    ),
+    stop_on_error: bool = typer.Option(
+        True, "--stop-on-error/--no-stop-on-error",
+        help="Stop after the first failing task (default).",
+    ),
+) -> None:
+    """Run an engagement end-to-end: plan (if given a template) then dispatch tasks.
+
+    Examples:
+
+        compass run NVDA pitch-memo
+        compass run SOC pitch-memo --analyst david-park
+        compass run NVDA --phase compose
+        compass run NVDA --only ingest-10k,ingest-snapshot
     """
-    try:
-        text = asyncio.run(agent_summarize(path, ticker=ticker, model=model))
-    except Exception as exc:  # noqa: BLE001
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(1)
-    typer.echo()
-    typer.echo(text)
+    engagement = Engagement.open(ticker, analyst=analyst)
+    if template:
+        if template not in list_templates():
+            typer.secho(
+                f"Unknown template: {template}. Known: {list_templates()}",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            sys.exit(2)
+        tasks = plan_template(engagement, template)
+        engagement.save_tasks(tasks, template=template)
+        typer.echo(
+            f"Planned {len(tasks)} tasks ({template}) for {engagement.ticker} "
+            f"under analyst {engagement.analyst_slug}.",
+        )
+    if not engagement.tasks_path.exists():
+        typer.secho(
+            "No tasks.json yet. Pass a template name, or `compass plan` first.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        sys.exit(2)
+
+    only_ids = [s.strip() for s in only.split(",")] if only else None
+
+    summary = asyncio.run(
+        run_engagement(
+            engagement,
+            only_phase=phase,
+            only_task_ids=only_ids,
+            stop_on_error=stop_on_error,
+        )
+    )
+    typer.echo("")
+    typer.echo(
+        f"Ran {summary['ran']} task(s); skipped {summary['skipped']}; "
+        f"errors {summary['errors']}."
+    )
+    typer.echo(f"Engagement: {engagement.root}")
+
+
+@app.command()
+def status(
+    ticker: str = typer.Argument(..., help="Ticker."),
+    analyst: str = typer.Option(None, "--analyst", "-a"),
+) -> None:
+    """Show the engagement's brief snapshot + task statuses."""
+    engagement = Engagement.open(ticker, analyst=analyst)
+    brief = engagement.load_brief()
+    tasks = engagement.load_tasks()
+
+    typer.echo(f"engagement: {engagement.root}")
+    typer.echo(f"analyst:    {engagement.analyst_slug}")
+    typer.echo(f"ticker:     {engagement.ticker}")
+    typer.echo("")
+    if brief:
+        typer.echo(f"thesis: {brief.get('thesis_one_liner') or brief.get('thesisOneLiner') or '(none)'}")
+    else:
+        typer.echo("brief:  (not yet built)")
+    typer.echo("")
+    if not tasks:
+        typer.echo("tasks.json: (not yet planned)")
+        return
+    by_stage: dict[str, list] = {}
+    for t in tasks:
+        by_stage.setdefault(t.stage, []).append(t)
+    for stage in ("setup", "ingest", "analyze", "compose", "maintain"):
+        items = by_stage.get(stage, [])
+        if not items:
+            continue
+        typer.echo(f"[{stage.upper()}]")
+        for t in items:
+            marker = {
+                "pending": " ",
+                "in-progress": ">",
+                "done": "x",
+                "error": "!",
+            }.get(t.status, "?")
+            typer.echo(f"  [{marker}] {t.id:<26} {t.skill:<24} {t.title}")
+        typer.echo("")
+
+
+# ---------------------------------------------------------------------------
+# Listings
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def skills() -> None:
+    """List every skill discovered under skills/."""
+    items = list_skills()
+    if not items:
+        typer.secho("No skills found under skills/.", fg=typer.colors.YELLOW)
+        return
+    typer.echo(f"{'PHASE':<10} {'SLUG':<24} {'RUNNER':<14}  DESCRIPTION")
+    for s in items:
+        desc = s.description if len(s.description) <= 80 else s.description[:77] + "..."
+        typer.echo(f"{s.phase:<10} {s.slug:<24} {s.runner:<14}  {desc}")
+
+
+@app.command()
+def templates() -> None:
+    """List planner templates."""
+    for name in list_templates():
+        typer.echo(name)
+
+
+@app.command()
+def engagements() -> None:
+    """List engagements on disk (newest first)."""
+    items = list_engagements()
+    if not items:
+        typer.secho("No engagements yet. Try `compass run NVDA pitch-memo`.", fg=typer.colors.YELLOW)
+        return
+    typer.echo(f"{'ANALYST':<16} {'TICKER':<8} {'BRIEF':<6} {'TASKS':<6} PATH")
+    for e in items:
+        typer.echo(
+            f"{e['analyst']:<16} {e['ticker']:<8} "
+            f"{'yes' if e['has_brief'] else 'no':<6} "
+            f"{'yes' if e['has_tasks'] else 'no':<6} "
+            f"{e['path']}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Serve + smoke
+# ---------------------------------------------------------------------------
 
 
 @app.command()
 def serve(
-    host: str = typer.Option("127.0.0.1", "--host", help="Interface to bind."),
-    port: int = typer.Option(8000, "--port", "-p", help="Port to listen on."),
-    reload: bool = typer.Option(
-        False, "--reload", help="Auto-reload on code changes (dev only)."
-    ),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port", "-p"),
+    reload: bool = typer.Option(False, "--reload"),
 ) -> None:
-    """Start the Compass web UI on http://<host>:<port>.
-
-    Slice 8 entry point. Serves the FastAPI app + the static SPA from
-    ``compass/static/``. The UI is a memo viewer with clickable
-    ``[ev#N]`` citations that show the source chunk in a side panel.
-    """
+    """Start the Compass FastAPI app (the React UI talks to this in slice 19)."""
     import uvicorn
 
-    typer.echo(f"Compass UI starting at http://{host}:{port}")
+    typer.echo(f"Compass API starting at http://{host}:{port}")
     uvicorn.run("compass.api:app", host=host, port=port, reload=reload)
 
 
 @app.command()
-def snapshot(
-    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
+def ask(
+    prompt: str = typer.Argument(..., help="Prompt to send to Claude."),
+    model: str = typer.Option("claude-sonnet-4-6", "--model", "-m"),
 ) -> None:
-    """Pull a Yahoo Finance market snapshot for a ticker into its workspace.
+    """Send a single prompt to Claude — back-compat smoke test for SDK + auth."""
+    from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
 
-    Slice 7 entry point. Writes
-    ``data/tickers/<TICKER>_<EXCH>/corpus/snapshots/yahoo/<YYYY-MM-DD>.md``
-    with price, analyst consensus, recent financials, and top news
-    headlines, and chunks the snapshot into the evidence ledger so memo
-    skills can cite Yahoo data alongside EDGAR filings.
-    """
+    async def _one_shot() -> str:
+        text_parts: list[str] = []
+        async for message in query(prompt=prompt, options=ClaudeAgentOptions(model=model)):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        text_parts.append(block.text)
+        return "".join(text_parts).strip()
+
     try:
-        docs = YahooSource().fetch(ticker)
+        typer.echo(asyncio.run(_one_shot()))
     except Exception as exc:  # noqa: BLE001
         typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
         sys.exit(1)
-
-    if not docs:
-        typer.secho(
-            f"No Yahoo data returned for {ticker.upper()}.",
-            fg=typer.colors.YELLOW,
-        )
-        return
-
-    typer.echo(f"Yahoo snapshot for {ticker.upper()}:")
-    for doc in docs:
-        typer.echo(f"  {doc.source_id}  →  {doc.local_path}")
-
-
-@app.command()
-def research(
-    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
-    type: str = typer.Option(
-        "pitch",
-        "--type",
-        "-t",
-        help="Memo type. Resolves to skills/<type>-memo/SKILL.md.",
-    ),
-    model: str = typer.Option(
-        DEFAULT_MODEL,
-        "--model",
-        "-m",
-        help="Model ID to use.",
-    ),
-) -> None:
-    """Produce an analyst memo for a ticker using a Compass skill.
-
-    Slice 6 entry point. Reads every fetched filing under the ticker's
-    workspace, follows the corresponding `skills/<type>-memo/SKILL.md`,
-    and writes the memo to `data/tickers/<TICKER>/memos/<type>/<date>.md`.
-    Every specific claim cites an `evidence.id` from the ledger.
-
-    Run `compass fetch <TICKER> 10-K` first to populate the corpus.
-    """
-    try:
-        memo_path = asyncio.run(
-            agent_research(ticker, memo_type=type, model=model)
-        )
-    except FileNotFoundError as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(2)
-    except Exception as exc:  # noqa: BLE001
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        sys.exit(1)
-    typer.echo()
-    typer.echo(f"Memo written: {memo_path}")
-
-
-# --- Slice 4: evidence ledger inspection -----------------------------------
-
-evidence_app = typer.Typer(
-    name="evidence",
-    help="Inspect the SQLite evidence ledger and audit log.",
-    no_args_is_help=True,
-)
-app.add_typer(evidence_app, name="evidence")
-
-
-@evidence_app.command("list")
-def evidence_list(
-    ticker: str = typer.Argument(..., help="Ticker symbol (e.g. SOC)."),
-    limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
-) -> None:
-    """List recent evidence chunks for a ticker."""
-    rows = list_evidence_for_ticker(ticker, limit=limit)
-    if not rows:
-        typer.secho(f"No evidence rows for {ticker.upper()}.", fg=typer.colors.YELLOW)
-        return
-    typer.echo(f"{'ID':>5}  {'FORM':<6}  {'LINES':<12}  {'HASH':<14}  DOC")
-    for r in rows:
-        line_range = f"{r['line_start']}-{r['line_end']}"
-        typer.echo(
-            f"{r['id']:>5}  {r['form_type'] or '?':<6}  {line_range:<12}  "
-            f"{r['text_hash'][:12]}…  {r['doc_id']}"
-        )
-
-
-@evidence_app.command("show")
-def evidence_show(
-    row_id: int = typer.Argument(..., help="Evidence row id (from `evidence list`)."),
-) -> None:
-    """Print the content of a single evidence chunk."""
-    row = get_evidence(row_id)
-    if row is None:
-        typer.secho(f"No evidence row with id {row_id}.", fg=typer.colors.RED, err=True)
-        sys.exit(1)
-    typer.echo(
-        f"# evidence#{row['id']}  {row['ticker']}  {row['form_type']}  "
-        f"{row['doc_id']}  lines {row['line_start']}-{row['line_end']}"
-    )
-    typer.echo(f"# source_url: {row['source_url']}")
-    typer.echo(f"# retrieved_at: {row['retrieved_at']}")
-    typer.echo("")
-    typer.echo(row["content"])
-
-
-@evidence_app.command("audit")
-def evidence_audit(
-    limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
-) -> None:
-    """Show the most recent tool-call audit rows."""
-    rows = recent_audit(limit=limit)
-    if not rows:
-        typer.secho("No audit rows yet.", fg=typer.colors.YELLOW)
-        return
-    typer.echo(f"{'ID':>5}  {'TS':<32}  {'TOOL':<8}  OFFSET  FILE")
-    for r in rows:
-        offset_part = (
-            f"{r['offset_start']}-{r['offset_end']}"
-            if r["offset_start"] is not None
-            else "—"
-        )
-        file_part = r["file_path"] or ""
-        if len(file_part) > 60:
-            file_part = "…" + file_part[-58:]
-        typer.echo(
-            f"{r['id']:>5}  {r['ts']:<32}  {r['tool_name']:<8}  "
-            f"{offset_part:<8}  {file_part}"
-        )
 
 
 if __name__ == "__main__":
