@@ -525,13 +525,8 @@ def delete_chat_session(owner_key: str, session_id: str) -> dict:
 
 @app.post("/api/chats/{owner_key}/sessions/{session_id}/messages")
 async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageReq) -> dict:
-    """Append a PM message; call Claude for the analyst/master reply.
-
-    Async because ``generate_reply`` uses ``claude-agent-sdk`` which is
-    async-native.
-    """
-    from compass.llm import generate_reply  # local import — keeps the SDK
-    # import out of the FastAPI startup path.
+    """Append a PM message; call Claude (OAuth-only) for the reply."""
+    from compass.llm import generate_reply, OAuthUnavailable
 
     try:
         session = chats_append_message(owner_key, session_id, role=req.role, text=req.text)
@@ -542,16 +537,12 @@ async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageR
                     model=req.model,
                     thinking=req.thinking,
                 )
+            except OAuthUnavailable as exc:
+                reply = f"(Claude Code login needed — {exc})"
             except Exception as exc:  # noqa: BLE001
-                # Surface the failure as an assistant message so the user
-                # sees what went wrong instead of a silent timeout.
-                reply = (
-                    f"(couldn't reach the LLM — {type(exc).__name__}: {exc}.\n\n"
-                    "Two ways to fix:\n"
-                    "  1. Add ANTHROPIC_API_KEY to your .env (preferred — direct API path).\n"
-                    "  2. Make sure the `claude` CLI is on your PATH and you've run `claude` "
-                    "once to log in (fallback OAuth path).)"
-                )
+                # Surface other failures (rate limits, network) verbatim so
+                # the user sees the real cause inline.
+                reply = f"(couldn't reach the LLM — {type(exc).__name__}: {exc})"
             if reply:
                 session = chats_append_message(owner_key, session_id, role="master", text=reply)
     except ValueError as exc:
