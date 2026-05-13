@@ -69,14 +69,27 @@ ACTIVE_REGIONS: tuple[str, ...] = ("US",)
 # bucket; the numeric market-cap field is omitted from API responses so
 # it doesn't confuse anyone into thinking it's live.
 
+# Equity cap buckets — what the UI's "Cap" pill row offers.
 CAP_BUCKETS: tuple[str, ...] = ("blue-chip", "large", "mid", "small", "micro")
 
+# Non-equity buckets — labels for tickers that exist in SEC's ticker file
+# but don't map to a market cap: ETFs, preferred shares, SPAC warrants/
+# units, closed-end funds, other oddities. They stay in the universe so
+# searches still find SPY / QQQ / etc., but the cap filter ignores them.
+NON_EQUITY_BUCKETS: tuple[str, ...] = ("etf", "preferred", "derivative", "other")
+
 CAP_BUCKET_LABELS: dict[str, str] = {
-    "blue-chip": "Blue chip",
-    "large":     "Large cap",
-    "mid":       "Mid cap",
-    "small":     "Small cap",
-    "micro":     "Micro cap",
+    # Equity
+    "blue-chip":  "Blue chip",
+    "large":      "Large cap",
+    "mid":        "Mid cap",
+    "small":      "Small cap",
+    "micro":      "Micro cap",
+    # Non-equity
+    "etf":        "ETF / Fund",
+    "preferred":  "Preferred",
+    "derivative": "Warrant / Unit",
+    "other":      "Other",
 }
 
 
@@ -104,6 +117,36 @@ def classify_cap(market_cap_usd: float | None) -> str | None:
     if v >= 2e9:   return "mid"
     if v >= 300e6: return "small"
     return "micro"
+
+
+def classify_non_equity(ticker: str, name: str) -> str:
+    """Classify a ticker yfinance couldn't price — by symbol + name pattern.
+
+    Heuristics, in priority order:
+
+    * Ticker has ``-P`` (with optional letter suffix like ``-PA``, ``-PR``,
+      ``-PH``) → ``preferred``.
+    * Ticker ends with ``W`` (length ≥ 5) or ``U`` (length ≥ 4) →
+      ``derivative`` (SPAC warrants and units respectively).
+    * Name contains ``ETF`` / ``FUND`` / ``TRUST`` / ``INDEX`` → ``etf``.
+    * Anything else → ``other``.
+
+    Always returns a non-equity bucket — used as a fallback once
+    yfinance has confirmed the row has no real market cap.
+    """
+    t = ticker.upper()
+    n = (name or "").upper()
+    if "-P" in t:
+        return "preferred"
+    if len(t) >= 5 and t.endswith("W"):
+        return "derivative"
+    if len(t) >= 4 and t.endswith("U"):
+        return "derivative"
+    if any(token in n for token in (" ETF ", "ETF TRUST", " FUND", " TRUST", "INDEX TRUST")):
+        return "etf"
+    if n.endswith("ETF") or n.endswith("FUND") or n.endswith("TRUST"):
+        return "etf"
+    return "other"
 
 # GICS top-level sectors — hardcoded because the list is small, stable, and
 # the canonical source (MSCI) is paid. yfinance returns these names verbatim,
@@ -331,6 +374,10 @@ def enrich_with_yfinance(
         bucket = classify_cap(mcap)
         if bucket:
             t.cap_bucket = bucket
+        else:
+            # yfinance had nothing useful — fall back to a pattern-based
+            # non-equity bucket so we don't keep retrying this ticker.
+            t.cap_bucket = classify_non_equity(t.ticker, t.name)
         if on_progress is not None:
             try:
                 on_progress(i + 1, len(target), t)

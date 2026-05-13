@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   addToMyUniverse,
+  getCapBucketLabels,
   getCapBuckets,
   getExchanges,
   getMyUniverse,
@@ -46,6 +47,9 @@ export function UniverseView() {
   const [regions, setRegions] = useState<ApiRegion[]>([]);
   const [exchanges, setExchanges] = useState<string[]>([]);
   const [capBuckets, setCapBuckets] = useState<ApiCapBucket[]>([]);
+  // Full label map covering non-equity buckets too (etf, preferred, …).
+  // Used to render the Cap column for rows that aren't in the filter pills.
+  const [capLabels, setCapLabels] = useState<Record<string, string>>({});
 
   const [region, setRegion] = useState<string>('US');
   const [exchange, setExchange] = useState<string>(ALL);
@@ -66,12 +70,14 @@ export function UniverseView() {
       getRegions().catch(() => [{ id: 'US', label: 'United States', active: true }] as ApiRegion[]),
       getExchanges().catch(() => []),
       getCapBuckets().catch(() => []),
+      getCapBucketLabels().catch(() => ({}) as Record<string, string>),
       getMyUniverse().catch(() => ({ tickers: [] as { ticker: string }[] })),
-    ]).then(([r, e, c, wl]) => {
+    ]).then(([r, e, c, labels, wl]) => {
       if (cancelled) return;
       setRegions(r);
       setExchanges(e);
       setCapBuckets(c);
+      setCapLabels(labels);
       setWatchlistSet(new Set(wl.tickers.map((t) => t.ticker)));
     });
     return () => { cancelled = true; };
@@ -265,7 +271,7 @@ export function UniverseView() {
                           </td>
                           <td className="py-2 pr-3 text-muted-foreground text-xs">{t.sector ?? '—'}</td>
                           <td className="py-2 pr-3 text-muted-foreground text-xs">{t.industry ?? '—'}</td>
-                          <td className="py-2 pr-3 text-xs">{capLabel(t.cap_bucket, capBuckets)}</td>
+                          <td className="py-2 pr-3 text-xs">{capLabel(t.cap_bucket, capLabels, capBuckets)}</td>
                           <td className="py-2 pr-3 text-right">
                             <AddButton inWatchlist={inWatchlist} ticker={t.ticker} onAdd={handleAdd} />
                           </td>
@@ -320,9 +326,15 @@ export function UniverseView() {
   );
 }
 
-function capLabel(value: string | null, buckets: ApiCapBucket[]): string {
+function capLabel(
+  value: string | null,
+  labels: Record<string, string>,
+  buckets: ApiCapBucket[],
+): string {
   if (!value) return '—';
-  return buckets.find((b) => b.id === value)?.label ?? value;
+  // Prefer the full label map (covers non-equity); fall back to the filter
+  // list, then to the raw id.
+  return labels[value] ?? buckets.find((b) => b.id === value)?.label ?? value;
 }
 
 function PillButton({

@@ -41,6 +41,7 @@ from compass.universe import (
     CAP_BUCKETS,
     CAP_BUCKET_LABELS,
     GICS_SECTORS,
+    NON_EQUITY_BUCKETS,
     REGIONS,
     filter_tickers,
     load_universe,
@@ -255,8 +256,21 @@ def get_exchanges() -> list[str]:
 
 @app.get("/api/universe/cap-buckets")
 def get_cap_buckets() -> list[dict]:
-    """Categorical market-cap buckets, with display labels."""
+    """Equity cap buckets — what the UI's Cap filter pill row offers.
+
+    Non-equity tickers (ETFs, preferred shares, warrants, units, other)
+    still carry a `cap_bucket` and stay searchable in the table, but
+    they're not part of this filter list. Their labels come from
+    ``/api/universe/cap-bucket-labels``.
+    """
     return [{"id": b, "label": CAP_BUCKET_LABELS[b]} for b in CAP_BUCKETS]
+
+
+@app.get("/api/universe/cap-bucket-labels")
+def get_cap_bucket_labels() -> dict[str, str]:
+    """Full bucket-id → label map (equity + non-equity), for rendering the
+    Cap column of the ticker table."""
+    return dict(CAP_BUCKET_LABELS)
 
 
 # --- my universe (PM's personal watchlist) ---------------------------------

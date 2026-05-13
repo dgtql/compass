@@ -10,13 +10,16 @@ from compass.universe import (
     ACTIVE_REGIONS,
     ALLOWED_EXCHANGES,
     CAP_BUCKETS,
+    CAP_BUCKET_LABELS,
     GICS_SECTORS,
+    NON_EQUITY_BUCKETS,
     REGIONS,
     Ticker,
     Universe,
     _parse_sec_payload,
     _score_query,
     classify_cap,
+    classify_non_equity,
     filter_tickers,
     load_universe,
     save_universe,
@@ -201,6 +204,48 @@ def test_classify_cap_buckets(cap, expected) -> None:
 
 def test_cap_buckets_constant_complete() -> None:
     assert CAP_BUCKETS == ("blue-chip", "large", "mid", "small", "micro")
+
+
+def test_non_equity_buckets_constant_complete() -> None:
+    assert NON_EQUITY_BUCKETS == ("etf", "preferred", "derivative", "other")
+
+
+def test_every_bucket_has_a_label() -> None:
+    for b in CAP_BUCKETS + NON_EQUITY_BUCKETS:
+        assert b in CAP_BUCKET_LABELS, f"missing label for {b!r}"
+
+
+# --- non-equity classifier --------------------------------------------------
+
+
+@pytest.mark.parametrize("ticker,name,expected", [
+    # Preferred shares — '-P' anywhere wins, including '-PA', '-PR', '-PH'.
+    ("CMS-PB",   "CONSUMERS ENERGY CO",                 "preferred"),
+    ("GAB-PH",   "GABELLI EQUITY TRUST",                "preferred"),
+    ("C-PR",     "CITIGROUP INC",                        "preferred"),
+    # Warrants (5+ chars ending W) — SPAC convention.
+    ("ABCDW",    "Acme Corp Warrants",                   "derivative"),
+    ("XYZAW",    "Some SPAC Warrants",                   "derivative"),
+    # SPAC units.
+    ("ABCDU",    "Acme Corp Units",                      "derivative"),
+    # ETFs / funds via name.
+    ("SPY",      "SPDR S&P 500 ETF TRUST",               "etf"),
+    ("QQQ",      "INVESCO QQQ TRUST, SERIES 1",          "etf"),
+    ("VOO",      "Vanguard S&P 500 ETF",                 "etf"),
+    ("VTSAX",    "Vanguard Total Stock Market Index Fund","etf"),
+    # Closed-end fund — Trust in name.
+    ("BTO",      "JOHN HANCOCK FINANCIAL OPPORTUNITIES FUND", "etf"),
+    # Everything else lands in 'other'.
+    ("EAI",      "ENTERGY ARKANSAS, LLC",                "other"),
+    ("AKO.B",    "ANDINA BOTTLING CO INC",               "other"),
+])
+def test_classify_non_equity(ticker, name, expected) -> None:
+    assert classify_non_equity(ticker, name) == expected
+
+
+def test_classify_non_equity_returns_other_for_blanks() -> None:
+    assert classify_non_equity("AAPL", "") == "other"
+    assert classify_non_equity("X", "Random Inc") == "other"
 
 
 # --- search ranking ----------------------------------------------------------

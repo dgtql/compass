@@ -78,6 +78,13 @@ export function getCapBuckets(): Promise<ApiCapBucket[]> {
   return getJson<ApiCapBucket[]>('/api/universe/cap-buckets');
 }
 
+/** Full bucket-id → label map (equity + non-equity). Used to render the
+ *  Cap column of the universe table for tickers in non-equity buckets
+ *  (ETFs, preferred, warrants/units, other). */
+export function getCapBucketLabels(): Promise<Record<string, string>> {
+  return getJson<Record<string, string>>('/api/universe/cap-bucket-labels');
+}
+
 // --- My universe (PM's personal watchlist) --------------------------------
 
 export type ApiWatchlistEntry = {
