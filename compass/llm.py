@@ -278,6 +278,192 @@ def _generate_reply_sync(
         raise
 
 
+async def suggest_memo_ticker(
+    *,
+    message: str,
+    candidates: list[dict],
+) -> str | None:
+    """Pick the ticker the PM most likely means for a memo task.
+
+    ``candidates`` is a list of ``{"ticker": ..., "name": ...}`` dicts —
+    typically the analyst's coverage (or, for the master agent, the PM's
+    watchlist). We give the model only this constrained set so it can't
+    invent tickers; returns ``None`` if nothing fits.
+    """
+    message = (message or "").strip()
+    if not message or not candidates:
+        return None
+
+    import asyncio
+
+    return await asyncio.to_thread(_suggest_ticker_sync, message, candidates)
+
+
+_TICKER_SYSTEM_PROMPT = (
+    "You map a portfolio manager's free-text research request to a single "
+    "stock ticker from a constrained list. "
+    "Reply with ONLY the ticker symbol (uppercase, no quotes, no extra words). "
+    "If none of the listed tickers fits the message, reply with the single word NONE."
+)
+
+
+def _suggest_ticker_sync(message: str, candidates: list[dict]) -> str | None:
+    import asyncio
+
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
+    roster_lines = "\n".join(
+        f"  {c.get('ticker', '').upper()} — {c.get('name') or '(no name)'}"
+        for c in candidates
+        if c.get("ticker")
+    )
+    user_prompt = (
+        f"Tickers available:\n{roster_lines}\n\n"
+        f"PM's message: {message}\n\n"
+        f"Pick one ticker from the list, or NONE."
+    )
+
+    options_kwargs: dict = {
+        "model": "claude-haiku-4-5",
+        "system_prompt": _TICKER_SYSTEM_PROMPT,
+        "max_turns": 1,
+        "setting_sources": None,
+        "skills": None,
+        "agents": None,
+        "cwd": str(Path.home()),
+    }
+    cli_path = _resolve_claude_cli()
+    if cli_path:
+        options_kwargs["cli_path"] = cli_path
+
+    options = ClaudeAgentOptions(**options_kwargs)
+    valid = {(c.get("ticker") or "").upper() for c in candidates}
+
+    async def _run() -> str:
+        parts: list[str] = []
+        async for msg in query(prompt=user_prompt, options=options):
+            if not isinstance(msg, AssistantMessage):
+                continue
+            for b in msg.content:
+                if isinstance(b, TextBlock):
+                    parts.append(b.text)
+        return "".join(parts).strip()
+
+    try:
+        raw = asyncio.run(_run())
+    except Exception:  # noqa: BLE001
+        return None
+
+    candidate = raw.strip().strip(".").strip("`").strip('"').strip("'").upper()
+    if not candidate or candidate == "NONE":
+        return None
+    # Sometimes the model emits "Ticker: NVDA" — take the first token.
+    candidate = candidate.split()[0] if candidate.split() else candidate
+    candidate = candidate.strip(",.;:")
+    if candidate in valid:
+        return candidate
+    return None
+
+
+async def suggest_task_title(
+    *,
+    chip: str | None,
+    message: str,
+) -> str:
+    """Generate a short task title from a chip label + the PM's first message.
+
+    The welcome-screen chips ("Memo", "Catalysts", …) only describe the
+    *type* of task; they don't say what it's about. This calls Haiku to
+    fold the chip + message into something like ``Memo on NVDA Q3`` so
+    the task list reads usefully a week later.
+
+    Returns the chip (or a message snippet) on any failure — titling
+    should never block the chat flow.
+    """
+    chip = (chip or "").strip()
+    message = (message or "").strip()
+    fallback = chip or message[:40]
+    if not message:
+        return fallback
+
+    import asyncio
+
+    return await asyncio.to_thread(_suggest_title_sync, chip, message, fallback)
+
+
+_TITLE_SYSTEM_PROMPT = (
+    "You write concise task titles for a portfolio manager's research dashboard. "
+    "Reply with ONLY the title — no quotes, no trailing punctuation, no preamble. "
+    "Aim for 3–7 words. Examples of good titles:\n"
+    "  Memo on NVDA Q3\n"
+    "  ASML capex history\n"
+    "  Energy morning brief\n"
+    "  Semis EU reg catalysts\n"
+    "Pick a title that names the *subject* of the work, not just the task type."
+)
+
+
+def _suggest_title_sync(chip: str, message: str, fallback: str) -> str:
+    import asyncio
+
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
+    if chip:
+        user_prompt = (
+            f"Task type: {chip}\n"
+            f"PM's first message: {message}\n\n"
+            f"Produce a concise task title (only the title)."
+        )
+    else:
+        user_prompt = (
+            f"PM's first message: {message}\n\n"
+            f"Produce a concise task title (only the title)."
+        )
+
+    options_kwargs: dict = {
+        "model": "claude-haiku-4-5",
+        "system_prompt": _TITLE_SYSTEM_PROMPT,
+        "max_turns": 1,
+        "setting_sources": None,
+        "skills": None,
+        "agents": None,
+        "cwd": str(Path.home()),
+    }
+    cli_path = _resolve_claude_cli()
+    if cli_path:
+        options_kwargs["cli_path"] = cli_path
+
+    options = ClaudeAgentOptions(**options_kwargs)
+
+    async def _run() -> str:
+        parts: list[str] = []
+        async for msg in query(prompt=user_prompt, options=options):
+            if not isinstance(msg, AssistantMessage):
+                continue
+            for b in msg.content:
+                if isinstance(b, TextBlock):
+                    parts.append(b.text)
+        return "".join(parts).strip()
+
+    try:
+        title = asyncio.run(_run())
+    except Exception:  # noqa: BLE001 — titling failure is non-fatal
+        return fallback
+
+    # Strip surrounding quotes/whitespace, take first line, cap length.
+    title = title.strip().strip('"').strip("'").strip()
+    if "\n" in title:
+        title = title.split("\n", 1)[0].strip()
+    if not title:
+        return fallback
+    words = title.split()
+    if len(words) > 10:
+        title = " ".join(words[:10])
+    if len(title) > 80:
+        title = title[:80].rstrip()
+    return title
+
+
 def _resolve_claude_cli() -> str | None:
     """Return an explicit path to the ``claude`` CLI, or None if absent.
 

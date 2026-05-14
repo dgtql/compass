@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
-  X, AlertTriangle,
+  X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -25,15 +25,23 @@ import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useEngagement } from '@/contexts/EngagementContext';
+import type { ApiEngagementTask } from '@/lib/api';
 import {
   createChatSession,
   createChatTask,
   deleteChatTask,
   getChats,
+  getMemoCandidates,
   streamChatMessage,
+  streamMemoRun,
+  suggestChatTaskTitle,
+  suggestMemoTicker,
   type ApiChatMessage,
   type ApiChatSession,
   type ApiChatTask,
+  type ApiMemoCandidate,
+  type ApiMemoPlanTask,
 } from '@/lib/api';
 
 export type RightRailTab = {
@@ -67,6 +75,31 @@ type CounterpartyAvatar = {
   color: string;
 };
 
+/** Live state of a chat-driven memo run — plan tasks, statuses, and
+ *  the final assembled memo if compose-assemble produced one. */
+type MemoRunStatus = 'pending' | 'in-progress' | 'done' | 'error' | 'blocked';
+
+type MemoRunTask = {
+  id: string;
+  stage: string;
+  title: string;
+  skill: string;
+  status: MemoRunStatus;
+  error?: string;
+  elapsed?: number;
+};
+
+type MemoRunState = {
+  ticker: string;
+  template: string;
+  analyst?: string;
+  tasks: MemoRunTask[];
+  memoText: string | null;
+  memoPath: string | null;
+  finished: boolean;
+  error?: string;
+};
+
 /** Task-type chips on the welcome screen. Click → creates a task with
  *  that label as the title, opens a session in it, focuses the composer. */
 const TASK_TYPE_CHIPS: { id: string; label: string; icon: ReactNode }[] = [
@@ -98,6 +131,7 @@ export function ChatPane({
   rightRailTabs,
   initialRailTab,
 }: Props) {
+  const { setEngagement, tasks: liveEngagementTasks, connected: engagementConnected } = useEngagement();
   const [tasks, setTasks] = useState<ApiChatTask[]>([]);
   const [sessions, setSessions] = useState<ApiChatSession[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(new Set());
@@ -115,6 +149,13 @@ export function ChatPane({
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
   /** Delete-task confirmation dialog target (null = closed). */
   const [pendingDeleteTask, setPendingDeleteTask] = useState<ApiChatTask | null>(null);
+  /** Memo-flow state — populated when the welcome panel's Memo chip is active. */
+  const [memoCandidates, setMemoCandidates] = useState<ApiMemoCandidate[]>([]);
+  const [memoTicker, setMemoTicker] = useState<string | null>(null);
+  const [memoSuggesting, setMemoSuggesting] = useState(false);
+  /** Live memo-run state. While non-null the chat scroll area renders task
+   *  progress in place of the normal message bubbles. */
+  const [memoRun, setMemoRun] = useState<MemoRunState | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch chats for this owner whenever the owner key changes. Owner key
@@ -178,7 +219,71 @@ export function ChatPane({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [active?.messages.length, activeId]);
+  }, [active?.messages.length, activeId, memoRun?.tasks.length, memoRun?.memoText]);
+
+  // Load candidate tickers for the Memo chip the first time it's selected.
+  useEffect(() => {
+    if (selectedChip !== 'Memo') return;
+    if (memoCandidates.length > 0) return;
+    let cancelled = false;
+    getMemoCandidates(ownerKey)
+      .then((data) => { if (!cancelled) setMemoCandidates(data.candidates); })
+      .catch(() => { if (!cancelled) setMemoCandidates([]); });
+    return () => { cancelled = true; };
+  }, [selectedChip, ownerKey, memoCandidates.length]);
+
+  // Reset memo-flow state when the chip is deselected or the owner changes.
+  useEffect(() => {
+    if (selectedChip !== 'Memo') {
+      setMemoTicker(null);
+    }
+  }, [selectedChip]);
+  useEffect(() => {
+    setMemoCandidates([]);
+    setMemoTicker(null);
+  }, [ownerKey]);
+
+  // When the active session belongs to a memo task with a coverage ticker,
+  // wire the EngagementContext to (ownerKey, ticker). This is what makes a
+  // mid-run page refresh resilient: the streamMemoRun SSE is gone, but the
+  // EngagementContext's SSE re-subscribes and re-fetches tasks from disk.
+  //
+  // Master-agent memos don't carry the resolved analyst slug in chat state
+  // (only the dispatcher knows which analyst the engagement filed under),
+  // so we skip those for v1 — the master-agent right rail can adopt this
+  // later when we persist the analyst on ApiChatTask.
+  useEffect(() => {
+    if (!activeTask || !activeTask.coverageTicker || ownerKey === 'master') {
+      setEngagement(null);
+      return;
+    }
+    setEngagement({ analyst: ownerKey, ticker: activeTask.coverageTicker });
+  }, [activeTask, ownerKey, setEngagement]);
+
+  // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
+  // the Memo chip is selected and no ticker has been picked manually yet.
+  useEffect(() => {
+    if (selectedChip !== 'Memo') return;
+    if (memoTicker) return;
+    const trimmed = input.trim();
+    if (trimmed.length < 4) return;
+    if (memoCandidates.length === 0) return;
+    setMemoSuggesting(true);
+    const handle = window.setTimeout(() => {
+      suggestMemoTicker(ownerKey, { message: trimmed })
+        .then((res) => {
+          if (res.ticker && memoTicker === null && selectedChip === 'Memo') {
+            setMemoTicker(res.ticker);
+          }
+        })
+        .catch(() => { /* non-fatal */ })
+        .finally(() => setMemoSuggesting(false));
+    }, 600);
+    return () => {
+      window.clearTimeout(handle);
+      setMemoSuggesting(false);
+    };
+  }, [input, selectedChip, memoTicker, memoCandidates.length, ownerKey]);
 
   const hasRail = Boolean(rightRail) || resolvedRailTabs.length > 0;
 
@@ -231,15 +336,136 @@ export function ChatPane({
     });
   }
 
+  async function sendMemo(message: string, ticker: string) {
+    // Create the task + session up front so the memo run has a session
+    // to persist its summary into, and so the task shows up in the rail
+    // immediately. The title is deterministic — no LLM title-suggest call.
+    let sessionId: string;
+    let newTaskId: string;
+    try {
+      const newT = await createChatTask(ownerKey, {
+        title: `Memo on ${ticker}`,
+        coverage_ticker: ticker,
+      });
+      const newS = await createChatSession(ownerKey, { task_id: newT.id });
+      setTasks((prev) => [newT, ...prev]);
+      setSessions((prev) => [newS, ...prev]);
+      setExpandedTaskIds((prev) => new Set([...prev, newT.id]));
+      setActiveId(newS.id);
+      setSelectedChip(null);
+      setMemoTicker(null);
+      sessionId = newS.id;
+      newTaskId = newT.id;
+    } catch {
+      refresh();
+      return;
+    }
+    setInput('');
+    setSending(true);
+
+    // Optimistic PM bubble so the framing message is visible immediately.
+    const optimisticPmMsg: ApiChatMessage = {
+      id: `pending-${Date.now()}`,
+      role: 'pm',
+      text: message,
+      ts: new Date().toISOString(),
+    };
+    setSessions((prev) =>
+      prev.map((s) => (s.id !== sessionId ? s : { ...s, messages: [...s.messages, optimisticPmMsg] })),
+    );
+
+    setMemoRun({
+      ticker,
+      template: 'pitch-memo',
+      tasks: [],
+      memoText: null,
+      memoPath: null,
+      finished: false,
+    });
+
+    streamMemoRun(
+      ownerKey, sessionId,
+      { ticker, template: 'pitch-memo', message },
+      {
+        onEngagementOpened: ({ analyst }) => {
+          setMemoRun((prev) => (prev ? { ...prev, analyst } : prev));
+          // Tell the EngagementContext which engagement is active — it
+          // opens the SSE subscription so the task list stays live even
+          // if the user refreshes mid-run (refresh closes streamMemoRun's
+          // SSE but the context's SSE picks up immediately on remount).
+          setEngagement({ analyst, ticker });
+        },
+        onPlanDone: ({ tasks: plan }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: plan.map((t: ApiMemoPlanTask) => ({
+              id: t.id,
+              stage: t.stage,
+              title: t.title,
+              skill: t.skill,
+              status: 'pending' as MemoRunStatus,
+            })),
+          } : prev)),
+        onTaskStart: ({ task_id }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'in-progress' } : t)),
+          } : prev)),
+        onTaskDone: ({ task_id, elapsed }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'done', elapsed } : t)),
+          } : prev)),
+        onTaskError: ({ task_id, error }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'error', error } : t)),
+          } : prev)),
+        onTaskBlocked: ({ task_id }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'blocked' } : t)),
+          } : prev)),
+        onMemoReady: ({ memo_path, memo_text }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            memoPath: memo_path,
+            memoText: memo_text,
+          } : prev)),
+        onDone: ({ session }) => {
+          if (session) {
+            setSessions((prev) => prev.map((s) => (s.id === session.id ? session : s)));
+          }
+          setMemoRun((prev) => (prev ? { ...prev, finished: true } : prev));
+          setSending(false);
+        },
+        onError: (err) => {
+          setMemoRun((prev) => (prev ? { ...prev, finished: true, error: err.message } : prev));
+          setSending(false);
+        },
+      },
+    );
+
+    // Discard the unused id (kept for future per-task right-rail wiring).
+    void newTaskId;
+  }
+
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed) return;
+    // Memo-flow branch: chip is Memo and a ticker is picked → route to the
+    // skill-based engagement runner instead of the chat LLM.
+    if (!active && selectedChip === 'Memo' && memoTicker) {
+      await sendMemo(trimmed, memoTicker);
+      return;
+    }
     let sessionId = active?.id;
     // If no session is selected yet, create a task + session. The task
-    // title prefers a selected chip ("Memo", "Morning brief", …) and
-    // falls back to a snippet of the user's first message.
+    // title starts as a chip-or-snippet placeholder and is replaced once
+    // the LLM-suggested title comes back from the backend.
     if (!sessionId) {
       const taskTitle = selectedChip ?? trimmed.slice(0, 40);
+      const chipForTitle = selectedChip;
       try {
         const newT = await createChatTask(ownerKey, { title: taskTitle });
         const newS = await createChatSession(ownerKey, { task_id: newT.id });
@@ -249,6 +475,20 @@ export function ChatPane({
         setActiveId(newS.id);
         setSelectedChip(null);
         sessionId = newS.id;
+
+        // Fire-and-forget: ask the backend to infer a better title from
+        // (chip, first message). Replace the placeholder once it lands;
+        // ignore failures — placeholder stays put.
+        suggestChatTaskTitle(ownerKey, newT.id, {
+          chip: chipForTitle,
+          message: trimmed,
+        })
+          .then((updated) => {
+            setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+          })
+          .catch(() => {
+            /* non-fatal — keep the placeholder */
+          });
       } catch {
         refresh();
         return;
@@ -452,8 +692,12 @@ export function ChatPane({
               counterpartyName={counterpartyName}
               selectedChip={selectedChip}
               onChip={toggleChip}
+              memoCandidates={memoCandidates}
+              memoTicker={memoTicker}
+              memoSuggesting={memoSuggesting}
+              onMemoTicker={setMemoTicker}
             />
-          ) : active.messages.length === 0 && streamingText === null ? (
+          ) : active.messages.length === 0 && streamingText === null && memoRun === null ? (
             <div className="mt-12 text-center text-sm text-muted-foreground italic">
               Type to start. Shift+Enter for newline.
             </div>
@@ -462,6 +706,15 @@ export function ChatPane({
               {active.messages.map((m) => (
                 <Bubble key={m.id} msg={m} counterparty={counterparty} />
               ))}
+              {(memoRun !== null || (activeTask?.coverageTicker && liveEngagementTasks.length > 0)) && (
+                <MemoRunPanel
+                  run={memoRun}
+                  counterparty={counterparty}
+                  liveTasks={liveEngagementTasks}
+                  engagementConnected={engagementConnected}
+                  fallbackTicker={activeTask?.coverageTicker ?? null}
+                />
+              )}
               {streamingText !== null && (
                 <StreamingBubble
                   counterparty={counterparty}
@@ -532,9 +785,22 @@ export function ChatPane({
                   </span>
                 )}
               </div>
-              <Button onClick={() => send(input)} disabled={!input.trim() || sending} size="sm">
-                <Send className="w-3.5 h-3.5" />
-                Send
+              <Button
+                onClick={() => send(input)}
+                disabled={!input.trim() || sending || (selectedChip === 'Memo' && !memoTicker && !active)}
+                size="sm"
+              >
+                {!active && selectedChip === 'Memo' && memoTicker ? (
+                  <>
+                    <FileText className="w-3.5 h-3.5" />
+                    Run memo · {memoTicker}
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    Send
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -625,11 +891,19 @@ function WelcomePanel({
   counterpartyName,
   selectedChip,
   onChip,
+  memoCandidates,
+  memoTicker,
+  memoSuggesting,
+  onMemoTicker,
 }: {
   counterparty: CounterpartyAvatar;
   counterpartyName?: string;
   selectedChip: string | null;
   onChip: (label: string) => void;
+  memoCandidates: ApiMemoCandidate[];
+  memoTicker: string | null;
+  memoSuggesting: boolean;
+  onMemoTicker: (ticker: string | null) => void;
 }) {
   const greeting = counterpartyName
     ? `Hey boss — what would you like ${counterpartyName} to work on?`
@@ -665,7 +939,231 @@ function WelcomePanel({
           );
         })}
       </div>
+      {selectedChip === 'Memo' && (
+        <MemoTickerPicker
+          candidates={memoCandidates}
+          selected={memoTicker}
+          suggesting={memoSuggesting}
+          onSelect={onMemoTicker}
+        />
+      )}
     </div>
+  );
+}
+
+function MemoTickerPicker({
+  candidates,
+  selected,
+  suggesting,
+  onSelect,
+}: {
+  candidates: ApiMemoCandidate[];
+  selected: string | null;
+  suggesting: boolean;
+  onSelect: (ticker: string | null) => void;
+}) {
+  if (candidates.length === 0) {
+    return (
+      <div className="mt-2 text-xs text-muted-foreground italic">
+        No coverage tickers found. Add tickers to this analyst's coverage (or your watchlist for the master agent) to run a memo.
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 text-left space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+          Ticker
+          {suggesting && (
+            <span className="inline-flex items-center gap-1 text-primary normal-case tracking-normal font-normal">
+              <Sparkles className="w-3 h-3" /> guessing…
+            </span>
+          )}
+        </div>
+        {selected && (
+          <button
+            onClick={() => onSelect(null)}
+            className="text-[10px] text-muted-foreground hover:text-foreground"
+          >
+            clear
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {candidates.map((c) => {
+          const isSel = c.ticker === selected;
+          return (
+            <button
+              key={c.ticker}
+              onClick={() => onSelect(isSel ? null : c.ticker)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors',
+                isSel
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50',
+              )}
+              title={c.name ?? c.ticker}
+            >
+              <span className="font-semibold">{c.ticker}</span>
+              {c.name && (
+                <span className={cn('truncate max-w-[140px]', isSel ? 'opacity-90' : 'text-muted-foreground')}>
+                  {c.name}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Merge the in-flight memo-run state with the engagement-context's
+ *  on-disk task state. Memo SSE wins for tasks it knows about (richer
+ *  data: elapsed, error message); the context fills in anything else
+ *  (e.g. on page refresh, when memoRun is null but disk has tasks). */
+function mergeMemoTasks(
+  runTasks: MemoRunTask[],
+  liveTasks: ApiEngagementTask[],
+): MemoRunTask[] {
+  if (runTasks.length === 0) {
+    return liveTasks.map((t) => ({
+      id: t.id,
+      stage: t.stage,
+      title: t.title,
+      skill: t.skill,
+      status: t.status as MemoRunStatus,
+      error: t.error ?? undefined,
+    }));
+  }
+  const liveById = new Map(liveTasks.map((t) => [t.id, t]));
+  return runTasks.map((rt) => {
+    const live = liveById.get(rt.id);
+    if (!live) return rt;
+    // Memo-run status leads; if memo says pending but disk says done,
+    // trust disk (the SSE may have missed the transition after refresh).
+    const status: MemoRunStatus = rt.status === 'pending'
+      ? (live.status as MemoRunStatus)
+      : rt.status;
+    return {
+      ...rt,
+      status,
+      error: rt.error ?? live.error ?? undefined,
+    };
+  });
+}
+
+function MemoRunPanel({
+  run,
+  counterparty,
+  liveTasks,
+  engagementConnected,
+  fallbackTicker,
+}: {
+  run: MemoRunState | null;
+  counterparty: CounterpartyAvatar;
+  liveTasks: ApiEngagementTask[];
+  engagementConnected: boolean;
+  fallbackTicker: string | null;
+}) {
+  const ticker = run?.ticker ?? fallbackTicker ?? '?';
+  const template = run?.template ?? 'pitch-memo';
+  const analyst = run?.analyst;
+  const tasks = mergeMemoTasks(run?.tasks ?? [], liveTasks);
+  const memoText = run?.memoText ?? null;
+  const memoPath = run?.memoPath ?? null;
+  const finished = run?.finished ?? false;
+  const error = run?.error;
+
+  return (
+    <div className="flex gap-3">
+      <Avatar initials={counterparty.initials} color={counterparty.color} size="sm" />
+      <div className="flex-1 min-w-0 space-y-3">
+        <div className="rounded-lg border border-border bg-card text-card-foreground px-4 py-3">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              Memo · {ticker} · {template}
+            </div>
+            <div className="flex items-center gap-2">
+              {!run && !finished && (
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  resumed from disk
+                </span>
+              )}
+              <span
+                className={cn(
+                  'inline-block w-1.5 h-1.5 rounded-full',
+                  engagementConnected ? 'bg-emerald-500' : 'bg-muted-foreground/40',
+                )}
+                title={engagementConnected ? 'Live events connected' : 'Events disconnected'}
+              />
+              {analyst && (
+                <div className="text-[10px] text-muted-foreground">filed under {analyst}</div>
+              )}
+            </div>
+          </div>
+          {tasks.length === 0 ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic">
+              <Loader2 className="w-3 h-3 animate-spin" /> Planning…
+            </div>
+          ) : (
+            <ol className="space-y-1">
+              {tasks.map((t) => (
+                <MemoRunRow key={t.id} task={t} />
+              ))}
+            </ol>
+          )}
+          {error && (
+            <div className="mt-3 text-xs text-rose-500 flex items-center gap-1.5">
+              <AlertCircle className="w-3 h-3" /> {error}
+            </div>
+          )}
+        </div>
+        {memoText && (
+          <div className="rounded-lg border border-border bg-card text-card-foreground px-4 py-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+                Assembled memo
+              </div>
+              {memoPath && (
+                <code className="text-[10px] text-muted-foreground">{memoPath}</code>
+              )}
+            </div>
+            <div className="whitespace-pre-line text-sm leading-relaxed">{memoText}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MemoRunRow({ task }: { task: MemoRunTask }) {
+  const icon =
+    task.status === 'done'
+      ? <Check className="w-3 h-3 text-emerald-500" />
+      : task.status === 'in-progress'
+      ? <Loader2 className="w-3 h-3 text-primary animate-spin" />
+      : task.status === 'error'
+      ? <AlertCircle className="w-3 h-3 text-rose-500" />
+      : task.status === 'blocked'
+      ? <AlertCircle className="w-3 h-3 text-amber-500" />
+      : <span className="w-3 h-3 rounded-full border border-muted-foreground/40 inline-block" />;
+  return (
+    <li className="flex items-start gap-2 text-xs">
+      <span className="mt-0.5 shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium truncate">{task.title}</span>
+          <span className="text-[10px] text-muted-foreground font-mono">{task.skill}</span>
+          {task.elapsed != null && (
+            <span className="text-[10px] text-muted-foreground tabular-nums">{task.elapsed.toFixed(1)}s</span>
+          )}
+        </div>
+        {task.error && (
+          <div className="text-[11px] text-rose-500 mt-0.5 break-words">{task.error}</div>
+        )}
+      </div>
+    </li>
   );
 }
 

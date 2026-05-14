@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Sidebar, type View } from '@/components/Sidebar';
 import { DashboardView } from '@/components/views/DashboardView';
 import { AnalystDetailView } from '@/components/views/AnalystDetailView';
@@ -9,11 +9,68 @@ import { SkillsView } from '@/components/views/SkillsView';
 import { DataView } from '@/components/views/DataView';
 import { TickerCoverageView } from '@/components/views/TickerCoverageView';
 import { HireAnalystModal } from '@/components/HireAnalystModal';
+import { EngagementProvider } from '@/contexts/EngagementContext';
 import { getAnalysts, type ApiAnalyst } from '@/lib/api';
 
+/** URL hash ⇄ View. Persistent across refreshes; supports back/forward.
+ *  Format: ``#/<kind>[/<arg>]``. Unknown hashes resolve to the dashboard. */
+function viewToHash(v: View): string {
+  switch (v.kind) {
+    case 'dashboard':       return '#/';
+    case 'master-agent':    return '#/master-agent';
+    case 'tickers':         return v.tab ? `#/tickers/${v.tab}` : '#/tickers';
+    case 'universe':        return '#/tickers/all';
+    case 'my-universe':     return '#/tickers/my';
+    case 'knowledge':       return '#/knowledge';
+    case 'skills':          return '#/skills';
+    case 'data':            return '#/data';
+    case 'analyst-detail':  return `#/analyst/${encodeURIComponent(v.slug)}`;
+    case 'ticker-coverage': return `#/ticker/${encodeURIComponent(v.ticker)}`;
+  }
+}
+
+function hashToView(hash: string): View {
+  const cleaned = hash.replace(/^#\/?/, '');
+  if (!cleaned) return { kind: 'dashboard' };
+  const [head, arg] = cleaned.split('/');
+  switch (head) {
+    case 'master-agent': return { kind: 'master-agent' };
+    case 'tickers':      return { kind: 'tickers', tab: arg === 'my' || arg === 'all' ? arg : undefined };
+    case 'knowledge':    return { kind: 'knowledge' };
+    case 'skills':       return { kind: 'skills' };
+    case 'data':         return { kind: 'data' };
+    case 'analyst':      return arg ? { kind: 'analyst-detail', slug: decodeURIComponent(arg) } : { kind: 'dashboard' };
+    case 'ticker':       return arg ? { kind: 'ticker-coverage', ticker: decodeURIComponent(arg) } : { kind: 'dashboard' };
+    default:             return { kind: 'dashboard' };
+  }
+}
+
 export function App() {
-  const [view, setView] = useState<View>({ kind: 'dashboard' });
+  const [view, setView] = useState<View>(() => hashToView(window.location.hash));
   const [hireOpen, setHireOpen] = useState(false);
+  // Suppress the hashchange→setView round trip caused by our own push.
+  const lastWrittenHash = useRef<string>('');
+
+  // View → hash. Use replaceState so we don't bloat back/forward history
+  // for navigations that aren't really new pages (e.g. tab changes inside
+  // TickersView land later if/when those become first-class).
+  useEffect(() => {
+    const next = viewToHash(view);
+    if (next === window.location.hash || next === lastWrittenHash.current) return;
+    lastWrittenHash.current = next;
+    window.history.replaceState(null, '', next);
+  }, [view]);
+
+  // Hash → view (back/forward, manual URL edit).
+  useEffect(() => {
+    const onHashChange = () => {
+      const h = window.location.hash;
+      if (h === lastWrittenHash.current) return;
+      setView(hashToView(h));
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   // Hired-analyst roster: single source of truth in App, passed down to
   // Sidebar / Dashboard / AnalystDetail. Refreshed after a successful
@@ -29,6 +86,7 @@ export function App() {
   useEffect(() => { reloadAnalysts(); }, [reloadAnalysts]);
 
   return (
+    <EngagementProvider>
     <div className="h-full flex bg-background text-foreground">
       <Sidebar
         view={view}
@@ -73,5 +131,6 @@ export function App() {
         }}
       />
     </div>
+    </EngagementProvider>
   );
 }

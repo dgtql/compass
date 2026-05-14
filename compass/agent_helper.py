@@ -89,29 +89,17 @@ async def run_agent_skill(
         max_turns=max_turns,
     )
 
-    text_parts: list[str] = []
-    async for message in query(prompt=user_prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock) and block.text.strip():
-                    elapsed_now = time.monotonic() - started_at
-                    preview = block.text.strip()[:160]
-                    print(
-                        f"[{elapsed_now:6.1f}s] [{spec.slug}] [say] {preview}",
-                        flush=True,
-                        file=sys.stderr,
-                    )
-                    text_parts.append(block.text)
-                    if on_event is not None:
-                        try:
-                            on_event({
-                                "ts": time.time(),
-                                "type": "say",
-                                "elapsed": elapsed_now,
-                                "message": preview,
-                            })
-                        except Exception:  # noqa: BLE001
-                            pass
+    # Run the SDK loop in a worker thread with its own fresh asyncio loop.
+    # Reason: when this helper is invoked from inside uvicorn's running
+    # ProactorEventLoop on Windows, anyio's subprocess-spawn raises
+    # NotImplementedError. Same fix we already use in compass.llm — keep
+    # the SDK isolated from whatever loop the caller is on.
+    import asyncio
+
+    text = await asyncio.to_thread(
+        _run_skill_sync,
+        spec.slug, user_prompt, options, started_at, on_event,
+    )
 
     elapsed = time.monotonic() - started_at
     print(
@@ -126,4 +114,65 @@ async def run_agent_skill(
             "elapsed": round(elapsed, 2),
         }
     )
-    return "".join(text_parts).strip()
+    return text
+
+
+def _run_skill_sync(
+    skill_slug: str,
+    user_prompt: str,
+    options: "ClaudeAgentOptions",
+    started_at: float,
+    on_event: Callable[[dict[str, Any]], None] | None,
+) -> str:
+    """Worker-thread entry point: runs the SDK query loop on its own loop.
+
+    Returns the concatenated assistant text. Streams ``say`` events back
+    through ``on_event`` (which must be thread-safe — the SSE bridge's
+    queue.Queue.put already is)."""
+    import asyncio
+    import os
+
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
+    async def _inner() -> str:
+        text_parts: list[str] = []
+        event_count = 0
+        async for message in query(prompt=user_prompt, options=options):
+            event_count += 1
+            if event_count == 1:
+                # Diagnostic: confirm the SDK produced its first event.
+                # Hangs before this line mean subprocess-spawn is stuck;
+                # hangs after it usually mean the model is taking long
+                # or stuck in a tool loop (visible in PreToolUse logs).
+                elapsed_now = time.monotonic() - started_at
+                print(
+                    f"[{elapsed_now:6.1f}s] [{skill_slug}] first SDK event ({type(message).__name__})",
+                    flush=True,
+                    file=sys.stderr,
+                )
+            if not isinstance(message, AssistantMessage):
+                continue
+            for block in message.content:
+                if not isinstance(block, TextBlock) or not block.text.strip():
+                    continue
+                elapsed_now = time.monotonic() - started_at
+                preview = block.text.strip()[:160]
+                print(
+                    f"[{elapsed_now:6.1f}s] [{skill_slug}] [say] {preview}",
+                    flush=True,
+                    file=sys.stderr,
+                )
+                text_parts.append(block.text)
+                if on_event is not None:
+                    try:
+                        on_event({
+                            "ts": time.time(),
+                            "type": "say",
+                            "elapsed": elapsed_now,
+                            "message": preview,
+                        })
+                    except Exception:  # noqa: BLE001
+                        pass
+        return "".join(text_parts).strip()
+
+    return asyncio.run(_inner())

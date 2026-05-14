@@ -220,6 +220,14 @@ class Engagement:
             json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+        # Broadcast to any UI subscribed to this engagement's events. The
+        # publish is a no-op when no one's listening (CLI, tests, etc.).
+        _publish_event(self.analyst_slug, self.ticker, {
+            "type": "tasks-updated",
+            "ticker": self.ticker,
+            "analyst": self.analyst_slug,
+            "task_count": len(tasks),
+        })
 
     # --- run log -----------------------------------------------------------
 
@@ -237,6 +245,22 @@ class Engagement:
                 f.write(json.dumps(event, ensure_ascii=False, default=str) + "\n")
         except Exception:  # noqa: BLE001
             pass
+        # Push to live subscribers as a `task-event` so the UI can render a
+        # live console-like view per task without polling run.log.
+        _publish_event(self.analyst_slug, self.ticker, {
+            "type": "task-event",
+            **event,
+        })
+
+
+def _publish_event(analyst: str, ticker: str, event: dict[str, Any]) -> None:
+    """Best-effort broadcast. Import is lazy/local so engagement.py keeps
+    its lean import surface (tests, CLI tools that don't need pub/sub)."""
+    try:
+        from compass.events import publish
+        publish(analyst, ticker, event)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 # ---------------------------------------------------------------------------

@@ -116,6 +116,123 @@ def get_engagement(analyst: str, ticker: str) -> dict:
     }
 
 
+@app.get("/api/engagements/{analyst}/{ticker}/tasks")
+def get_engagement_tasks(analyst: str, ticker: str) -> dict:
+    """Tasks for one engagement (split out from the bundled engagement payload).
+
+    The EngagementContext on the frontend fetches just this slice and
+    re-fetches whenever it receives a ``tasks-updated`` event on the
+    events stream, mirroring the pattern from doc 16 §4.
+    """
+    engagement = Engagement.open(ticker, analyst=analyst)
+    tasks = engagement.load_tasks()
+    return {
+        "analyst": engagement.analyst_slug,
+        "ticker": engagement.ticker,
+        "task_count": len(tasks),
+        "tasks": [t.to_dict() for t in tasks],
+    }
+
+
+class SetTaskStatusReq(BaseModel):
+    status: str  # pending | in-progress | done | review | error | cancelled
+
+
+_ALLOWED_STATUSES = {"pending", "in-progress", "done", "review", "error", "cancelled"}
+
+
+@app.post("/api/engagements/{analyst}/{ticker}/tasks/{task_id}/status")
+def set_engagement_task_status(
+    analyst: str, ticker: str, task_id: str, req: SetTaskStatusReq,
+) -> dict:
+    """Manually mutate a task's status. Writes through ``save_tasks`` so it
+    broadcasts a ``tasks-updated`` event to every subscriber."""
+    new_status = (req.status or "").strip().lower()
+    if new_status not in _ALLOWED_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"status must be one of {sorted(_ALLOWED_STATUSES)}, got {req.status!r}",
+        )
+    engagement = Engagement.open(ticker, analyst=analyst)
+    tasks = engagement.load_tasks()
+    target = next((t for t in tasks if t.id == task_id), None)
+    if target is None:
+        raise HTTPException(status_code=404, detail=f"task not found: {task_id}")
+    target.status = new_status
+    engagement.save_tasks(tasks)  # publishes tasks-updated
+    return target.to_dict()
+
+
+@app.get("/api/engagements/{analyst}/{ticker}/events/stream")
+async def stream_engagement_events(analyst: str, ticker: str):
+    """SSE fan-out of every event published for this engagement.
+
+    Event shapes (the ``type`` field is the SSE event name):
+
+      event: tasks-updated   data: {ticker, analyst, task_count}
+      event: task-event      data: {ts, type, task_id?, skill?, ...}
+      event: ping            data: {ts}        ← heartbeat every 25s
+
+    Heartbeats keep proxies / browser idle-timeouts from closing the
+    connection. The client should treat them as no-ops.
+    """
+    from compass.events import subscribe
+
+    # Resolve to the same path Engagement.open uses so the subscriber
+    # key matches what publishers will broadcast under.
+    engagement = Engagement.open(ticker, analyst=analyst)
+    resolved_analyst = engagement.analyst_slug
+    resolved_ticker = engagement.ticker
+
+    async def event_gen():
+        # First frame: a "hello" so the client can sync.
+        yield _sse("hello", {
+            "ticker": resolved_ticker,
+            "analyst": resolved_analyst,
+        })
+
+        import asyncio
+        sub_iter = subscribe(resolved_analyst, resolved_ticker)
+        sub_anext = sub_iter.__aiter__().__anext__
+        try:
+            while True:
+                # Race the subscriber against a 25s heartbeat so idle
+                # streams stay alive.
+                event_task = asyncio.create_task(sub_anext())
+                heartbeat = asyncio.create_task(asyncio.sleep(25))
+                done, pending = await asyncio.wait(
+                    {event_task, heartbeat},
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if event_task in done:
+                    heartbeat.cancel()
+                    try:
+                        event = event_task.result()
+                    except StopAsyncIteration:
+                        return
+                    ev_name = event.get("type", "event")
+                    yield _sse(ev_name, event)
+                else:
+                    event_task.cancel()
+                    yield _sse("ping", {"ts": _now_iso_simple()})
+        finally:
+            try:
+                await sub_iter.aclose()
+            except Exception:  # noqa: BLE001
+                pass
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
+    )
+
+
+def _now_iso_simple() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
 @app.get("/api/engagements/{analyst}/{ticker}/artifact")
 def get_artifact(analyst: str, ticker: str, path: str = Query(...)) -> dict:
     engagement = Engagement.open(ticker, analyst=analyst)
@@ -426,6 +543,155 @@ def post_universe_lookup(req: dict) -> dict:
     return {"count": len(matches), "tickers": [t.to_dict() for t in matches]}
 
 
+@app.get("/api/analysts/{slug}/deliverables")
+def get_analyst_deliverables(slug: str) -> dict:
+    """Finished-product deliverables across this analyst's engagements.
+
+    A "deliverable" is something the PM consumes — currently only files
+    under ``memos/`` (pitch / earnings-reaction / maintenance / deep-dive).
+    Intermediate artifacts (briefs, KPIs, filings, sections, snapshots)
+    are exposed separately via the per-engagement
+    ``/api/engagements/{a}/{t}/files`` endpoint.
+    """
+    from compass.engagement import engagements_root
+
+    root = engagements_root() / slug
+    if not root.exists():
+        return {"slug": slug, "count": 0, "deliverables": []}
+
+    items: list[dict] = []
+    for ticker_dir in sorted(root.iterdir()):
+        if not ticker_dir.is_dir():
+            continue
+        ticker = ticker_dir.name
+        memos_dir = ticker_dir / "memos"
+        if not memos_dir.exists():
+            continue
+        for p in memos_dir.rglob("*"):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(ticker_dir).as_posix()
+            items.append({
+                "ticker": ticker,
+                "path": rel,
+                "name": p.name,
+                "category": _classify_deliverable(rel),
+                "size": p.stat().st_size,
+                "modified_at": p.stat().st_mtime,
+            })
+    items.sort(key=lambda o: o["modified_at"], reverse=True)
+    return {"slug": slug, "count": len(items), "deliverables": items}
+
+
+@app.get("/api/engagements/{analyst}/{ticker}/files")
+def get_engagement_files(analyst: str, ticker: str) -> dict:
+    """Intermediate research files for one engagement (everything not in ``memos/``).
+
+    Returns rows grouped logically by directory; the chat right rail
+    renders them under headers (Coverage brief / Filings / Snapshots /
+    Sections / KPIs / Gates / News / Transcripts). Click-to-view uses
+    the existing ``/artifact?path=…`` endpoint.
+    """
+    engagement = Engagement.open(ticker, analyst=analyst)
+    root = engagement.root
+    items: list[dict] = []
+
+    # Same scan as deliverables, but with memos/ excluded and the
+    # .pipeline/docs/ brief explicitly included.
+    scan_dirs: list[Path] = [
+        root / "analysis",
+        root / "corpus",
+        root / ".pipeline" / "docs",
+    ]
+    for base in scan_dirs:
+        if not base.exists():
+            continue
+        for p in base.rglob("*"):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(root).as_posix()
+            items.append({
+                "path": rel,
+                "name": p.name,
+                "category": _classify_deliverable(rel),
+                "size": p.stat().st_size,
+                "modified_at": p.stat().st_mtime,
+            })
+    items.sort(key=lambda o: o["modified_at"], reverse=True)
+    return {
+        "analyst": engagement.analyst_slug,
+        "ticker": engagement.ticker,
+        "count": len(items),
+        "files": items,
+    }
+
+
+_DELIVERABLE_CATEGORIES: list[tuple[str, str]] = [
+    ("memos/pitch/",              "Pitch memo"),
+    ("memos/earnings-reaction/",  "Earnings reaction"),
+    ("memos/maintenance/",        "Maintenance update"),
+    ("memos/deep-dive/",          "Deep dive"),
+    ("memos/",                    "Memo"),
+    ("analysis/sections/",        "Section draft"),
+    ("analysis/kpis/",            "KPIs"),
+    ("analysis/gates/",           "Quality gate"),
+    ("analysis/segments/",        "10-K segment"),
+    ("corpus/filings/",           "SEC filing"),
+    ("corpus/snapshots/",         "Market snapshot"),
+    ("corpus/news/",              "News"),
+    ("corpus/transcripts/",       "Transcript"),
+    (".pipeline/docs/coverage_brief", "Coverage brief"),
+]
+
+
+def _classify_deliverable(rel_path: str) -> str:
+    for prefix, label in _DELIVERABLE_CATEGORIES:
+        if rel_path.startswith(prefix):
+            return label
+    return "Other"
+
+
+@app.get("/api/analysts/{slug}/tasks")
+def get_analyst_tasks_all(slug: str) -> dict:
+    """Every task across every engagement filed under this analyst.
+
+    Each row carries its ``ticker`` so the UI can group/filter. Sorted
+    by ``finished_at`` (then ``started_at``, then position in tasks.json)
+    so the most recent activity floats to the top.
+    """
+    from compass.engagement import engagements_root
+
+    root = engagements_root() / slug
+    if not root.exists():
+        return {"slug": slug, "count": 0, "tasks": []}
+
+    rows: list[dict] = []
+    for ticker_dir in sorted(root.iterdir()):
+        if not ticker_dir.is_dir():
+            continue
+        ticker = ticker_dir.name
+        try:
+            engagement = Engagement.open(ticker, analyst=slug)
+        except Exception:  # noqa: BLE001 — skip broken engagements
+            continue
+        for idx, t in enumerate(engagement.load_tasks()):
+            d = t.to_dict()
+            d["ticker"] = ticker
+            d["_order"] = idx
+            rows.append(d)
+    rows.sort(
+        key=lambda r: (
+            r.get("finished_at") or "",
+            r.get("started_at") or "",
+            -r.get("_order", 0),
+        ),
+        reverse=True,
+    )
+    for r in rows:
+        r.pop("_order", None)
+    return {"slug": slug, "count": len(rows), "tasks": rows}
+
+
 @app.put("/api/analysts/{slug}/coverage")
 def put_analyst_coverage(slug: str, req: UpdateCoverageReq) -> dict:
     try:
@@ -453,6 +719,24 @@ class UpdateChatTaskReq(BaseModel):
     title: str | None = None
     status: str | None = None
     coverage_ticker: str | None = None
+
+
+class SuggestChatTitleReq(BaseModel):
+    chip: str | None = None
+    message: str
+
+
+class SuggestMemoTickerReq(BaseModel):
+    message: str
+    # Owner-defined list of candidate tickers; if absent we derive them
+    # from the analyst's coverage (or the master's watchlist) server-side.
+    candidates: list[dict] | None = None
+
+
+class RunMemoReq(BaseModel):
+    ticker: str
+    template: str = "pitch-memo"
+    message: str | None = None  # optional PM text to persist as the user turn
 
 
 class CreateChatSessionReq(BaseModel):
@@ -490,6 +774,31 @@ def patch_chat_task(owner_key: str, task_id: str, req: UpdateChatTaskReq) -> dic
             owner_key, task_id,
             title=req.title, status=req.status, coverage_ticker=req.coverage_ticker,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return task.to_dict()
+
+
+@app.post("/api/chats/{owner_key}/tasks/{task_id}/suggest-title")
+async def suggest_chat_task_title(owner_key: str, task_id: str, req: SuggestChatTitleReq) -> dict:
+    """Infer a task title from a welcome-chip + first PM message, then PATCH it.
+
+    Called fire-and-forget by the UI right after a new task is created.
+    Falls back silently to the original title on any LLM failure (the
+    helper itself swallows errors and returns the fallback).
+    """
+    from compass.llm import suggest_task_title
+
+    title = await suggest_task_title(chip=req.chip, message=req.message)
+    if not title:
+        # Nothing to update — return the task as-is so the UI can no-op.
+        owner = chats_list_for_owner(owner_key)
+        task = next((t for t in owner.tasks if t.id == task_id), None)
+        if task is None:
+            raise HTTPException(status_code=404, detail=f"task not found: {task_id}")
+        return task.to_dict()
+    try:
+        task = chats_update_task(owner_key, task_id, title=title)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return task.to_dict()
@@ -594,6 +903,209 @@ async def stream_chat_message(owner_key: str, session_id: str, req: AppendMessag
 def _sse(event: str, data: dict) -> str:
     import json as _json
     return f"event: {event}\ndata: {_json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+# --- chat-driven memo (skill-based plan + execute) -------------------------
+
+
+@app.get("/api/chats/{owner_key}/memo/candidates")
+def get_chat_memo_candidates(owner_key: str) -> dict:
+    """Tickers eligible for a memo run for this chat owner.
+
+    Analyst owner → their coverage. Master owner → the PM's watchlist.
+    Hydrated with name/sector from the universe when available so the
+    picker can render more than just the symbol.
+    """
+    candidates = _candidate_tickers_for_owner(owner_key)
+    return {"owner_key": owner_key, "count": len(candidates), "candidates": candidates}
+
+
+@app.post("/api/chats/{owner_key}/memo/suggest-ticker")
+async def suggest_chat_memo_ticker(owner_key: str, req: SuggestMemoTickerReq) -> dict:
+    """Constrained LLM pick: given a PM message + candidate set, return one ticker.
+
+    If ``candidates`` isn't supplied, we derive it from the owner: an
+    analyst slug → that analyst's coverage; ``master`` → the watchlist.
+    Falls back to the universe-derived `name` for the LLM prompt.
+    """
+    from compass.llm import suggest_memo_ticker
+
+    candidates = req.candidates
+    if not candidates:
+        candidates = _candidate_tickers_for_owner(owner_key)
+    ticker = await suggest_memo_ticker(message=req.message, candidates=candidates)
+    return {"ticker": ticker, "candidate_count": len(candidates)}
+
+
+def _candidate_tickers_for_owner(owner_key: str) -> list[dict]:
+    """Derive memo-eligible tickers for an owner from coverage / watchlist."""
+    owner_key = (owner_key or "").strip().lower()
+    loaded = load_universe()
+    by_symbol = {t.ticker: t for t in (loaded.tickers if loaded else [])}
+
+    symbols: list[str] = []
+    if owner_key and owner_key != "master":
+        analyst = get_analyst(owner_key)
+        if analyst is not None:
+            symbols = list(analyst.coverage or [])
+    else:
+        wl = load_watchlist()
+        symbols = [e.ticker for e in wl.tickers]
+
+    out: list[dict] = []
+    for s in symbols:
+        row = by_symbol.get(s)
+        out.append({
+            "ticker": s,
+            "name": row.name if row is not None else None,
+            "sector": row.sector if row is not None else None,
+        })
+    return out
+
+
+@app.post("/api/chats/{owner_key}/sessions/{session_id}/memo/stream")
+async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
+    """Plan + run a memo engagement; stream every dispatcher event as SSE.
+
+    The session must already exist (the UI persists the PM's framing
+    message first via the regular chat append flow, then triggers this
+    endpoint). We persist a ``master`` summary message at the end so the
+    transcript reads naturally on reload.
+
+    SSE event shapes:
+        event: engagement_opened  data: {analyst, ticker, template, root}
+        event: plan_done           data: {task_count, tasks: [...]}
+        event: task_start          data: {task_id, skill, ...}
+        event: task_done           data: {task_id, skill, elapsed, result}
+        event: task_error          data: {task_id, skill, error}
+        event: task_blocked        data: {task_id, blocked_by: [...]}
+        event: memo_ready          data: {memo_path, memo_text}
+        event: done                data: {summary, session}
+        event: error               data: {error}
+    """
+    from compass.chat_skills import run_memo_for_chat
+
+    # Persist the PM message up front if one was supplied (mirrors the
+    # streaming chat endpoint so the transcript is consistent).
+    if req.message and req.message.strip():
+        try:
+            chats_append_message(owner_key, session_id, role="pm", text=req.message)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+
+    import asyncio
+    import queue as _queue
+
+    q: _queue.Queue = _queue.Queue()
+    SENTINEL = object()
+
+    def _on_event(event: dict) -> None:
+        q.put(event)
+
+    async def _driver() -> dict:
+        try:
+            return await run_memo_for_chat(
+                owner_key,
+                req.ticker,
+                template=req.template,
+                on_event=_on_event,
+            )
+        finally:
+            q.put(SENTINEL)
+
+    async def event_gen():
+        driver_task = asyncio.create_task(_driver())
+        loop = asyncio.get_running_loop()
+        try:
+            while True:
+                item = await loop.run_in_executor(None, q.get)
+                if item is SENTINEL:
+                    break
+                ev_type = item.get("type", "event")
+                yield _sse(ev_type, item)
+        except Exception as exc:  # noqa: BLE001
+            yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
+
+        # Driver should be done (SENTINEL emitted in `finally`). Await its
+        # result for the final summary and to surface any exception.
+        try:
+            summary = await driver_task
+        except Exception as exc:  # noqa: BLE001
+            yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
+            return
+
+        # Persist a master-role summary so the chat transcript carries
+        # something durable after reload.
+        memo_text = summary.get("memo_text")
+        master_text = _format_memo_summary(summary)
+        session = None
+        if master_text:
+            try:
+                session = chats_append_message(
+                    owner_key, session_id, role="master", text=master_text,
+                )
+            except ValueError:
+                session = None
+
+        yield _sse("done", {
+            "summary": {
+                "ran": summary.get("ran", 0),
+                "skipped": summary.get("skipped", 0),
+                "errors": summary.get("errors", 0),
+                "analyst": summary.get("analyst"),
+                "ticker": summary.get("ticker"),
+                "template": summary.get("template"),
+                "memo_path": summary.get("memo_path"),
+                "has_memo": bool(memo_text),
+            },
+            "session": session.to_dict() if session is not None else None,
+        })
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
+    )
+
+
+def _format_memo_summary(summary: dict) -> str:
+    """One-bubble post-run message — full memo if we have it, else a status line.
+
+    On error we surface the first failing task's id + skill + error so the
+    PM can act without opening ``.pipeline/run.log``. Subsequent failures
+    (often cascading from the first) are noted by count only.
+    """
+    memo_text = (summary.get("memo_text") or "").strip()
+    if memo_text:
+        return memo_text
+    ticker = summary.get("ticker") or "?"
+    errors = summary.get("errors", 0)
+    ran = summary.get("ran", 0)
+    if errors:
+        tasks = summary.get("tasks") or []
+        failed = [t for t in tasks if t.get("status") == "error"]
+        first = failed[0] if failed else None
+        lines = [
+            f"Memo run for {ticker} failed: {errors} task error(s), {ran} completed.",
+        ]
+        if first is not None:
+            err = (first.get("error") or "").strip()
+            lines.append(
+                f"\nFirst failure: **{first.get('id')}** "
+                f"(skill `{first.get('skill')}`)"
+            )
+            if err:
+                lines.append(f"\n```\n{err}\n```")
+        if len(failed) > 1:
+            extras = ", ".join(t.get("id", "?") for t in failed[1:6])
+            more = "" if len(failed) <= 6 else f", +{len(failed) - 6} more"
+            lines.append(f"\nOther failed tasks: {extras}{more}.")
+        lines.append("\nFull trace: `.pipeline/run.log` in the engagement root.")
+        return "".join(lines)
+    return (
+        f"Memo run for {ticker} finished {ran} tasks but didn't produce a final "
+        f"memo at `compose-assemble`. Check `.pipeline/run.log` for what was skipped."
+    )
 
 
 @app.post("/api/chats/{owner_key}/sessions/{session_id}/messages")
