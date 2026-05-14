@@ -5,6 +5,15 @@ phase: compose
 runner: agent
 allowed-tools: Read Write
 model: claude-sonnet-4-6
+max_turns: 20
+needs:
+  - brief
+  - segments
+  - kpis
+  - gates
+  - snapshots
+  - news
+output: analysis/sections/{ticker}__{memo_type}__{section_slug}.md
 ---
 
 # draft-memo-section

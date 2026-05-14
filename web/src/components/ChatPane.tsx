@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { marked } from 'marked';
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
@@ -33,6 +34,10 @@ import {
   deleteChatTask,
   getChats,
   getMemoCandidates,
+  getWorkflows,
+  suggestWorkflow,
+  type ApiPackWorkflow,
+  type ApiWorkflow,
   streamChatMessage,
   streamMemoRun,
   suggestChatTaskTitle,
@@ -85,6 +90,10 @@ type MemoRunTask = {
   title: string;
   skill: string;
   status: MemoRunStatus;
+  /** Latest "say" excerpt — the agent's thinking-out-loud text from the
+   *  most recent assistant message during this task. Cleared when the
+   *  task completes; rendered under the row while it's in-progress. */
+  latestSay?: string;
   error?: string;
   elapsed?: number;
 };
@@ -120,6 +129,11 @@ type Props = {
   rightRail?: ReactNode;
   rightRailTabs?: RightRailTabsProp;
   initialRailTab?: string;
+  /** When set, the welcome screen renders the pack's named pipelines as
+   *  chips instead of the generic TASK_TYPE_CHIPS. Click → memo flow with
+   *  ``workflow.command`` as the planner template. AnalystDetailView fills
+   *  this from the pack the analyst was hired from. */
+  packWorkflows?: ApiPackWorkflow[];
 };
 
 export function ChatPane({
@@ -130,6 +144,7 @@ export function ChatPane({
   rightRail,
   rightRailTabs,
   initialRailTab,
+  packWorkflows,
 }: Props) {
   const { setEngagement, tasks: liveEngagementTasks, connected: engagementConnected } = useEngagement();
   const [tasks, setTasks] = useState<ApiChatTask[]>([]);
@@ -147,6 +162,44 @@ export function ChatPane({
   /** Pending task-type selection from the welcome chips. Becomes the task
    *  title when the PM hits Send (and is cleared once the task is created). */
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
+  /** When a memo-style flow is active (generic "Memo" chip OR a pack
+   *  workflow chip), this holds the planner template the next ``Send`` will
+   *  drive. ``null`` means the next message goes to chat, not to a run. */
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  /** Generic (persona-agnostic) workflow templates — pitch-memo,
+   *  earnings-reaction, maintenance-refresh, deep-dive. Fetched once on
+   *  mount; surfaced as a dropdown next to pack chips so a hired persona
+   *  (e.g. Buffett) can still run a generic ``pitch-memo`` if the PM
+   *  wants to compare frameworks. */
+  const [genericWorkflows, setGenericWorkflows] = useState<ApiWorkflow[]>([]);
+  /** When the PM sends with no chip selected, the router (Haiku call)
+   *  may detect a workflow intent. This holds the suggestion until the
+   *  PM confirms or cancels. Null = no pending route. */
+  const [pendingRoute, setPendingRoute] = useState<{
+    command: string;
+    name: string;
+    description: string;
+    ticker: string | null;
+    /** The original message text — restored to the composer if the PM cancels. */
+    message: string;
+  } | null>(null);
+  /** Router Haiku call is in flight. Send button shows a spinner. */
+  const [routing, setRouting] = useState(false);
+  /** PM's message echoed in the UI the moment Send fires, before any
+   *  session exists. Stays visible through routing / confirmation /
+   *  cancel; cleared once the message lands in a real session (chat
+   *  optimistic bubble takes over) or a memo run starts. */
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getWorkflows()
+      .then((r) => {
+        if (cancelled) return;
+        setGenericWorkflows(r.workflows.filter((wf) => wf.pack_id === null));
+      })
+      .catch(() => { /* non-fatal — the chips still work */ });
+    return () => { cancelled = true; };
+  }, []);
   /** Delete-task confirmation dialog target (null = closed). */
   const [pendingDeleteTask, setPendingDeleteTask] = useState<ApiChatTask | null>(null);
   /** Memo-flow state — populated when the welcome panel's Memo chip is active. */
@@ -221,26 +274,30 @@ export function ChatPane({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [active?.messages.length, activeId, memoRun?.tasks.length, memoRun?.memoText]);
 
-  // Load candidate tickers for the Memo chip the first time it's selected.
+  // Load candidate tickers the first time a memo-style flow becomes active.
   useEffect(() => {
-    if (selectedChip !== 'Memo') return;
+    if (selectedTemplate === null) return;
     if (memoCandidates.length > 0) return;
     let cancelled = false;
     getMemoCandidates(ownerKey)
       .then((data) => { if (!cancelled) setMemoCandidates(data.candidates); })
       .catch(() => { if (!cancelled) setMemoCandidates([]); });
     return () => { cancelled = true; };
-  }, [selectedChip, ownerKey, memoCandidates.length]);
+  }, [selectedTemplate, ownerKey, memoCandidates.length]);
 
-  // Reset memo-flow state when the chip is deselected or the owner changes.
+  // Reset memo-flow state when the flow exits or the owner changes.
   useEffect(() => {
-    if (selectedChip !== 'Memo') {
+    if (selectedTemplate === null) {
       setMemoTicker(null);
     }
-  }, [selectedChip]);
+  }, [selectedTemplate]);
   useEffect(() => {
     setMemoCandidates([]);
     setMemoTicker(null);
+    setSelectedTemplate(null);
+    setPendingRoute(null);
+    setRouting(false);
+    setPendingMessage(null);
   }, [ownerKey]);
 
   // When the active session belongs to a memo task with a coverage ticker,
@@ -261,9 +318,9 @@ export function ChatPane({
   }, [activeTask, ownerKey, setEngagement]);
 
   // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
-  // the Memo chip is selected and no ticker has been picked manually yet.
+  // a memo flow is active (any template) and no ticker has been picked yet.
   useEffect(() => {
-    if (selectedChip !== 'Memo') return;
+    if (selectedTemplate === null) return;
     if (memoTicker) return;
     const trimmed = input.trim();
     if (trimmed.length < 4) return;
@@ -272,7 +329,7 @@ export function ChatPane({
     const handle = window.setTimeout(() => {
       suggestMemoTicker(ownerKey, { message: trimmed })
         .then((res) => {
-          if (res.ticker && memoTicker === null && selectedChip === 'Memo') {
+          if (res.ticker && memoTicker === null && selectedTemplate !== null) {
             setMemoTicker(res.ticker);
           }
         })
@@ -283,7 +340,7 @@ export function ChatPane({
       window.clearTimeout(handle);
       setMemoSuggesting(false);
     };
-  }, [input, selectedChip, memoTicker, memoCandidates.length, ownerKey]);
+  }, [input, selectedTemplate, memoTicker, memoCandidates.length, ownerKey]);
 
   const hasRail = Boolean(rightRail) || resolvedRailTabs.length > 0;
 
@@ -336,29 +393,44 @@ export function ChatPane({
     });
   }
 
-  async function sendMemo(message: string, ticker: string) {
-    // Create the task + session up front so the memo run has a session
-    // to persist its summary into, and so the task shows up in the rail
-    // immediately. The title is deterministic — no LLM title-suggest call.
+  async function sendMemo(
+    message: string,
+    ticker: string,
+    template: string,
+    reuseSessionId?: string,
+  ) {
+    // When ``reuseSessionId`` is provided we land the run inside an
+    // already-open empty session (e.g. the user clicked "+ New task"
+    // first, then picked a workflow chip). Otherwise we create the
+    // task+session up front. Either way the memo run has a session to
+    // persist its summary into.
     let sessionId: string;
-    let newTaskId: string;
-    try {
-      const newT = await createChatTask(ownerKey, {
-        title: `Memo on ${ticker}`,
-        coverage_ticker: ticker,
-      });
-      const newS = await createChatSession(ownerKey, { task_id: newT.id });
-      setTasks((prev) => [newT, ...prev]);
-      setSessions((prev) => [newS, ...prev]);
-      setExpandedTaskIds((prev) => new Set([...prev, newT.id]));
-      setActiveId(newS.id);
+    let newTaskId: string | undefined;
+    if (reuseSessionId) {
+      sessionId = reuseSessionId;
       setSelectedChip(null);
+      setSelectedTemplate(null);
       setMemoTicker(null);
-      sessionId = newS.id;
-      newTaskId = newT.id;
-    } catch {
-      refresh();
-      return;
+    } else {
+      try {
+        const newT = await createChatTask(ownerKey, {
+          title: `Memo on ${ticker}`,
+          coverage_ticker: ticker,
+        });
+        const newS = await createChatSession(ownerKey, { task_id: newT.id });
+        setTasks((prev) => [newT, ...prev]);
+        setSessions((prev) => [newS, ...prev]);
+        setExpandedTaskIds((prev) => new Set([...prev, newT.id]));
+        setActiveId(newS.id);
+        setSelectedChip(null);
+        setSelectedTemplate(null);
+        setMemoTicker(null);
+        sessionId = newS.id;
+        newTaskId = newT.id;
+      } catch {
+        refresh();
+        return;
+      }
     }
     setInput('');
     setSending(true);
@@ -376,7 +448,7 @@ export function ChatPane({
 
     setMemoRun({
       ticker,
-      template: 'pitch-memo',
+      template,
       tasks: [],
       memoText: null,
       memoPath: null,
@@ -385,7 +457,7 @@ export function ChatPane({
 
     streamMemoRun(
       ownerKey, sessionId,
-      { ticker, template: 'pitch-memo', message },
+      { ticker, template, message },
       {
         onEngagementOpened: ({ analyst }) => {
           setMemoRun((prev) => (prev ? { ...prev, analyst } : prev));
@@ -409,13 +481,26 @@ export function ChatPane({
         onTaskStart: ({ task_id }) =>
           setMemoRun((prev) => (prev ? {
             ...prev,
-            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'in-progress' } : t)),
+            tasks: prev.tasks.map((t) => (
+              t.id === task_id ? { ...t, status: 'in-progress', latestSay: undefined } : t
+            )),
           } : prev)),
         onTaskDone: ({ task_id, elapsed }) =>
           setMemoRun((prev) => (prev ? {
             ...prev,
-            tasks: prev.tasks.map((t) => (t.id === task_id ? { ...t, status: 'done', elapsed } : t)),
+            tasks: prev.tasks.map((t) => (
+              t.id === task_id ? { ...t, status: 'done', elapsed, latestSay: undefined } : t
+            )),
           } : prev)),
+        onSay: ({ task_id, message }) => {
+          if (!task_id || !message) return;
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (
+              t.id === task_id ? { ...t, latestSay: message } : t
+            )),
+          } : prev));
+        },
         onTaskError: ({ task_id, error }) =>
           setMemoRun((prev) => (prev ? {
             ...prev,
@@ -453,12 +538,73 @@ export function ChatPane({
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed) return;
-    // Memo-flow branch: chip is Memo and a ticker is picked → route to the
-    // skill-based engagement runner instead of the chat LLM.
-    if (!active && selectedChip === 'Memo' && memoTicker) {
-      await sendMemo(trimmed, memoTicker);
+    // Echo the PM's message immediately so they see it landed even
+    // before routing/session creation finishes. Cleared at the end of
+    // the chat path (real session message takes over) or at the start
+    // of a memo run (memo flow has its own optimistic bubble).
+    setPendingMessage(trimmed);
+    setInput('');
+    // Memo-flow branch: a memo template is active (generic Memo chip or
+    // pack workflow chip) AND a ticker is picked → route to the skill-based
+    // engagement runner instead of the chat LLM. Works whether the user
+    // is on the welcome screen (no active session) or in a brand-new
+    // empty session (clicked "+ New task" first, then a workflow chip).
+    if (
+      selectedTemplate !== null &&
+      memoTicker &&
+      (!active || active.messages.length === 0)
+    ) {
+      setPendingMessage(null);
+      await sendMemo(trimmed, memoTicker, selectedTemplate, active?.id);
       return;
     }
+
+    // Router intercept: only when no chip is selected AND we're in the
+    // welcome state (no active session OR a brand-new empty session).
+    // We ask Haiku whether the message clearly fits a workflow; if so,
+    // surface a confirmation banner and pause. The PM either Confirms
+    // (→ memo flow) or Cancels (→ continue to chat). Skip the call when
+    // we already have a pending suggestion — the PM is in the middle of
+    // deciding on it.
+    const inWelcome = !active || active.messages.length === 0;
+    const packs = packWorkflows ?? [];
+    if (
+      inWelcome
+      && selectedTemplate === null
+      && !pendingRoute
+      && (packs.length > 0 || genericWorkflows.length > 0)
+    ) {
+      const all = [
+        ...packs.map((w) => ({
+          command: w.command, name: w.name, description: w.description,
+        })),
+        ...genericWorkflows.map((w) => ({
+          command: w.name, name: w.display_name, description: w.description ?? '',
+        })),
+      ];
+      setRouting(true);
+      try {
+        const route = await suggestWorkflow(ownerKey, {
+          message: trimmed,
+          workflows: all,
+        });
+        if (route.workflow) {
+          setPendingRoute({
+            command: route.workflow,
+            name: route.workflow_name ?? route.workflow,
+            description: route.workflow_description ?? '',
+            ticker: route.ticker,
+            message: trimmed,
+          });
+          setRouting(false);
+          return;
+        }
+      } catch {
+        // Router failure shouldn't block chat. Fall through.
+      }
+      setRouting(false);
+    }
+
     let sessionId = active?.id;
     // If no session is selected yet, create a task + session. The task
     // title starts as a chip-or-snippet placeholder and is replaced once
@@ -515,6 +661,9 @@ export function ChatPane({
           : { ...s, messages: [...s.messages, optimisticPmMsg] },
       ),
     );
+    // The session now carries the message — clear the welcome-area echo
+    // so we don't show it twice.
+    setPendingMessage(null);
 
     const sid = sessionId!;
     streamChatMessage(
@@ -551,8 +700,65 @@ export function ChatPane({
     );
   }
 
+  /** PM confirmed the router's suggestion. Set up the memo flow with the
+   *  suggested workflow + ticker and fire ``sendMemo`` immediately so the
+   *  PM doesn't have to hit Send a second time. */
+  async function confirmRouterSuggestion() {
+    if (!pendingRoute) return;
+    const { command, ticker, message } = pendingRoute;
+    setPendingRoute(null);
+    if (!ticker) {
+      // Workflow detected but no ticker — fall back to chat with the
+      // original message so the PM can clarify in conversation.
+      setInput(message);
+      setPendingMessage(null);
+      return;
+    }
+    setPendingMessage(null);
+    await sendMemo(message, ticker, command, active?.id);
+  }
+
+  /** PM said "just chat" — drop the suggestion and send the message
+   *  through the regular chat path (with the same composer text). */
+  function cancelRouterSuggestion(continueAsChat: boolean) {
+    if (!pendingRoute) return;
+    const message = pendingRoute.message;
+    setPendingRoute(null);
+    if (continueAsChat) {
+      // Push the message through chat. ``send`` already early-exits when
+      // pendingRoute is null (we just cleared it), so this won't recurse.
+      send(message);
+    } else {
+      // Restore the message into the composer so the PM can edit and retry.
+      setInput(message);
+      setPendingMessage(null);
+    }
+  }
+
   function toggleChip(label: string) {
-    setSelectedChip((prev) => (prev === label ? null : label));
+    setSelectedChip((prev) => {
+      const next = prev === label ? null : label;
+      // The generic "Memo" chip activates the default memo flow with the
+      // ``pitch-memo`` template; everything else (Morning brief, Catalysts,
+      // ...) stays in chat mode for now.
+      if (label === 'Memo') {
+        setSelectedTemplate(next === 'Memo' ? 'pitch-memo' : null);
+      } else if (prev === 'Memo') {
+        // Switching away from Memo → exit the memo flow.
+        setSelectedTemplate(null);
+      }
+      return next;
+    });
+  }
+
+  /** Pack workflow chip click: select it as the active task type AND set
+   *  the planner template. Same end-state as toggleChip('Memo'), just with
+   *  a pack-specific command. */
+  function chooseWorkflow(workflow: ApiPackWorkflow) {
+    setSelectedChip((prev) => (prev === workflow.name ? null : workflow.name));
+    setSelectedTemplate((prev) => (
+      prev === workflow.command ? null : workflow.command
+    ));
   }
 
   return (
@@ -686,21 +892,50 @@ export function ChatPane({
           ref={scrollRef}
           className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4 max-w-3xl w-full mx-auto"
         >
-          {!active ? (
-            <WelcomePanel
-              counterparty={counterparty}
-              counterpartyName={counterpartyName}
-              selectedChip={selectedChip}
-              onChip={toggleChip}
-              memoCandidates={memoCandidates}
-              memoTicker={memoTicker}
-              memoSuggesting={memoSuggesting}
-              onMemoTicker={setMemoTicker}
-            />
-          ) : active.messages.length === 0 && streamingText === null && memoRun === null ? (
-            <div className="mt-12 text-center text-sm text-muted-foreground italic">
-              Type to start. Shift+Enter for newline.
-            </div>
+          {!active || (active.messages.length === 0 && streamingText === null && memoRun === null) ? (
+            // No active session OR a brand-new empty session — both land on
+            // the welcome panel so the pack workflow chips stay reachable
+            // when the PM clicks "+ New task" or "+ New session" on a
+            // pack-aware analyst.
+            <>
+              <WelcomePanel
+                counterparty={counterparty}
+                counterpartyName={counterpartyName}
+                selectedChip={selectedChip}
+                onChip={toggleChip}
+                memoCandidates={memoCandidates}
+                memoTicker={memoTicker}
+                memoSuggesting={memoSuggesting}
+                onMemoTicker={setMemoTicker}
+                packWorkflows={packWorkflows}
+                genericWorkflows={genericWorkflows}
+                onWorkflow={chooseWorkflow}
+                selectedTemplate={selectedTemplate}
+              />
+              {/* Echo the PM's message immediately on Send — so they don't
+                  stare at a "Routing…" button wondering if their input was
+                  even received. Cleared once a real session message takes
+                  over (chat path) or a memo run kicks off. */}
+              {pendingMessage && (
+                <div className="mt-6">
+                  <Bubble
+                    msg={{
+                      id: 'pending-pm',
+                      role: 'pm',
+                      text: pendingMessage,
+                      ts: new Date().toISOString(),
+                    }}
+                    counterparty={counterparty}
+                  />
+                  {(routing || pendingRoute) && (
+                    <div className="flex gap-3 mt-2 text-xs text-muted-foreground italic items-center">
+                      <Loader2 className="w-3 h-3 animate-spin text-primary shrink-0" />
+                      {routing ? 'Routing your message…' : 'Confirm or cancel the suggestion below to continue.'}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           ) : (
             <>
               {active.messages.map((m) => (
@@ -728,6 +963,63 @@ export function ChatPane({
 
         <div className="border-t border-border bg-background/80 px-4 py-3">
           <div className="max-w-3xl mx-auto space-y-2">
+            {/* Router suggestion — Haiku detected a workflow intent in the
+                PM's message. Confirm to run it, or fall through to chat. */}
+            {pendingRoute && (
+              <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0 text-xs">
+                    <div className="font-medium">
+                      Detected:{' '}
+                      <span className="text-primary">{pendingRoute.name}</span>
+                      {pendingRoute.ticker && (
+                        <>
+                          {' '}on{' '}
+                          <code className="font-mono text-primary">{pendingRoute.ticker}</code>
+                        </>
+                      )}
+                    </div>
+                    {pendingRoute.description && (
+                      <div className="text-muted-foreground mt-0.5 line-clamp-2">
+                        {pendingRoute.description}
+                      </div>
+                    )}
+                    {!pendingRoute.ticker && (
+                      <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
+                        Couldn't resolve a ticker — falling back to chat unless you confirm anyway.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button
+                    variant="ghost" size="sm"
+                    onClick={() => cancelRouterSuggestion(false)}
+                    title="Drop the suggestion and edit your message"
+                  >
+                    Edit message
+                  </Button>
+                  <Button
+                    variant="outline" size="sm"
+                    onClick={() => cancelRouterSuggestion(true)}
+                    title="Send the message through normal chat instead"
+                  >
+                    Just chat
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={confirmRouterSuggestion}
+                    disabled={!pendingRoute.ticker}
+                    title={pendingRoute.ticker ? 'Run this workflow' : 'No ticker resolved'}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Run {pendingRoute.name}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Selected chip tag — only when a new (no session) task is being framed */}
             {!active && selectedChip && (
               <div className="flex items-center gap-2">
@@ -787,10 +1079,21 @@ export function ChatPane({
               </div>
               <Button
                 onClick={() => send(input)}
-                disabled={!input.trim() || sending || (selectedChip === 'Memo' && !memoTicker && !active)}
+                disabled={
+                  !input.trim()
+                  || sending
+                  || routing
+                  || pendingRoute !== null
+                  || (selectedTemplate !== null && !memoTicker && !active)
+                }
                 size="sm"
               >
-                {!active && selectedChip === 'Memo' && memoTicker ? (
+                {routing ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Routing…
+                  </>
+                ) : !active && selectedTemplate !== null && memoTicker ? (
                   <>
                     <FileText className="w-3.5 h-3.5" />
                     Run memo · {memoTicker}
@@ -895,6 +1198,10 @@ function WelcomePanel({
   memoTicker,
   memoSuggesting,
   onMemoTicker,
+  packWorkflows,
+  genericWorkflows,
+  onWorkflow,
+  selectedTemplate,
 }: {
   counterparty: CounterpartyAvatar;
   counterpartyName?: string;
@@ -904,10 +1211,26 @@ function WelcomePanel({
   memoTicker: string | null;
   memoSuggesting: boolean;
   onMemoTicker: (ticker: string | null) => void;
+  packWorkflows?: ApiPackWorkflow[];
+  /** Persona-agnostic templates (pitch-memo, etc.) shown as a dropdown
+   *  next to a pack's chips so the PM can still run a generic workflow
+   *  against a persona-hired analyst. */
+  genericWorkflows?: ApiWorkflow[];
+  onWorkflow: (workflow: ApiPackWorkflow) => void;
+  selectedTemplate: string | null;
 }) {
   const greeting = counterpartyName
     ? `Hey boss — what would you like ${counterpartyName} to work on?`
     : `Hey boss — what would you like to work on?`;
+
+  // Pack-based analysts replace the generic chips with their pack's
+  // named pipelines. "The menu is the persona" — Buffett's chips are
+  // not the same as the master agent's chips.
+  const usePackChips = (packWorkflows?.length ?? 0) > 0;
+  const subtitle = usePackChips
+    ? "Pick one of this analyst's pipelines, then describe the company you want them to look at."
+    : 'Pick a task type below (optional), then describe what you need in the composer.';
+
   return (
     <div className="mt-8 max-w-2xl mx-auto text-center space-y-5">
       <div className="flex items-center justify-center gap-3">
@@ -915,39 +1238,180 @@ function WelcomePanel({
       </div>
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{greeting}</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pick a task type below (optional), then describe what you need in the composer.
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
       </div>
-      <div className="flex flex-wrap justify-center gap-2 pt-2">
-        {TASK_TYPE_CHIPS.map((c) => {
-          const isSelected = selectedChip === c.label;
-          return (
-            <button
-              key={c.id}
-              onClick={() => onChip(c.label)}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
-                isSelected
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary text-secondary-foreground border-border hover:bg-accent hover:border-primary/40',
+      <div className="flex flex-wrap justify-center items-center gap-2 pt-2">
+        {usePackChips
+          ? <>
+              {packWorkflows!.map((wf) => {
+                const isSelected = selectedTemplate === wf.command;
+                return (
+                  <button
+                    key={wf.command}
+                    onClick={() => onWorkflow(wf)}
+                    title={wf.description}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-secondary text-secondary-foreground border-border hover:bg-accent hover:border-primary/40',
+                    )}
+                  >
+                    <FileText className="w-3 h-3" />
+                    {wf.name}
+                  </button>
+                );
+              })}
+              {(genericWorkflows?.length ?? 0) > 0 && (
+                <GenericWorkflowDropdown
+                  workflows={genericWorkflows!}
+                  selectedTemplate={selectedTemplate}
+                  onPick={onWorkflow}
+                />
               )}
-            >
-              {c.icon}
-              {c.label}
-            </button>
-          );
-        })}
+            </>
+          : TASK_TYPE_CHIPS.map((c) => {
+              const isSelected = selectedChip === c.label;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => onChip(c.label)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary text-secondary-foreground border-border hover:bg-accent hover:border-primary/40',
+                  )}
+                >
+                  {c.icon}
+                  {c.label}
+                </button>
+              );
+            })}
       </div>
-      {selectedChip === 'Memo' && (
-        <MemoTickerPicker
+      {selectedTemplate !== null && (
+        <MemoTickerStatus
           candidates={memoCandidates}
-          selected={memoTicker}
+          ticker={memoTicker}
           suggesting={memoSuggesting}
-          onSelect={onMemoTicker}
+          onClear={() => onMemoTicker(null)}
         />
       )}
     </div>
+  );
+}
+
+/** Inline status shown under the chip row whenever a memo workflow is
+ *  active. Replaces the old ticker-picker grid: the PM mentions the
+ *  ticker in the composer message and Haiku auto-resolves it server-side.
+ *  We only surface the *result* here — a small pill when we've got one,
+ *  a hint otherwise. */
+function MemoTickerStatus({
+  candidates,
+  ticker,
+  suggesting,
+  onClear,
+}: {
+  candidates: ApiMemoCandidate[];
+  ticker: string | null;
+  suggesting: boolean;
+  onClear: () => void;
+}) {
+  // When there's no coverage at all, ticker auto-resolution can't work —
+  // ``suggestMemoTicker`` has nothing to pick from. Steer the PM to fix
+  // the root cause instead of leaving them poking a disabled Send button.
+  if (candidates.length === 0) {
+    return (
+      <div className="text-[11px] text-muted-foreground italic mt-1">
+        No coverage tickers found. Add tickers to this analyst's coverage
+        (or your watchlist for the master agent) to run a memo.
+      </div>
+    );
+  }
+  if (ticker) {
+    return (
+      <div className="flex items-center justify-center gap-1.5 text-[11px] mt-1">
+        <span className="text-muted-foreground">Targeting</span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono text-[11px] font-medium">
+          {ticker}
+          <button
+            onClick={onClear}
+            className="text-primary/70 hover:text-primary"
+            title="Clear — re-resolve from your next message"
+            aria-label="Clear targeted ticker"
+          >
+            <X className="w-2.5 h-2.5" />
+          </button>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground italic mt-1">
+      {suggesting ? (
+        <>
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Resolving ticker from your message…
+        </>
+      ) : (
+        <>Mention a ticker in your message — I'll pick it up.</>
+      )}
+    </div>
+  );
+}
+
+
+/** Native ``<select>`` dressed as a chip — sits next to a pack's named
+ *  workflows so a persona-hired analyst can still drive a generic
+ *  ``pitch-memo`` / ``earnings-reaction`` / etc. when the PM wants to
+ *  compare frameworks. Picking an option synthesizes an
+ *  :class:`ApiPackWorkflow` shape and routes it through the same
+ *  ``onWorkflow`` handler the persona chips use, so all downstream
+ *  state transitions stay identical. */
+function GenericWorkflowDropdown({
+  workflows,
+  selectedTemplate,
+  onPick,
+}: {
+  workflows: ApiWorkflow[];
+  selectedTemplate: string | null;
+  onPick: (wf: ApiPackWorkflow) => void;
+}) {
+  // Reflect the active template back to the <select> so it visually
+  // tracks which generic was picked (or returns to placeholder when
+  // another chip became active).
+  const currentValue = selectedTemplate && workflows.some((w) => w.name === selectedTemplate)
+    ? selectedTemplate
+    : '';
+
+  return (
+    <Select
+      aria-label="Run a generic workflow"
+      title="Generic workflows — persona-agnostic templates the analyst can still run."
+      value={currentValue}
+      onChange={(e) => {
+        const cmd = e.target.value;
+        const wf = workflows.find((w) => w.name === cmd);
+        if (!wf) return;
+        onPick({
+          command: wf.name,
+          name: wf.display_name,
+          description: wf.description ?? '',
+        });
+      }}
+      // Match the chip row's height + rhythm — taller than the default
+      // 32px so we don't look out of place beside the buttons.
+      className="h-[34px] text-xs font-medium border-border"
+    >
+      <option value="" disabled>
+        Generic ▾
+      </option>
+      {workflows.map((wf) => (
+        <option key={wf.name} value={wf.name}>
+          {wf.display_name}
+        </option>
+      ))}
+    </Select>
   );
 }
 
@@ -1018,10 +1482,24 @@ function MemoTickerPicker({
   );
 }
 
+/** How "advanced" each task status is. Used by ``mergeMemoTasks`` to pick
+ *  the more-progressed state when the memo-SSE channel and the engagement
+ *  SSE channel disagree (which happens routinely: events can buffer or
+ *  arrive out of order across the two streams). */
+const STATUS_RANK: Record<string, number> = {
+  pending:        0,
+  blocked:        0,
+  'in-progress':  1,
+  review:         2,
+  done:           3,
+  error:          3,
+  cancelled:      3,
+};
+
 /** Merge the in-flight memo-run state with the engagement-context's
- *  on-disk task state. Memo SSE wins for tasks it knows about (richer
- *  data: elapsed, error message); the context fills in anything else
- *  (e.g. on page refresh, when memoRun is null but disk has tasks). */
+ *  on-disk task state. We pick the *more advanced* status from either
+ *  channel — so a missed memo-SSE ``task_done`` doesn't leave a row
+ *  spinning forever when the engagement SSE already saw the disk write. */
 function mergeMemoTasks(
   runTasks: MemoRunTask[],
   liveTasks: ApiEngagementTask[],
@@ -1040,9 +1518,9 @@ function mergeMemoTasks(
   return runTasks.map((rt) => {
     const live = liveById.get(rt.id);
     if (!live) return rt;
-    // Memo-run status leads; if memo says pending but disk says done,
-    // trust disk (the SSE may have missed the transition after refresh).
-    const status: MemoRunStatus = rt.status === 'pending'
+    const rtRank   = STATUS_RANK[rt.status] ?? 0;
+    const liveRank = STATUS_RANK[live.status] ?? 0;
+    const status: MemoRunStatus = liveRank > rtRank
       ? (live.status as MemoRunStatus)
       : rt.status;
     return {
@@ -1052,6 +1530,21 @@ function mergeMemoTasks(
     };
   });
 }
+
+/** Engagement-phase taxonomy used to group the in-chat task list. Mirrors
+ *  ``compass.engagement.PHASES`` so the order stays consistent with the
+ *  right-rail Tasks tab. */
+const MEMO_STAGE_ORDER: MemoRunTask['stage'][] = [
+  'setup', 'ingest', 'analyze', 'compose', 'maintain',
+];
+
+const MEMO_STAGE_LABEL: Record<string, string> = {
+  setup:    'Setup',
+  ingest:   'Ingest',
+  analyze:  'Analyze',
+  compose:  'Compose',
+  maintain: 'Maintain',
+};
 
 function MemoRunPanel({
   run,
@@ -1070,24 +1563,66 @@ function MemoRunPanel({
   const template = run?.template ?? 'pitch-memo';
   const analyst = run?.analyst;
   const tasks = mergeMemoTasks(run?.tasks ?? [], liveTasks);
-  const memoText = run?.memoText ?? null;
-  const memoPath = run?.memoPath ?? null;
   const finished = run?.finished ?? false;
   const error = run?.error;
+
+  // "All tasks done" — both the in-flight memoRun and the resumed-from-disk
+  // case (run === null, liveTasks all done). Drives the default-collapsed
+  // disclosure: once everything's finished the chat bubble is the headline
+  // output, not the task list.
+  const allDone = tasks.length > 0 && tasks.every((t) => t.status === 'done');
+  const isCompleted = finished || (run === null && allDone);
+
+  // Default-collapse the task list when the run is done. While in flight,
+  // the PM wants to see what's happening live; once finished the bubble
+  // takes over and the list becomes a "what did you do?" disclosure.
+  const [expanded, setExpanded] = useState(!isCompleted);
+  useEffect(() => {
+    if (isCompleted) setExpanded(false);
+  }, [isCompleted]);
+
+  // Group by stage. Tasks without a known stage land in a fallthrough
+  // bucket at the end so they're still visible.
+  const grouped = useMemo(() => {
+    const m = new Map<string, MemoRunTask[]>();
+    for (const t of tasks) {
+      const key = MEMO_STAGE_ORDER.includes(t.stage as MemoRunTask['stage']) ? t.stage : 'other';
+      (m.get(key) ?? m.set(key, []).get(key)!).push(t);
+    }
+    const order = [...MEMO_STAGE_ORDER, 'other'];
+    return order
+      .filter((k) => (m.get(k) ?? []).length > 0)
+      .map((stage) => ({
+        stage,
+        items: m.get(stage)!,
+        done: m.get(stage)!.filter((t) => t.status === 'done').length,
+        total: m.get(stage)!.length,
+      }));
+  }, [tasks]);
+
+  const totalDone = tasks.filter((t) => t.status === 'done').length;
 
   return (
     <div className="flex gap-3">
       <Avatar initials={counterparty.initials} color={counterparty.color} size="sm" />
-      <div className="flex-1 min-w-0 space-y-3">
+      <div className="flex-1 min-w-0">
         <div className="rounded-lg border border-border bg-card text-card-foreground px-4 py-3">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
-              Memo · {ticker} · {template}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground truncate">
+                Memo · {ticker} · {template}
+              </div>
+              {isCompleted && (
+                <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+              )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {totalDone}/{tasks.length}
+              </span>
               {!run && !finished && (
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  resumed from disk
+                  resumed
                 </span>
               )}
               <span
@@ -1098,40 +1633,63 @@ function MemoRunPanel({
                 title={engagementConnected ? 'Live events connected' : 'Events disconnected'}
               />
               {analyst && (
-                <div className="text-[10px] text-muted-foreground">filed under {analyst}</div>
+                <div className="text-[10px] text-muted-foreground">{analyst}</div>
+              )}
+              {/* Toggle button — useful both for collapsing a long live
+                  list and for expanding the post-completion disclosure. */}
+              {tasks.length > 0 && (
+                <button
+                  onClick={() => setExpanded((v) => !v)}
+                  className="text-muted-foreground hover:text-foreground p-0.5"
+                  title={expanded ? 'Hide tasks' : 'Show tasks'}
+                >
+                  {expanded
+                    ? <ChevronDown className="w-3 h-3" />
+                    : <ChevronRight className="w-3 h-3" />}
+                </button>
               )}
             </div>
           </div>
+
           {tasks.length === 0 ? (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic mt-2">
               <Loader2 className="w-3 h-3 animate-spin" /> Planning…
             </div>
-          ) : (
-            <ol className="space-y-1">
-              {tasks.map((t) => (
-                <MemoRunRow key={t.id} task={t} />
+          ) : expanded ? (
+            <div className="mt-2 space-y-2">
+              {grouped.map(({ stage, items, done, total }) => (
+                <div key={stage} className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <span>{MEMO_STAGE_LABEL[stage] ?? stage}</span>
+                    <span className="tabular-nums">{done}/{total}</span>
+                  </div>
+                  <ol className="space-y-1 pl-1 border-l border-border/60 ml-1">
+                    {items.map((t) => (
+                      <li key={t.id} className="pl-2">
+                        <MemoRunRow task={t} />
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
-            </ol>
+            </div>
+          ) : (
+            <div className="mt-1 text-[11px] text-muted-foreground italic">
+              {isCompleted
+                ? `${tasks.length} task${tasks.length === 1 ? '' : 's'} complete — expand to review.`
+                : `${totalDone}/${tasks.length} done — expand to follow live.`}
+            </div>
           )}
+
           {error && (
             <div className="mt-3 text-xs text-rose-500 flex items-center gap-1.5">
               <AlertCircle className="w-3 h-3" /> {error}
             </div>
           )}
         </div>
-        {memoText && (
-          <div className="rounded-lg border border-border bg-card text-card-foreground px-4 py-3">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
-                Assembled memo
-              </div>
-              {memoPath && (
-                <code className="text-[10px] text-muted-foreground">{memoPath}</code>
-              )}
-            </div>
-            <div className="whitespace-pre-line text-sm leading-relaxed">{memoText}</div>
-          </div>
-        )}
+        {/* memoText was rendered here as raw markdown — removed. The chat
+            bubble (master role) carries the rendered memo, so showing it
+            again here just duplicated content. */}
       </div>
     </div>
   );
@@ -1148,6 +1706,9 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
       : task.status === 'blocked'
       ? <AlertCircle className="w-3 h-3 text-amber-500" />
       : <span className="w-3 h-3 rounded-full border border-muted-foreground/40 inline-block" />;
+  // Only show the agent's "thinking out loud" excerpt while the task is
+  // actively running. It's cleared on task_done / task_start (next row).
+  const showSay = task.status === 'in-progress' && !!task.latestSay;
   return (
     <li className="flex items-start gap-2 text-xs">
       <span className="mt-0.5 shrink-0">{icon}</span>
@@ -1159,11 +1720,42 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
             <span className="text-[10px] text-muted-foreground tabular-nums">{task.elapsed.toFixed(1)}s</span>
           )}
         </div>
+        {showSay && (
+          <div className="mt-1 text-[11px] text-muted-foreground italic leading-snug border-l-2 border-primary/40 pl-2 line-clamp-3">
+            {task.latestSay}
+          </div>
+        )}
         {task.error && (
           <div className="text-[11px] text-rose-500 mt-0.5 break-words">{task.error}</div>
         )}
       </div>
     </li>
+  );
+}
+
+/** Render markdown for the analyst/master side of a chat bubble.
+ *
+ *  Headings, tables, lists, bold, code blocks — all the things Claude
+ *  cheerfully produces — get parsed via ``marked`` (already a repo dep,
+ *  used by the memo viewer). PM-side messages stay as plain text since
+ *  the user types prose and the bubble's primary-foreground colour
+ *  doesn't play nicely with prose styles.
+ *
+ *  Wrapped in try/catch because mid-stream input may be unbalanced
+ *  markdown (open code fence, half a table row) — on failure we fall
+ *  back to a plain-text render so the bubble still says *something*. */
+function MarkdownBubbleBody({ text }: { text: string }) {
+  let html: string;
+  try {
+    html = marked.parse(text, { gfm: true, breaks: false }) as string;
+  } catch {
+    return <div className="whitespace-pre-line">{text}</div>;
+  }
+  return (
+    <div
+      className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-li:my-0.5 prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-code:text-xs prose-code:bg-muted prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-table:my-3 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-hr:my-3"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 }
 
@@ -1191,7 +1783,11 @@ function Bubble({
               : 'bg-card text-card-foreground border-border',
           )}
         >
-          <div className="whitespace-pre-line">{msg.text}</div>
+          {isPM ? (
+            <div className="whitespace-pre-line">{msg.text}</div>
+          ) : (
+            <MarkdownBubbleBody text={msg.text} />
+          )}
         </div>
       </div>
     </div>
@@ -1231,8 +1827,8 @@ function StreamingBubble({
               </span>
             </div>
           ) : (
-            <div className="whitespace-pre-line">
-              {text}
+            <div className="relative">
+              <MarkdownBubbleBody text={text} />
               <span
                 className="ml-0.5 inline-block w-1.5 h-3.5 -mb-0.5 bg-primary/70 align-baseline animate-pulse rounded-sm"
                 aria-hidden

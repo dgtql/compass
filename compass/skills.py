@@ -33,7 +33,17 @@ SKILLS_DIR: Path = Path(compass.__file__).resolve().parent.parent / "skills"
 
 @dataclass
 class SkillSpec:
-    """Parsed SKILL.md frontmatter + body + filesystem location."""
+    """Parsed SKILL.md frontmatter + body + filesystem location.
+
+    ``needs`` and ``output`` drive the universal agent-skill runner — they
+    let a SKILL.md alone (no per-skill ``scripts/run.py``) describe what
+    artifacts the agent should be shown and where it should write its
+    result. The planner's ``Task.artifact_path`` still wins when set; the
+    skill's ``output`` is the default/docs.
+
+    ``runner`` is inferred at load time when not declared explicitly:
+    a skill with no ``scripts/run.py`` is assumed to be an agent skill.
+    """
 
     slug: str
     name: str
@@ -41,6 +51,9 @@ class SkillSpec:
     phase: str                       # setup | ingest | analyze | compose | maintain
     runner: str                      # 'deterministic' | 'agent'
     allowed_tools: list[str]         # tool names enabled for agent runner
+    needs: list[str]                 # artifact categories the agent should be shown
+    output: str | None               # default output path pattern ({date}, {ticker} substituted)
+    max_turns: int                   # SDK loop budget for agent skills
     model: str | None
     body: str                        # SKILL.md content after frontmatter
     path: Path                       # absolute path to the skill directory
@@ -52,6 +65,10 @@ class SkillSpec:
     @property
     def run_py(self) -> Path:
         return self.scripts_dir / "run.py"
+
+    @property
+    def references_dir(self) -> Path:
+        return self.path / "references"
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +98,18 @@ def list_skills() -> list[SkillSpec]:
 
 
 def load_skill(slug: str) -> SkillSpec:
-    """Load one skill by slug. Raises if missing or malformed."""
+    """Load one skill by slug. Raises if missing or malformed.
+
+    Inference at load time keeps externally-authored skills (Anthropic-style
+    ``SKILL.md`` + ``references/`` with no ``scripts/run.py``) droppable
+    into ``skills/<slug>/`` with no Compass-side wrapper:
+
+    - ``runner`` defaults to ``agent`` when no ``scripts/run.py`` exists.
+    - ``allowed-tools`` defaults to ``["Read"]`` for agent skills (every
+      reference-heavy skill needs at least Read to consult its own files).
+    - ``phase`` defaults to ``compose`` — the most common place for an
+      external thinking skill to land.
+    """
     skill_dir = SKILLS_DIR / slug
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():
@@ -91,14 +119,40 @@ def load_skill(slug: str) -> SkillSpec:
     text = skill_md.read_text(encoding="utf-8")
     front, body = _split_frontmatter(text)
     meta = _parse_frontmatter(front)
+
+    # allowed-tools and needs accept either a list (YAML block form) or a
+    # comma/whitespace-separated string (legacy compact form).
+    allowed_tools = _coerce_list(meta.get("allowed-tools", []))
+    needs = _coerce_list(meta.get("needs", []))
+
+    has_run_py = (skill_dir / "scripts" / "run.py").exists()
+    runner = str(meta.get("runner", "")).strip() or ("deterministic" if has_run_py else "agent")
+
+    if runner == "agent" and not allowed_tools:
+        allowed_tools = ["Read"]
+
+    raw_max_turns = meta.get("max_turns") or meta.get("max-turns")
+    try:
+        max_turns = int(raw_max_turns) if raw_max_turns else 0
+    except (TypeError, ValueError):
+        max_turns = 0
+    if max_turns <= 0:
+        max_turns = 30
+
+    output_val = meta.get("output")
+    output = str(output_val).strip() if output_val else None
+
     return SkillSpec(
         slug=slug,
-        name=meta.get("name", slug),
-        description=meta.get("description", ""),
-        phase=meta.get("phase", "compose"),
-        runner=meta.get("runner", "deterministic"),
-        allowed_tools=_split_list(meta.get("allowed-tools", "")),
-        model=meta.get("model") or None,
+        name=str(meta.get("name", slug)),
+        description=str(meta.get("description", "")),
+        phase=str(meta.get("phase", "compose")),
+        runner=runner,
+        allowed_tools=allowed_tools,
+        needs=needs,
+        output=output,
+        max_turns=max_turns,
+        model=(str(meta["model"]).strip() if meta.get("model") else None),
         body=body.strip(),
         path=skill_dir,
     )
@@ -150,18 +204,108 @@ def _split_frontmatter(text: str) -> tuple[str, str]:
     return "", text  # malformed — treat whole file as body
 
 
-def _parse_frontmatter(text: str) -> dict[str, str]:
-    """Parse a key:value-per-line frontmatter (no nesting). Values are strings."""
-    out: dict[str, str] = {}
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
+def _parse_frontmatter(text: str) -> dict[str, Any]:
+    """Parse a YAML subset rich enough for our SKILL.md frontmatter.
+
+    Supports three value shapes on top of the trivial ``key: value`` case:
+
+    * **Block scalar** — ``key: |`` (preserve newlines) or ``key: >`` (folded
+      into spaces), followed by indented continuation lines. Used by
+      external skills (e.g. Buffett) for long descriptions.
+    * **List** — ``key:`` with no value, followed by ``  - item`` lines.
+      Returns ``list[str]``. Used for ``needs:`` and ``allowed-tools:``.
+    * **Inline list** — ``key: a, b, c`` or ``key: a b c`` — still legal
+      via the string return value; the caller passes it through
+      :func:`_coerce_list` when a list is wanted.
+
+    Top-level keys must be unindented. Comments (``#…``) and blank lines
+    are ignored. Surrounding quotes on scalar values are stripped.
+    """
+    out: dict[str, Any] = {}
+    lines = text.splitlines()
+    i = 0
+    n = len(lines)
+    while i < n:
+        raw = lines[i]
+        i += 1
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
             continue
-        if ":" not in line:
+        # Indented lines aren't top-level keys — they're either continuation
+        # content we already consumed, or stray indented content we ignore.
+        if raw[:1].isspace():
             continue
-        key, _, value = line.partition(":")
-        out[key.strip()] = value.strip().strip("'\"")
+        if ":" not in raw:
+            continue
+
+        key, _, value = raw.partition(":")
+        key = key.strip()
+        value = value.strip()
+
+        # ---------- block scalar (| or >) ----------
+        if value in ("|", ">"):
+            block: list[str] = []
+            while i < n:
+                nxt = lines[i]
+                if not nxt.strip():
+                    block.append("")
+                    i += 1
+                    continue
+                if nxt[:1].isspace():
+                    block.append(nxt.strip())
+                    i += 1
+                else:
+                    break
+            while block and block[-1] == "":
+                block.pop()
+            out[key] = (" " if value == ">" else "\n").join(block)
+            continue
+
+        # ---------- list (empty value followed by `- item` lines) ----------
+        if value == "":
+            items: list[str] = []
+            saw_item = False
+            while i < n:
+                nxt = lines[i]
+                if not nxt.strip():
+                    i += 1
+                    continue
+                if not nxt[:1].isspace():
+                    break
+                ls = nxt.lstrip()
+                if ls.startswith("- "):
+                    items.append(ls[2:].strip().strip("'\""))
+                    saw_item = True
+                    i += 1
+                elif ls.startswith("-"):
+                    # Tolerate "-item" with no space.
+                    items.append(ls[1:].strip().strip("'\""))
+                    saw_item = True
+                    i += 1
+                else:
+                    break
+            out[key] = items if saw_item else ""
+            continue
+
+        # ---------- simple scalar ----------
+        out[key] = value.strip("'\"")
+
     return out
+
+
+def _coerce_list(value: Any) -> list[str]:
+    """Return ``value`` as a clean ``list[str]``.
+
+    Accepts a YAML-parsed list, a comma/whitespace-separated string, or
+    ``None``/empty. Whitespace-trims, drops empties, preserves order.
+    """
+    if value is None or value == "":
+        return []
+    if isinstance(value, list):
+        return [str(v).strip() for v in value if str(v).strip()]
+    if isinstance(value, str):
+        return _split_list(value)
+    return [str(value).strip()] if str(value).strip() else []
 
 
 def _split_list(value: str) -> list[str]:

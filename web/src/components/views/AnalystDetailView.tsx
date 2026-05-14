@@ -18,6 +18,7 @@ import {
   getAnalystTasksAll,
   getEngagementArtifact,
   getEngagementFiles,
+  getPack,
   getSectors,
   lookupTickers,
   updateAnalyst,
@@ -26,6 +27,7 @@ import {
   type ApiAnalystTaskRow,
   type ApiEngagementFile,
   type ApiEngagementTask,
+  type ApiPackWorkflow,
   type ApiTicker,
 } from '@/lib/api';
 
@@ -85,6 +87,22 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
   useEffect(() => {
     if (tab === 'deliverables' || tab === 'tasks') refreshArtifacts();
   }, [tab, refreshArtifacts]);
+
+  // If the analyst was hired from a persona pack, fetch the pack so we
+  // can render its named workflows as chat chips. The chat surface
+  // gracefully falls back to the generic chips when no pack is set.
+  const [packWorkflows, setPackWorkflows] = useState<ApiPackWorkflow[]>([]);
+  useEffect(() => {
+    if (!analyst?.pack) {
+      setPackWorkflows([]);
+      return;
+    }
+    let cancelled = false;
+    getPack(analyst.pack)
+      .then((pack) => { if (!cancelled) setPackWorkflows(pack.workflows); })
+      .catch(() => { if (!cancelled) setPackWorkflows([]); });
+    return () => { cancelled = true; };
+  }, [analyst?.pack]);
 
   // Resolve coverage tickers against the real universe (used by the
   // Coverage tab to show name + sector + cap bucket beside each symbol).
@@ -173,6 +191,7 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
             }}
             counterpartyName={analyst.name}
             placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
+            packWorkflows={packWorkflows}
             rightRailTabs={({ activeTask }) => {
               // The right rail is scoped to the active chat task's engagement.
               // When the active task carries a ticker we render live task
@@ -916,12 +935,25 @@ function EngagementFilesRail({
   }
 
   // Group by category, preserving newest-first order within each group.
+  // We order the groups so memo OUTPUTS surface at the top of the rail,
+  // then intermediate analysis, then raw ingest corpus. The PM almost
+  // always wants the deliverable first; the research trail is supporting.
   const groups = new Map<string, ApiEngagementFile[]>();
   for (const f of files) {
     const arr = groups.get(f.category) ?? [];
     arr.push(f);
     groups.set(f.category, arr);
   }
+  // Group-level sort key: outputs first (sorted by most-recent within the
+  // group), then everything else by its newest file's mtime descending.
+  const orderedGroups = Array.from(groups.entries()).sort(([, aFiles], [, bFiles]) => {
+    const aOutput = aFiles.some((f) => f.is_output) ? 0 : 1;
+    const bOutput = bFiles.some((f) => f.is_output) ? 0 : 1;
+    if (aOutput !== bOutput) return aOutput - bOutput;
+    const aNewest = Math.max(...aFiles.map((f) => f.modified_at));
+    const bNewest = Math.max(...bFiles.map((f) => f.modified_at));
+    return bNewest - aNewest;
+  });
 
   return (
     <div className="p-4 space-y-3">
@@ -935,10 +967,15 @@ function EngagementFilesRail({
         </div>
       ) : (
         <div className="space-y-3">
-          {Array.from(groups.entries()).map(([category, items]) => (
+          {orderedGroups.map(([category, items]) => (
             <section key={category}>
-              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
-                {category}
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
+                <span>{category}</span>
+                {items.some((f) => f.is_output) && (
+                  <span className="text-[9px] px-1.5 py-0 rounded bg-primary/10 text-primary normal-case tracking-normal font-medium">
+                    output
+                  </span>
+                )}
               </h4>
               <ul className="space-y-1">
                 {items.map((f) => (
@@ -1091,7 +1128,7 @@ function FileContentBody({ path, content }: { path: string; content: string }) {
     const html = marked.parse(content, { gfm: true, breaks: false }) as string;
     return (
       <div
-        className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-li:my-0.5 prose-code:text-xs prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
+        className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-li:my-0.5 prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-code:text-xs prose-code:bg-muted prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     );

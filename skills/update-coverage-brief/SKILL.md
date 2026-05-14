@@ -5,6 +5,12 @@ phase: maintain
 runner: agent
 allowed-tools: Read Write
 model: claude-sonnet-4-6
+max_turns: 20
+needs:
+  - brief
+  - memos
+  - kpis
+output: .pipeline/docs/coverage_brief.json
 ---
 
 # update-coverage-brief

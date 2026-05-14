@@ -73,6 +73,13 @@ async def run_memo_for_chat(
 
     analyst_slug = resolve_analyst_for_owner(owner_key, ticker)
     engagement = Engagement.open(ticker, analyst=analyst_slug)
+    # Fold the analyst's persona into the engagement so agent-mode skills
+    # can write in the right voice. Generic analysts (no persona text)
+    # land with ``""`` and skills behave as before.
+    from compass.analysts import get_analyst
+    analyst = get_analyst(analyst_slug)
+    if analyst and analyst.persona:
+        engagement.persona = analyst.persona
 
     _emit(on_event, {
         "type": "engagement_opened",
@@ -95,16 +102,25 @@ async def run_memo_for_chat(
 
     summary = await run_engagement(engagement, on_event=on_event)
 
-    # Surface the assembled memo (if any) so the UI can render it inline.
+    # Surface the final compose-phase artifact so the UI can render it
+    # inline. Generic templates end with ``compose-assemble``; pack
+    # templates that fold compose to a single skill call (Buffett, …)
+    # end with whatever that single task is. Either way the "final memo"
+    # is the *last* compose task that completed with an artifact_path.
     memo_path: str | None = None
     memo_text: str | None = None
-    for t in engagement.load_tasks():
-        if t.id == "compose-assemble" and t.status == "done" and t.artifact_path:
-            path = engagement.root / t.artifact_path
-            if path.exists():
-                memo_path = t.artifact_path
-                memo_text = path.read_text(encoding="utf-8", errors="replace")
-            break
+    compose_done = [
+        t for t in engagement.load_tasks()
+        if t.stage == "compose" and t.status == "done" and t.artifact_path
+    ]
+    if compose_done:
+        final = compose_done[-1]
+        # tasks.json preserves planner order, so this is the assemble-step
+        # equivalent — last to run in the compose phase.
+        path = engagement.root / final.artifact_path
+        if path.exists():
+            memo_path = final.artifact_path
+            memo_text = path.read_text(encoding="utf-8", errors="replace")
 
     _emit(on_event, {
         "type": "memo_ready",

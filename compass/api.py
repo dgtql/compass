@@ -61,6 +61,7 @@ from compass.analysts import (
     update_analyst,
     update_analyst_coverage,
 )
+from compass.packs import get_pack, list_packs
 from compass.chats import (
     append_message as chats_append_message,
     create_session as chats_create_session,
@@ -463,6 +464,22 @@ class CreateAnalystReq(BaseModel):
     title: str | None = None
 
 
+class HireFromPackReq(BaseModel):
+    """Body for ``POST /api/analysts/from-pack``.
+
+    ``pack_id`` is required; everything else lets the user override the
+    pack's defaults at hire time (rename, change sector, edit voice).
+    Coverage defaults to empty — the user adds tickers later from the
+    coverage tab or by editing.
+    """
+    pack_id: str
+    name: str | None = None
+    title: str | None = None
+    sector: str | None = None
+    persona: str | None = None
+    coverage: list[str] = []
+
+
 class UpdateCoverageReq(BaseModel):
     coverage: list[str]
 
@@ -492,6 +509,37 @@ def post_analyst(req: CreateAnalystReq) -> dict:
             coverage=req.coverage,
             persona=req.persona,
             title=req.title,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return analyst.to_dict()
+
+
+@app.post("/api/analysts/from-pack", status_code=201)
+def post_analyst_from_pack(req: HireFromPackReq) -> dict:
+    """Hire an analyst pre-filled from a persona pack.
+
+    The pack contributes title, sector hint (overridable), voice (→ persona),
+    skill toolkit (``analyst.skills``), default workflow
+    (``analyst.default_template``), and a pack id (so the chat surface
+    can later look up the pack's workflow chips).
+    """
+    pack = get_pack(req.pack_id)
+    if pack is None:
+        raise HTTPException(status_code=404, detail=f"pack not found: {req.pack_id!r}")
+    try:
+        analyst = create_analyst(
+            name=(req.name or pack.name),
+            sector=(req.sector or pack.sector_hint),
+            coverage=req.coverage,
+            persona=(req.persona if req.persona is not None else pack.voice),
+            title=(req.title or pack.title),
+            skills=pack.skills,
+            default_template=pack.default_template,
+            pack=pack.id,
+            avatar_color=pack.avatar_color,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -585,20 +633,20 @@ def get_analyst_deliverables(slug: str) -> dict:
 
 @app.get("/api/engagements/{analyst}/{ticker}/files")
 def get_engagement_files(analyst: str, ticker: str) -> dict:
-    """Intermediate research files for one engagement (everything not in ``memos/``).
+    """Every research file for one engagement, with memos surfaced first.
 
     Returns rows grouped logically by directory; the chat right rail
-    renders them under headers (Coverage brief / Filings / Snapshots /
-    Sections / KPIs / Gates / News / Transcripts). Click-to-view uses
-    the existing ``/artifact?path=…`` endpoint.
+    renders them under headers (Pitch memo / Coverage brief / Filings /
+    Snapshots / Sections / KPIs / Gates / News / Transcripts). Memo
+    outputs are included in this listing and flagged ``is_output: true``
+    so the rail can stack them at the top of the file tree.
     """
     engagement = Engagement.open(ticker, analyst=analyst)
     root = engagement.root
     items: list[dict] = []
 
-    # Same scan as deliverables, but with memos/ excluded and the
-    # .pipeline/docs/ brief explicitly included.
     scan_dirs: list[Path] = [
+        root / "memos",
         root / "analysis",
         root / "corpus",
         root / ".pipeline" / "docs",
@@ -616,6 +664,10 @@ def get_engagement_files(analyst: str, ticker: str) -> dict:
                 "category": _classify_deliverable(rel),
                 "size": p.stat().st_size,
                 "modified_at": p.stat().st_mtime,
+                # Memo outputs are the "headline" deliverable for the
+                # engagement — flagged so the UI can pin them at the top
+                # of the rail above intermediate research files.
+                "is_output": rel.startswith("memos/"),
             })
     items.sort(key=lambda o: o["modified_at"], reverse=True)
     return {
@@ -627,11 +679,14 @@ def get_engagement_files(analyst: str, ticker: str) -> dict:
 
 
 _DELIVERABLE_CATEGORIES: list[tuple[str, str]] = [
-    ("memos/pitch/",              "Pitch memo"),
-    ("memos/earnings-reaction/",  "Earnings reaction"),
-    ("memos/maintenance/",        "Maintenance update"),
-    ("memos/deep-dive/",          "Deep dive"),
-    ("memos/",                    "Memo"),
+    ("memos/pitch/",                  "Pitch memo"),
+    ("memos/earnings-reaction/",      "Earnings reaction"),
+    ("memos/maintenance/",            "Maintenance update"),
+    ("memos/deep-dive/",              "Deep dive"),
+    ("memos/buffett-pitch/",          "Buffett pitch"),
+    ("memos/buffett-quick-filter/",   "Buffett quick filter"),
+    ("memos/buffett-sell-check/",     "Buffett sell check"),
+    ("memos/",                        "Memo"),
     ("analysis/sections/",        "Section draft"),
     ("analysis/kpis/",            "KPIs"),
     ("analysis/gates/",           "Quality gate"),
@@ -920,6 +975,68 @@ def get_chat_memo_candidates(owner_key: str) -> dict:
     return {"owner_key": owner_key, "count": len(candidates), "candidates": candidates}
 
 
+class SuggestWorkflowReq(BaseModel):
+    """Body for ``POST /api/chats/{owner_key}/suggest-workflow``.
+
+    ``workflows`` is the set of workflows visible to the PM right now —
+    pack chips + the generic dropdown. The frontend has the truth about
+    what's surfaced in this chat, so it ships the list inline rather than
+    forcing the server to recompute it. ``message`` is the PM's typed
+    text the router classifies.
+    """
+    message: str
+    workflows: list[dict] = []
+
+
+@app.post("/api/chats/{owner_key}/suggest-workflow")
+async def suggest_chat_workflow(owner_key: str, req: SuggestWorkflowReq) -> dict:
+    """Route a free-form PM message to a workflow + ticker, or to chat.
+
+    Two Haiku calls in sequence: one picks the workflow (constrained to
+    the list the frontend supplied), one resolves the ticker (constrained
+    to the analyst's coverage / watchlist). Either may return ``null`` —
+    if the workflow is null we don't bother running ticker resolution,
+    since "just chat" doesn't need a target. Display name + description
+    come from the supplied workflow list so the confirmation bubble can
+    say "Detected: Full Pitch on NVDA" without a second round-trip.
+    """
+    from compass.llm import suggest_memo_ticker, suggest_workflow
+
+    workflow_command = await suggest_workflow(
+        message=req.message,
+        workflows=req.workflows,
+    )
+
+    if workflow_command is None:
+        return {
+            "workflow": None,
+            "workflow_name": None,
+            "workflow_description": None,
+            "ticker": None,
+        }
+
+    # Echo back the display name + description from the request so the UI
+    # doesn't need a second fetch to render the confirmation bubble.
+    meta = next(
+        (w for w in req.workflows if (w.get("command") or "") == workflow_command),
+        None,
+    )
+    workflow_name = meta.get("name") if meta else workflow_command
+    workflow_description = meta.get("description") if meta else None
+
+    # Workflow detected → also try to resolve a ticker so the UI can
+    # offer a concrete "Confirm: <workflow> on <ticker>" CTA.
+    candidates = _candidate_tickers_for_owner(owner_key)
+    ticker = await suggest_memo_ticker(message=req.message, candidates=candidates)
+
+    return {
+        "workflow": workflow_command,
+        "workflow_name": workflow_name,
+        "workflow_description": workflow_description,
+        "ticker": ticker,
+    }
+
+
 @app.post("/api/chats/{owner_key}/memo/suggest-ticker")
 async def suggest_chat_memo_ticker(owner_key: str, req: SuggestMemoTickerReq) -> dict:
     """Constrained LLM pick: given a PM message + candidate set, return one ticker.
@@ -1102,9 +1219,12 @@ def _format_memo_summary(summary: dict) -> str:
             lines.append(f"\nOther failed tasks: {extras}{more}.")
         lines.append("\nFull trace: `.pipeline/run.log` in the engagement root.")
         return "".join(lines)
+    # No errors, no memo_text — chat_skills picks the last completed
+    # compose-phase artifact, so this branch only fires when the compose
+    # phase produced nothing at all (e.g. blocked by an upstream skip).
     return (
-        f"Memo run for {ticker} finished {ran} tasks but didn't produce a final "
-        f"memo at `compose-assemble`. Check `.pipeline/run.log` for what was skipped."
+        f"Memo run for {ticker} finished {ran} task(s) but produced no "
+        f"compose-phase artifact. Check `.pipeline/run.log` for what was skipped."
     )
 
 
@@ -1138,8 +1258,322 @@ async def post_chat_message(owner_key: str, session_id: str, req: AppendMessageR
 # --- skill / template listings ---------------------------------------------
 
 
+_SAFE_SLUG_RE = __import__("re").compile(r"^[a-z][a-z0-9-]{1,63}$")
+
+
+def _safe_skill_slug(slug: str) -> bool:
+    """Slug rules: lowercase alphanumeric + hyphen, 2-64 chars, no leading
+    underscore (``_reference/`` is reserved). Rejects path-traversal etc."""
+    if not slug or slug.startswith("_") or slug.startswith("."):
+        return False
+    return bool(_SAFE_SLUG_RE.match(slug))
+
+
+def _safe_reference_name(name: str) -> bool:
+    """References must be plain filenames ending in ``.md`` — no subdirs."""
+    if "/" in name or "\\" in name or ".." in name:
+        return False
+    return name.endswith(".md") and len(name) <= 96
+
+
+class UploadSkillPackSpec(BaseModel):
+    """Optional pack metadata to ship alongside an uploaded skill.
+
+    When provided the upload endpoint also writes ``packs/<slug>.json``
+    and registers a parametric ``<slug>-pitch`` planner template — so
+    the newly uploaded skill is immediately hireable from the Hire modal.
+    Used by the distill flow (which always proposes a pack for a person).
+    """
+    name: str                   # display name (e.g. "Charlie Munger")
+    title: str = ""             # analyst title (defaults to "Analyst · <sector>")
+    sector_hint: str = "Information Technology"
+    voice: str = ""             # persona / chat voice for hired analyst
+    avatar_color: str = "amber"
+
+
+class UploadSkillReq(BaseModel):
+    """Body for ``POST /api/skills``.
+
+    ``content`` is the full SKILL.md (frontmatter + body). ``references``
+    is an optional list of ``{name, content}`` for files that land under
+    ``skills/<slug>/references/``. ``overwrite`` must be true to replace
+    an existing skill at the same slug. When ``pack`` is provided, a
+    ``packs/<slug>.json`` manifest is written and a parametric
+    ``<slug>-pitch`` planner template is registered so the skill is
+    immediately hireable.
+    """
+    slug: str
+    content: str
+    references: list[dict] = []
+    overwrite: bool = False
+    pack: UploadSkillPackSpec | None = None
+
+
+class DistillSkillReq(BaseModel):
+    """Body for ``POST /api/skills/distill``.
+
+    ``name`` is the famous person whose investment thinking we want to
+    distill (e.g. ``"Charlie Munger"``). ``slug`` is the target directory
+    name under ``skills/`` if/when the user later saves the result. The
+    endpoint itself does *not* write to disk — the proposed SKILL.md is
+    returned for review.
+    """
+    name: str
+    slug: str
+
+
+@app.post("/api/skills/distill")
+async def post_distill_skill(req: DistillSkillReq) -> dict:
+    """Author a SKILL.md from a famous person's Wikipedia page.
+
+    The endpoint fetches the wiki extract, then runs a one-shot Claude
+    call (OAuth via claude-agent-sdk, same as the chat surface) with the
+    bundled Buffett skill as the shape template. Returns the proposed
+    SKILL.md content so the frontend can show it in the upload form for
+    review + edit before the user commits it to disk via the regular
+    upload endpoint.
+    """
+    from compass.distill import distill_skill_from_name
+
+    if not _safe_skill_slug(req.slug):
+        raise HTTPException(
+            status_code=400,
+            detail="slug must match ^[a-z][a-z0-9-]{1,63}$ (lowercase alphanumeric + hyphen)",
+        )
+    if not req.name.strip():
+        raise HTTPException(status_code=400, detail="name is required")
+
+    try:
+        result = await distill_skill_from_name(req.name.strip(), req.slug)
+    except ValueError as exc:
+        # Wikipedia page not found.
+        raise HTTPException(status_code=404, detail=str(exc))
+    except RuntimeError as exc:
+        # SDK / OAuth failure — surface as 503 so the UI can suggest action.
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    result["suggested_pack"] = _suggested_pack_for(req.name.strip())
+    return result
+
+
+def _suggested_pack_for(person_name: str) -> dict[str, str]:
+    """Default pack metadata used by both the JSON and SSE distill endpoints."""
+    return {
+        "name": person_name,
+        "title": "Value Investor",
+        "sector_hint": "Information Technology",
+        "avatar_color": "amber",
+        "voice": (
+            f"In the voice of {person_name}. Plain-spoken, "
+            f"first-principles. Inform, don't advise — no buy/sell calls. "
+            f"Cite primary sources. Honest about what's outside the circle."
+        ),
+    }
+
+
+@app.post("/api/skills/distill/stream")
+async def post_distill_skill_stream(req: DistillSkillReq):
+    """SSE-streamed distillation — emits progress events through the slow path.
+
+    Event sequence on success::
+
+        event: wiki_start    data: {name}
+        event: wiki_done     data: {chars}
+        event: author_start  data: {model}
+        event: say           data: {delta, total_chars}  (many)
+        event: author_done   data: {chars}
+        event: done          data: {slug, name, wiki_chars, skill_md, suggested_pack}
+
+    On failure (wiki missing / SDK error) emits a single ``error`` event.
+    """
+    from compass.distill import distill_skill_from_name
+
+    if not _safe_skill_slug(req.slug):
+        raise HTTPException(
+            status_code=400,
+            detail="slug must match ^[a-z][a-z0-9-]{1,63}$ (lowercase alphanumeric + hyphen)",
+        )
+    if not req.name.strip():
+        raise HTTPException(status_code=400, detail="name is required")
+
+    import asyncio
+    import queue as _queue
+
+    q: _queue.Queue = _queue.Queue()
+    SENTINEL = object()
+
+    def _on_event(event: dict) -> None:
+        q.put(event)
+
+    async def _driver() -> dict | None:
+        try:
+            return await distill_skill_from_name(
+                req.name.strip(), req.slug, on_event=_on_event,
+            )
+        except (ValueError, RuntimeError) as exc:
+            # Surface so the consumer can emit a final ``error`` event below.
+            q.put({"type": "error", "error": str(exc)})
+            return None
+        finally:
+            q.put(SENTINEL)
+
+    async def event_gen():
+        driver_task = asyncio.create_task(_driver())
+        loop = asyncio.get_running_loop()
+        try:
+            while True:
+                item = await loop.run_in_executor(None, q.get)
+                if item is SENTINEL:
+                    break
+                ev_type = item.get("type", "event")
+                yield _sse(ev_type, item)
+        except Exception as exc:  # noqa: BLE001
+            yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
+            return
+
+        try:
+            result = await driver_task
+        except Exception as exc:  # noqa: BLE001
+            yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
+            return
+
+        if result is not None:
+            result["suggested_pack"] = _suggested_pack_for(req.name.strip())
+            yield _sse("done", result)
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
+    )
+
+
+@app.post("/api/skills", status_code=201)
+def post_skill(req: UploadSkillReq) -> dict:
+    """Upload a skill (SKILL.md + optional references/) into ``skills/<slug>/``.
+
+    Frontmatter inference applies at *load* time — an upload with only
+    ``name`` + ``description`` (Anthropic-style) loads with ``runner: agent``
+    and ``allowed-tools: [Read]`` inferred. The file is written as-is so
+    the user can keep editing it on disk; the loader does the wrapping.
+    """
+    from compass.skills import SKILLS_DIR, load_skill
+
+    if not _safe_skill_slug(req.slug):
+        raise HTTPException(
+            status_code=400,
+            detail="slug must match ^[a-z][a-z0-9-]{1,63}$ (lowercase alphanumeric + hyphen)",
+        )
+    if not req.content.strip():
+        raise HTTPException(status_code=400, detail="SKILL.md content is empty")
+
+    skill_dir = SKILLS_DIR / req.slug
+    if skill_dir.exists() and not req.overwrite:
+        raise HTTPException(
+            status_code=409,
+            detail=f"skill {req.slug!r} already exists. Re-POST with overwrite=true to replace.",
+        )
+
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    (skill_dir / "SKILL.md").write_text(req.content, encoding="utf-8")
+
+    skipped_refs: list[str] = []
+    if req.references:
+        refs_dir = skill_dir / "references"
+        refs_dir.mkdir(exist_ok=True)
+        for ref in req.references:
+            name = str(ref.get("name", "")).strip()
+            content = str(ref.get("content", ""))
+            if not _safe_reference_name(name):
+                skipped_refs.append(name or "(unnamed)")
+                continue
+            (refs_dir / name).write_text(content, encoding="utf-8")
+
+    # Validate by loading. If the frontmatter is malformed, surface the error.
+    try:
+        spec = load_skill(req.slug)
+    except Exception as exc:  # noqa: BLE001
+        # Don't leave a broken skill on disk — clean up.
+        import shutil
+        shutil.rmtree(skill_dir, ignore_errors=True)
+        raise HTTPException(
+            status_code=400,
+            detail=f"skill failed to load after write: {type(exc).__name__}: {exc}",
+        )
+
+    # If the caller supplied pack metadata (typically the distill flow),
+    # also create a hireable persona: write ``packs/<slug>.json`` and
+    # register a parametric ``<slug>-pitch`` template so the dispatcher
+    # can execute the workflow immediately.
+    created_pack_id: str | None = None
+    if req.pack is not None:
+        from compass.packs import PACKS_DIR
+        from compass.planner import register_persona_template
+        pack_id = req.slug
+        PACKS_DIR.mkdir(parents=True, exist_ok=True)
+        pack_manifest = {
+            "id": pack_id,
+            "name": req.pack.name,
+            "title": req.pack.title or f"Analyst · {req.pack.sector_hint}",
+            "sector_hint": req.pack.sector_hint,
+            "avatar_color": req.pack.avatar_color,
+            "voice": req.pack.voice,
+            "skills": [req.slug],
+            "default_template": f"{req.slug}-pitch",
+            "workflows": [
+                {
+                    "command": f"{req.slug}-pitch",
+                    "name": "Full Pitch",
+                    "description": (
+                        f"Complete {req.pack.name} analysis on a covered "
+                        f"ticker using the {req.slug} skill at compose."
+                    ),
+                },
+            ],
+        }
+        (PACKS_DIR / f"{pack_id}.json").write_text(
+            json.dumps(pack_manifest, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        register_persona_template(req.slug, req.pack.name)
+        created_pack_id = pack_id
+
+    return {
+        "slug": spec.slug,
+        "name": spec.name,
+        "phase": spec.phase,
+        "runner": spec.runner,
+        "description": spec.description,
+        "allowed_tools": spec.allowed_tools,
+        "needs": spec.needs,
+        "output": spec.output,
+        "model": spec.model,
+        "max_turns": spec.max_turns,
+        "used_by": [],
+        "in_packs": [created_pack_id] if created_pack_id else [],
+        "skipped_references": skipped_refs,
+        "pack_created": created_pack_id,
+    }
+
+
 @app.get("/api/skills")
 def get_skills() -> list[dict]:
+    """Catalog of skills with cross-references (analysts using them, packs shipping them).
+
+    The library view consumes this to render skill cards with provenance.
+    Each skill carries enough to drive filtering (phase/runner), authoring
+    cues (needs/output), and adoption signals (used_by/in_packs).
+    """
+    # Reverse-index: which analyst slugs list this skill?
+    used_by: dict[str, list[str]] = {}
+    for a in list_analysts():
+        for slug in (a.skills or []):
+            used_by.setdefault(slug, []).append(a.slug)
+    # Reverse-index: which packs ship this skill?
+    in_packs: dict[str, list[str]] = {}
+    for pack in list_packs():
+        for slug in pack.skills:
+            in_packs.setdefault(slug, []).append(pack.id)
     return [
         {
             "slug": s.slug,
@@ -1148,14 +1582,254 @@ def get_skills() -> list[dict]:
             "runner": s.runner,
             "description": s.description,
             "allowed_tools": s.allowed_tools,
+            "needs": s.needs,
+            "output": s.output,
+            "model": s.model,
+            "max_turns": s.max_turns,
+            "used_by": used_by.get(s.slug, []),
+            "in_packs": in_packs.get(s.slug, []),
         }
         for s in list_skills()
     ]
 
 
+@app.get("/api/skills/{slug}")
+def get_skill(slug: str) -> dict:
+    """Single skill with the full SKILL.md body and reference filenames.
+
+    Powers the Skills library's detail modal. The catalog endpoint
+    (``/api/skills``) omits ``body`` and ``references`` to keep listings
+    lightweight; this endpoint surfaces them when the user actually
+    clicks into a card.
+    """
+    from compass.skills import load_skill
+    try:
+        spec = load_skill(slug)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    # Reverse-index used_by + in_packs the same way ``get_skills`` does
+    # so the detail view doesn't need a second round-trip to figure out
+    # who adopted this skill.
+    used_by = [a.slug for a in list_analysts() if slug in (a.skills or [])]
+    in_packs = [p.id for p in list_packs() if slug in p.skills]
+
+    references: list[str] = []
+    if spec.references_dir.exists():
+        references = sorted(
+            p.name for p in spec.references_dir.iterdir()
+            if p.is_file() and p.name.endswith(".md")
+        )
+
+    return {
+        "slug": spec.slug,
+        "name": spec.name,
+        "phase": spec.phase,
+        "runner": spec.runner,
+        "description": spec.description,
+        "allowed_tools": spec.allowed_tools,
+        "needs": spec.needs,
+        "output": spec.output,
+        "model": spec.model,
+        "max_turns": spec.max_turns,
+        "used_by": used_by,
+        "in_packs": in_packs,
+        "body": spec.body,
+        "references": references,
+        "path": str(spec.path),
+    }
+
+
 @app.get("/api/templates")
 def get_templates() -> list[str]:
     return list_templates()
+
+
+@app.get("/api/templates/detail")
+def get_templates_detail() -> dict:
+    """Workflows catalog — every planner template with metadata.
+
+    Powers the Library → Workflows tab. Each entry carries the task count,
+    phases hit, ordered skill list, the final compose-phase output path,
+    and (when applicable) the pack that owns it + the pack's workflow
+    description. Generic templates (``pitch-memo``, ``earnings-reaction``,
+    ``maintenance-refresh``, ``deep-dive``) have no owning pack and
+    surface with ``pack_id: null``.
+    """
+    from compass.planner import inspect_template
+
+    # Reverse-index: which pack ships this workflow command, and what
+    # display label + description did the pack give it?
+    pack_meta: dict[str, dict] = {}
+    for pack in list_packs():
+        for wf in pack.workflows:
+            pack_meta[wf.command] = {
+                "pack_id": pack.id,
+                "pack_name": pack.name,
+                "display_name": wf.name,
+                "description": wf.description,
+            }
+
+    workflows: list[dict] = []
+    for name in list_templates():
+        try:
+            info = inspect_template(name)
+        except Exception as exc:  # noqa: BLE001 — never let one bad template hide the rest
+            workflows.append({"name": name, "error": str(exc)})
+            continue
+        meta = pack_meta.get(name)
+        info["pack_id"] = meta["pack_id"] if meta else None
+        info["pack_name"] = meta["pack_name"] if meta else None
+        info["display_name"] = meta["display_name"] if meta else name
+        info["description"] = meta["description"] if meta else None
+        workflows.append(info)
+    return {"workflows": workflows}
+
+
+# --- data inventory (Library → Data tab) ------------------------------------
+
+
+_DATA_CATEGORY_RULES: list[tuple[str, str, str]] = [
+    # (path_prefix, category_id, display type when no better info)
+    ("corpus/filings/",      "filings",     "Filing"),
+    ("corpus/snapshots/",    "snapshots",   "Snapshot"),
+    ("corpus/transcripts/",  "transcripts", "Transcript"),
+    ("corpus/news/",         "news",        "News"),
+    ("corpus/ownership/",    "ownership",   "Ownership"),
+    ("corpus/earnings/",     "earnings",    "Earnings history"),
+    ("corpus/research/",     "research",    "Web research"),
+]
+
+_DATE_RE = __import__("re").compile(r"(\d{4}-\d{2}-\d{2})")
+
+
+def _data_category(rel: str) -> tuple[str, str] | None:
+    """Classify a corpus file by path; returns ``(category_id, type_label)``."""
+    for prefix, cat, label in _DATA_CATEGORY_RULES:
+        if rel.startswith(prefix):
+            # Filings carry the form name in the path: corpus/filings/<FORM>/...
+            if cat == "filings":
+                parts = rel.split("/")
+                form = parts[2] if len(parts) > 2 else label
+                return cat, form
+            # Ownership splits into insider vs institutional by filename.
+            if cat == "ownership":
+                name = rel.rsplit("/", 1)[-1]
+                if name.startswith("insider"):
+                    return cat, "Insider trades"
+                if name.startswith("institutional"):
+                    return cat, "Institutional holders"
+            return cat, label
+    return None
+
+
+def _data_date(rel: str, mtime: float) -> str:
+    """Best-effort date for an artifact: filename date first, mtime fallback."""
+    m = _DATE_RE.search(rel)
+    if m:
+        return m.group(1)
+    return datetime.fromtimestamp(mtime, tz=timezone.utc).date().isoformat()
+
+
+def _fmt_size(n: int) -> str:
+    if n < 1024:
+        return f"{n} B"
+    if n < 1024 * 1024:
+        return f"{n / 1024:.1f} KB"
+    return f"{n / (1024 * 1024):.1f} MB"
+
+
+@app.get("/api/data")
+def get_data_inventory() -> dict:
+    """Inventory of fetched data across every engagement on disk.
+
+    Walks each engagement's ``corpus/`` tree, classifies files by path
+    prefix (filings / snapshots / news / transcripts / ownership /
+    earnings / research), and returns two views the Library → Data tab
+    consumes: ``inventory`` rollups (count + tickers + last updated per
+    category) and a flat newest-first ``items`` list.
+    """
+    from compass.engagement import engagements_root
+    from datetime import datetime, timezone  # noqa: F401 — see top of file
+    root = engagements_root()
+    items: list[dict] = []
+    by_cat: dict[str, dict] = {}
+
+    if not root.exists():
+        return {"inventory": [], "items": []}
+
+    for analyst_dir in sorted(root.iterdir()):
+        if not analyst_dir.is_dir():
+            continue
+        for ticker_dir in sorted(analyst_dir.iterdir()):
+            if not ticker_dir.is_dir():
+                continue
+            corpus = ticker_dir / "corpus"
+            if not corpus.exists():
+                continue
+            for p in corpus.rglob("*"):
+                if not p.is_file():
+                    continue
+                rel = p.relative_to(ticker_dir).as_posix()
+                classified = _data_category(rel)
+                if classified is None:
+                    continue
+                category, type_label = classified
+                stat = p.stat()
+                items.append({
+                    "category": category,
+                    "ticker": ticker_dir.name,
+                    "analyst": analyst_dir.name,
+                    "path": rel,
+                    "type": type_label,
+                    "date": _data_date(rel, stat.st_mtime),
+                    "size": _fmt_size(stat.st_size),
+                    "modified_at": stat.st_mtime,
+                })
+                entry = by_cat.setdefault(category, {
+                    "count": 0, "tickers": set(), "last_mtime": 0.0,
+                })
+                entry["count"] += 1
+                entry["tickers"].add(ticker_dir.name)
+                entry["last_mtime"] = max(entry["last_mtime"], stat.st_mtime)
+
+    items.sort(key=lambda o: o["modified_at"], reverse=True)
+    inventory = [
+        {
+            "category": cat,
+            "count": entry["count"],
+            "tickers": sorted(entry["tickers"]),
+            "last_updated": (
+                datetime.fromtimestamp(entry["last_mtime"], tz=timezone.utc).date().isoformat()
+                if entry["last_mtime"] else None
+            ),
+        }
+        for cat, entry in sorted(by_cat.items())
+    ]
+    return {"inventory": inventory, "items": items}
+
+
+# --- packs (persona bundles) ------------------------------------------------
+
+
+@app.get("/api/packs")
+def get_packs() -> dict:
+    """List every persona pack on disk.
+
+    Used by the Hire modal (pack selector) and by the chat surface (to
+    render an active analyst's workflow chips when the analyst was hired
+    from a pack).
+    """
+    return {"packs": [p.to_dict() for p in list_packs()]}
+
+
+@app.get("/api/packs/{pack_id}")
+def get_pack_by_id(pack_id: str) -> dict:
+    """One pack by id. 404 if not found."""
+    pack = get_pack(pack_id)
+    if pack is None:
+        raise HTTPException(status_code=404, detail=f"pack not found: {pack_id!r}")
+    return pack.to_dict()
 
 
 # --- helpers ----------------------------------------------------------------

@@ -5,6 +5,13 @@ phase: analyze
 runner: agent
 allowed-tools: Read Write
 model: claude-sonnet-4-6
+max_turns: 25
+needs:
+  - brief
+  - segments
+  - snapshots
+  - filings
+output: analysis/kpis/{ticker}__kpis.json
 ---
 
 # extract-kpis

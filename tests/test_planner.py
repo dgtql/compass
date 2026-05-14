@@ -14,13 +14,61 @@ def engagement(tmp_path, monkeypatch):
     return Engagement.open("NVDA")
 
 
-def test_templates_advertise_four(engagement) -> None:
-    assert set(list_templates()) == {
+def test_generic_templates_advertised(engagement) -> None:
+    """The four generic (persona-agnostic) templates must always be present."""
+    assert {
         "pitch-memo",
         "earnings-reaction",
         "maintenance-refresh",
         "deep-dive",
-    }
+    }.issubset(set(list_templates()))
+
+
+def test_buffett_templates_advertised(engagement) -> None:
+    """The Buffett pack ships three workflows backed by the ``buffett`` skill."""
+    advertised = set(list_templates())
+    assert {"buffett-pitch", "buffett-quick-filter", "buffett-sell-check"}.issubset(advertised)
+
+
+def test_buffett_pitch_collapses_compose_to_one_task(engagement) -> None:
+    """Buffett's compose phase is *one* holistic task, not 5 section drafts."""
+    tasks = plan(engagement, "buffett-pitch")
+    compose = [t for t in tasks if t.stage == "compose"]
+    assert len(compose) == 1
+    assert compose[0].skill == "buffett"
+    assert compose[0].params.get("path") == "B"
+    assert compose[0].artifact_path is not None
+    assert compose[0].artifact_path.startswith("memos/buffett-pitch/")
+
+
+def test_buffett_quick_filter_is_light(engagement) -> None:
+    """Path A skips heavy ingest (no 10-K parse, no KPI extraction)."""
+    tasks = plan(engagement, "buffett-quick-filter")
+    skills_used = {t.skill for t in tasks}
+    assert "parse-10k-segments" not in skills_used
+    assert "extract-kpis" not in skills_used
+    assert "buffett" in skills_used
+    compose = [t for t in tasks if t.stage == "compose"]
+    assert len(compose) == 1
+    assert compose[0].params.get("path") == "A"
+
+
+def test_buffett_sell_check_uses_sell_check_path(engagement) -> None:
+    tasks = plan(engagement, "buffett-sell-check")
+    compose = [t for t in tasks if t.stage == "compose"]
+    assert len(compose) == 1
+    assert compose[0].params.get("path") == "sell-check"
+    # Sell-check is a final deliverable, so it lives under memos/ alongside
+    # pitch + quick-filter — same surfaces, same UI rail, same backups.
+    assert compose[0].artifact_path.startswith("memos/buffett-sell-check/")
+
+
+def test_buffett_quick_filter_writes_to_memos(engagement) -> None:
+    """All three Buffett workflows are deliverables — they land in ``memos/``."""
+    tasks = plan(engagement, "buffett-quick-filter")
+    compose = [t for t in tasks if t.stage == "compose"]
+    assert len(compose) == 1
+    assert compose[0].artifact_path.startswith("memos/buffett-quick-filter/")
 
 
 def test_deep_dive_pulls_all_data_sources(engagement) -> None:

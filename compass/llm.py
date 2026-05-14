@@ -365,6 +365,103 @@ def _suggest_ticker_sync(message: str, candidates: list[dict]) -> str | None:
     return None
 
 
+async def suggest_workflow(
+    *,
+    message: str,
+    workflows: list[dict],
+) -> str | None:
+    """Pick the workflow command best fitting ``message``, or None for chat.
+
+    ``workflows`` is a list of ``{"command": ..., "name": ..., "description": ...}``
+    dicts — the workflows surfaced to the PM in their current chat
+    context (pack chips + generic dropdown). Haiku gets only this
+    constrained set so it can't invent commands; returns ``None`` when
+    the message clearly belongs to free-form chat (a follow-up question,
+    a clarification, idle conversation).
+    """
+    message = (message or "").strip()
+    if not message or not workflows:
+        return None
+    # Very short messages are almost always chat — don't spend a Haiku
+    # call on "hi" or "what?".
+    if len(message.split()) < 4:
+        return None
+
+    import asyncio
+
+    return await asyncio.to_thread(_suggest_workflow_sync, message, workflows)
+
+
+_WORKFLOW_SYSTEM_PROMPT = (
+    "You map a portfolio manager's free-text message to a single workflow "
+    "command from a constrained list. Workflows are end-to-end pipelines "
+    "(e.g. a pitch memo, a sell-criteria check). "
+    "Reply with ONLY the workflow command (lowercase, no quotes, no extra words). "
+    "If the message is a follow-up question, a clarification, idle "
+    "conversation, or doesn't clearly trigger a workflow, reply with the "
+    "single word NONE. When in doubt prefer NONE — bias toward chat over a "
+    "long pipeline run."
+)
+
+
+def _suggest_workflow_sync(message: str, workflows: list[dict]) -> str | None:
+    import asyncio
+
+    os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
+
+    roster_lines = "\n".join(
+        f"  {(w.get('command') or '').strip()} — {(w.get('name') or '').strip()}: "
+        f"{(w.get('description') or '').strip()}"
+        for w in workflows
+        if w.get("command")
+    )
+    user_prompt = (
+        f"Available workflows:\n{roster_lines}\n\n"
+        f"PM's message:\n{message}\n\n"
+        f"Pick one workflow command from the list, or NONE."
+    )
+
+    options_kwargs: dict = {
+        "model": "claude-haiku-4-5",
+        "system_prompt": _WORKFLOW_SYSTEM_PROMPT,
+        "max_turns": 1,
+        "setting_sources": None,
+        "skills": None,
+        "agents": None,
+        "cwd": str(Path.home()),
+    }
+    cli_path = _resolve_claude_cli()
+    if cli_path:
+        options_kwargs["cli_path"] = cli_path
+
+    options = ClaudeAgentOptions(**options_kwargs)
+    valid = {(w.get("command") or "").strip() for w in workflows}
+
+    async def _run() -> str:
+        parts: list[str] = []
+        async for msg in query(prompt=user_prompt, options=options):
+            if not isinstance(msg, AssistantMessage):
+                continue
+            for b in msg.content:
+                if isinstance(b, TextBlock):
+                    parts.append(b.text)
+        return "".join(parts).strip()
+
+    try:
+        raw = asyncio.run(_run())
+    except Exception:  # noqa: BLE001
+        return None
+
+    candidate = raw.strip().strip(".").strip("`").strip('"').strip("'")
+    if not candidate or candidate.upper() == "NONE":
+        return None
+    candidate = candidate.split()[0] if candidate.split() else candidate
+    candidate = candidate.strip(",.;:")
+    if candidate in valid:
+        return candidate
+    return None
+
+
 async def suggest_task_title(
     *,
     chip: str | None,

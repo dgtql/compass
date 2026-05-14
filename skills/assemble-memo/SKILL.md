@@ -5,6 +5,11 @@ phase: compose
 runner: agent
 allowed-tools: Read Write
 model: claude-sonnet-4-6
+max_turns: 20
+needs:
+  - brief
+  - sections
+output: memos/{memo_type}/{date}.md
 ---
 
 # assemble-memo

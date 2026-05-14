@@ -1,213 +1,288 @@
-import { useMemo, useState } from 'react';
-import { Library, FileText, BookOpen, BarChart3, Workflow, Plus, GitBranch, LayoutGrid } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Library, FileText, BookOpen, BarChart3, Workflow, Plus, LayoutGrid,
+  Sparkles, Loader2, Cpu,
+} from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { mockAnalysts, mockSkills } from '@/mocks/data';
-import type { Skill } from '@/types/domain';
+import { getSkills, type ApiSkill } from '@/lib/api';
+import { AuthorSkillModal } from '@/components/AuthorSkillModal';
+import { SkillDetailModal } from '@/components/SkillDetailModal';
 
-const CATEGORY_LABEL: Record<Skill['category'], string> = {
-  memo: 'Memo',
-  analysis: 'Analysis',
-  ingestion: 'Ingestion',
-  workflow: 'Workflow',
-  planner: 'Planner',
+/** Map the backend's ``phase`` to a human-friendly category label + icon.
+ *  We keep the same five categories the original mock-driven view used so
+ *  the filter row UX is unchanged. */
+const PHASE_LABEL = {
+  setup:    'Planner',
+  ingest:   'Ingestion',
+  analyze:  'Analysis',
+  compose:  'Memo',
+  maintain: 'Workflow',
+} as const satisfies Record<ApiSkill['phase'], string>;
+
+const PHASE_ICON: Record<ApiSkill['phase'], React.ComponentType<{ className?: string }>> = {
+  setup:    LayoutGrid,
+  ingest:   BookOpen,
+  analyze:  BarChart3,
+  compose:  FileText,
+  maintain: Workflow,
 };
 
-const CATEGORY_ICON: Record<Skill['category'], React.ComponentType<{ className?: string }>> = {
-  memo: FileText,
-  analysis: BarChart3,
-  ingestion: BookOpen,
-  workflow: Workflow,
-  planner: LayoutGrid,
-};
+const PHASE_ORDER: ApiSkill['phase'][] = ['setup', 'ingest', 'analyze', 'compose', 'maintain'];
 
-const STATUS_VARIANT: Record<Skill['status'], 'success' | 'secondary' | 'destructive'> = {
-  production: 'success',
-  planned: 'secondary',
-  retired: 'destructive',
-};
+type FilterPhase = ApiSkill['phase'] | 'all';
+type FilterRunner = ApiSkill['runner'] | 'all';
 
 export function SkillsView() {
-  const [category, setCategory] = useState<Skill['category'] | 'all'>('all');
-  const [status, setStatus] = useState<Skill['status'] | 'all'>('all');
+  const [skills, setSkills] = useState<ApiSkill[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [phase, setPhase] = useState<FilterPhase>('all');
+  const [runner, setRunner] = useState<FilterRunner>('all');
+  const [authorOpen, setAuthorOpen] = useState(false);
+  /** Slug of the skill currently being viewed in the detail modal, or null. */
+  const [detailSlug, setDetailSlug] = useState<string | null>(null);
+
+  const reload = () => {
+    setLoading(true);
+    setError(null);
+    getSkills()
+      .then(setSkills)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { reload(); }, []);
+
+  // Person-skills (the ones bundled into a persona pack like Buffett or
+  // Munger) live in the People tab, not here. The Skills library is the
+  // utility-building-blocks catalog: brief authors, ingest fetchers, etc.
+  const utilitySkills = useMemo(
+    () => skills.filter((s) => s.in_packs.length === 0),
+    [skills],
+  );
 
   const filtered = useMemo(() => {
-    return mockSkills.filter((s) => {
-      if (category !== 'all' && s.category !== category) return false;
-      if (status !== 'all' && s.status !== status) return false;
+    return utilitySkills.filter((s) => {
+      if (phase !== 'all' && s.phase !== phase) return false;
+      if (runner !== 'all' && s.runner !== runner) return false;
       return true;
     });
-  }, [category, status]);
+  }, [utilitySkills, phase, runner]);
 
   const stats = useMemo(() => {
-    const counts = { production: 0, planned: 0, retired: 0 };
-    mockSkills.forEach((s) => {
-      counts[s.status]++;
-    });
+    const counts: Record<ApiSkill['phase'], number> = {
+      setup: 0, ingest: 0, analyze: 0, compose: 0, maintain: 0,
+    };
+    utilitySkills.forEach((s) => { counts[s.phase]++; });
     return counts;
-  }, []);
+  }, [utilitySkills]);
+
+  const personSkillCount = skills.length - utilitySkills.length;
 
   return (
     <div className="overflow-y-auto scrollbar-thin h-full">
       <div className="p-8 max-w-6xl mx-auto space-y-5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <Library className="w-5 h-5 text-primary" /> Skills library
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              The repertoire your analysts can use. {stats.production} live · {stats.planned} planned
-              · {stats.retired} retired.
+              {loading
+                ? 'Loading…'
+                : `${utilitySkills.length} utility skill${utilitySkills.length === 1 ? '' : 's'}. `
+                  + PHASE_ORDER
+                    .filter((p) => stats[p] > 0)
+                    .map((p) => `${stats[p]} ${PHASE_LABEL[p].toLowerCase()}`)
+                    .join(' · ')}
             </p>
+            {personSkillCount > 0 && (
+              <p className="text-[11px] text-muted-foreground italic mt-0.5">
+                {personSkillCount} persona skill{personSkillCount === 1 ? '' : 's'} live under the <strong>Talent pool</strong> tab.
+              </p>
+            )}
           </div>
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm" onClick={() => setAuthorOpen(true)}>
             <Plus className="w-3.5 h-3.5" />
             Author a skill
           </Button>
         </div>
 
+        {error && (
+          <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-md p-2">
+            Couldn't load skills: {error}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mr-1">
-            Category
+            Phase
           </span>
-          {(['all', 'memo', 'analysis', 'workflow', 'ingestion'] as const).map((c) => (
+          {(['all', ...PHASE_ORDER] as FilterPhase[]).map((p) => (
             <button
-              key={c}
-              onClick={() => setCategory(c)}
+              key={p}
+              onClick={() => setPhase(p)}
               className={cn(
-                'text-xs px-2 py-1 rounded-md font-medium transition-colors',
-                category === c
+                'text-xs px-2 py-1 rounded-md font-medium transition-colors capitalize',
+                phase === p
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-accent',
               )}
             >
-              {c === 'all' ? 'All' : CATEGORY_LABEL[c]}
+              {p === 'all' ? 'All' : PHASE_LABEL[p]}
             </button>
           ))}
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold ml-3 mr-1">
-            Status
+            Runner
           </span>
-          {(['all', 'production', 'planned', 'retired'] as const).map((s) => (
+          {(['all', 'agent', 'deterministic'] as FilterRunner[]).map((r) => (
             <button
-              key={s}
-              onClick={() => setStatus(s)}
+              key={r}
+              onClick={() => setRunner(r)}
               className={cn(
                 'text-xs px-2 py-1 rounded-md font-medium transition-colors capitalize',
-                status === s
+                runner === r
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-accent',
               )}
             >
-              {s}
+              {r}
             </button>
           ))}
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((s) => {
-            const Icon = CATEGORY_ICON[s.category];
-            const users = mockAnalysts.filter((a) => s.usedBy.includes(a.slug));
-            return (
-              <Card key={s.slug} className="flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm">{s.name}</CardTitle>
-                        <CardDescription className="text-[10px] uppercase tracking-wider mt-0.5">
-                          {CATEGORY_LABEL[s.category]}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge variant={STATUS_VARIANT[s.status]} className="text-[10px] capitalize">
-                      {s.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col gap-3">
-                  <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
-
-                  <div className="flex flex-wrap gap-1">
-                    {s.inputs.map((i) => (
-                      <span
-                        key={`in-${i}`}
-                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                      >
-                        in: {i}
-                      </span>
-                    ))}
-                    {s.outputs.map((o) => (
-                      <span
-                        key={`out-${o}`}
-                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-                      >
-                        out: {o}
-                      </span>
-                    ))}
-                  </div>
-
-                  {s.calls && s.calls.length > 0 && (
-                    <div className="border-t border-border pt-2">
-                      <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1 flex items-center gap-1">
-                        <GitBranch className="w-3 h-3" /> Stacks on
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {s.calls.map((c) => (
-                          <span
-                            key={c}
-                            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground border border-border"
-                          >
-                            → {c}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {s.stages && s.stages.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mr-1">
-                        Stages:
-                      </span>
-                      {s.stages.map((st) => (
-                        <span
-                          key={st}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 capitalize"
-                        >
-                          {st}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-auto pt-2 border-t border-border flex items-center justify-between">
-                    <div className="text-[10px] text-muted-foreground">
-                      {users.length
-                        ? `Used by ${users.map((u) => u.name.split(' ')[0]).join(', ')}`
-                        : 'No analysts have used this yet'}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs h-7 px-2"
-                      disabled={s.status !== 'production'}
-                    >
-                      {s.status === 'production' ? 'Run' : 'View'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground italic">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading skills…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-sm text-muted-foreground italic">
+            No skills match the current filters.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filtered.map((s) => (
+              <SkillCard
+                key={s.slug}
+                skill={s}
+                onOpen={() => setDetailSlug(s.slug)}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      <AuthorSkillModal
+        open={authorOpen}
+        onClose={() => setAuthorOpen(false)}
+        onCreated={() => reload()}
+      />
+      <SkillDetailModal
+        open={detailSlug !== null}
+        onClose={() => setDetailSlug(null)}
+        slug={detailSlug}
+      />
     </div>
+  );
+}
+
+function SkillCard({ skill: s, onOpen }: { skill: ApiSkill; onOpen: () => void }) {
+  const Icon = PHASE_ICON[s.phase];
+  return (
+    <Card
+      className="flex flex-col cursor-pointer transition-colors hover:border-primary/50 hover:bg-accent/30"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+              <Icon className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <CardTitle className="text-sm">{s.name}</CardTitle>
+              <CardDescription className="text-[10px] uppercase tracking-wider mt-0.5">
+                {PHASE_LABEL[s.phase]} · {s.runner}
+              </CardDescription>
+            </div>
+          </div>
+          {s.in_packs.length > 0 && (
+            <div className="flex flex-wrap gap-1 justify-end">
+              {s.in_packs.map((packId) => (
+                <Badge key={packId} variant="default" className="text-[10px] gap-1">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  {packId}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col gap-3">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
+          {s.description}
+        </p>
+
+        {/* needs (inputs) + output (the deliverable) */}
+        {(s.needs.length > 0 || s.output) && (
+          <div className="flex flex-wrap gap-1">
+            {s.needs.map((n) => (
+              <span
+                key={`in-${n}`}
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                title="Needs this artifact category"
+              >
+                in: {n}
+              </span>
+            ))}
+            {s.output && (
+              <span
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+                title="Writes this output"
+              >
+                out: {s.output}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* allowed-tools — what the agent (or the deterministic wrapper) can use */}
+        {s.allowed_tools.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mr-1 flex items-center gap-1">
+              <Cpu className="w-2.5 h-2.5" /> tools:
+            </span>
+            {s.allowed_tools.map((t) => (
+              <span
+                key={t}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-auto pt-2 border-t border-border text-[10px] text-muted-foreground">
+          {s.used_by.length === 0
+            ? 'No analysts have wired this in yet.'
+            : `Used by ${s.used_by.slice(0, 3).join(', ')}`
+              + (s.used_by.length > 3 ? ` +${s.used_by.length - 3} more` : '')}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

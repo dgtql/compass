@@ -5,6 +5,14 @@ phase: setup
 runner: agent
 allowed-tools: Read Write
 model: claude-sonnet-4-6
+max_turns: 20
+needs:
+  - brief
+  - snapshots
+  - news
+  - filings
+  - segments
+output: .pipeline/docs/coverage_brief.json
 ---
 
 # build-coverage-brief

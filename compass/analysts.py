@@ -84,6 +84,15 @@ class AnalystStats:
 
 @dataclass
 class Analyst:
+    """One analyst on the PM's pod.
+
+    ``skills`` and ``pack`` (plus ``default_template``) are pack-aware
+    fields: an analyst hired from a persona pack (e.g. ``buffett``) gets
+    its skill toolkit and default workflow pre-filled. A generic
+    hand-rolled analyst has empty ``skills`` and falls back to the
+    generic ``pitch-memo`` template at chat-trigger time.
+    """
+
     id: str
     slug: str
     name: str
@@ -97,6 +106,11 @@ class Analyst:
     hired_at: str = ""
     stats: AnalystStats = field(default_factory=AnalystStats)
     current_focus: str | None = None
+    # Pack-aware extension. Empty defaults keep older analyst records
+    # (saved before pack support landed) loadable without migration.
+    skills: list[str] = field(default_factory=list)
+    default_template: str | None = None
+    pack: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -169,6 +183,10 @@ def create_analyst(
     coverage: list[str] | None = None,
     persona: str = "",
     title: str | None = None,
+    skills: list[str] | None = None,
+    default_template: str | None = None,
+    pack: str | None = None,
+    avatar_color: str | None = None,
     path: Path | None = None,
     validate_coverage: bool = True,
 ) -> Analyst:
@@ -180,6 +198,9 @@ def create_analyst(
     * ``coverage`` tickers must exist in the universe seed when
       ``validate_coverage=True`` (default).
     * ``title`` defaults to ``"Analyst · <sector>"`` if omitted.
+    * ``skills``, ``default_template``, ``pack``, ``avatar_color`` are
+      pack-aware fields. When hiring from a pack the caller passes the
+      pack's values through. Hand-rolled analysts leave them as defaults.
     """
     from compass.universe import GICS_SECTORS, load_universe
 
@@ -215,6 +236,17 @@ def create_analyst(
 
     roster = load_roster(path=path)
     slug = _unique_slug(nm, roster)
+    clean_skills: list[str] = []
+    if skills:
+        seen_s: set[str] = set()
+        for s in skills:
+            s_clean = (s or "").strip()
+            if s_clean and s_clean not in seen_s:
+                seen_s.add(s_clean)
+                clean_skills.append(s_clean)
+
+    chosen_avatar = (avatar_color or "").strip() or _pick_color(slug)
+
     analyst = Analyst(
         id=_next_id(roster),
         slug=slug,
@@ -223,12 +255,15 @@ def create_analyst(
         sector=sector,
         coverage=coverage_clean,
         persona=(persona or "").strip(),
-        avatar_color=_pick_color(slug),
+        avatar_color=chosen_avatar,
         avatar_initials=_initials(nm),
         status="idle",
         hired_at=date.today().isoformat(),
         stats=AnalystStats(),
         current_focus=None,
+        skills=clean_skills,
+        default_template=(default_template.strip() if default_template else None),
+        pack=(pack.strip() if pack else None),
     )
     roster.analysts.append(analyst)
     save_roster(roster, path=path)

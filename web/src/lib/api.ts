@@ -145,6 +145,12 @@ export type ApiAnalyst = {
   hired_at: string;
   stats: ApiAnalystStats;
   current_focus: string | null;
+  // Pack-aware fields — populated when the analyst was hired from a
+  // persona pack. Generic hand-rolled analysts have empty `skills`,
+  // null `default_template`, and null `pack`.
+  skills?: string[];
+  default_template?: string | null;
+  pack?: string | null;
 };
 
 export type ApiAnalystList = { count: number; analysts: ApiAnalyst[] };
@@ -193,6 +199,270 @@ export function updateAnalyst(
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(patch),
+  });
+}
+
+// --- Workflows (planner templates) ---------------------------------------
+
+export type ApiWorkflow = {
+  /** Planner template slug — e.g. ``buffett-pitch``. */
+  name: string;
+  task_count: number;
+  phases: ('setup' | 'ingest' | 'analyze' | 'compose' | 'maintain')[];
+  /** Ordered, deduplicated list of skill slugs the template invokes. */
+  skills: string[];
+  /** Engagement-relative path of the compose-phase deliverable. */
+  final_output: string | null;
+  /** Pack that owns this workflow (e.g. ``buffett``) or null for the
+   *  generic templates (``pitch-memo``, ``earnings-reaction``, ...). */
+  pack_id: string | null;
+  pack_name: string | null;
+  /** Display name from the pack manifest, falls back to ``name``. */
+  display_name: string;
+  /** Pack-provided description; null for unowned generic templates. */
+  description: string | null;
+};
+
+export function getWorkflows(): Promise<{ workflows: ApiWorkflow[] }> {
+  return getJson<{ workflows: ApiWorkflow[] }>('/api/templates/detail');
+}
+
+// --- Skills (library) ----------------------------------------------------
+
+export type ApiSkill = {
+  slug: string;
+  name: string;
+  phase: 'setup' | 'ingest' | 'analyze' | 'compose' | 'maintain';
+  runner: 'deterministic' | 'agent';
+  description: string;
+  allowed_tools: string[];
+  needs: string[];
+  output: string | null;
+  model: string | null;
+  max_turns: number;
+  /** Analyst slugs whose `skills` list includes this skill. */
+  used_by: string[];
+  /** Pack ids that ship this skill in their toolkit. */
+  in_packs: string[];
+};
+
+export function getSkills(): Promise<ApiSkill[]> {
+  return getJson<ApiSkill[]>('/api/skills');
+}
+
+export type ApiSkillDetail = ApiSkill & {
+  /** Full SKILL.md body after the frontmatter — rendered as markdown
+   *  in the detail modal. */
+  body: string;
+  /** Filenames under ``skills/<slug>/references/``. */
+  references: string[];
+  /** Absolute path to ``skills/<slug>/`` for "open on disk" hints. */
+  path: string;
+};
+
+export function getSkill(slug: string): Promise<ApiSkillDetail> {
+  return getJson<ApiSkillDetail>(`/api/skills/${encodeURIComponent(slug)}`);
+}
+
+export type SuggestedPack = {
+  name: string;
+  title?: string;
+  sector_hint?: string;
+  voice?: string;
+  avatar_color?: string;
+};
+
+/** Author a SKILL.md by distilling a famous investor from their Wikipedia
+ *  page. Does NOT write to disk — returns the proposed content for review.
+ *  Also returns a ``suggested_pack`` the frontend can pass through to
+ *  ``uploadSkill`` so the saved skill comes with a hireable pack manifest. */
+export function distillSkill(body: {
+  name: string;
+  slug: string;
+}): Promise<{
+  slug: string;
+  name: string;
+  wiki_chars: number;
+  skill_md: string;
+  suggested_pack: SuggestedPack;
+}> {
+  return getJson('/api/skills/distill', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export type DistillStreamHandlers = {
+  onWikiStart?: (data: { name: string }) => void;
+  onWikiDone?: (data: { chars: number }) => void;
+  onAuthorStart?: (data: { model: string }) => void;
+  /** Streaming chunk of the authored SKILL.md as the model writes it. */
+  onSay?: (data: { delta: string; total_chars: number }) => void;
+  onAuthorDone?: (data: { chars: number }) => void;
+  onDone?: (data: {
+    slug: string;
+    name: string;
+    wiki_chars: number;
+    skill_md: string;
+    suggested_pack: SuggestedPack;
+  }) => void;
+  onError?: (err: Error) => void;
+};
+
+/** Streaming variant — emits per-stage progress so the UI can show what's
+ *  happening through the 30–60s SDK call. Returns an abort fn. */
+export function streamDistillSkill(
+  body: { name: string; slug: string },
+  handlers: DistillStreamHandlers,
+): () => void {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      const res = await fetch('/api/skills/distill/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buffer.indexOf('\n\n')) >= 0) {
+          const raw = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const ev = _parseSse(raw);
+          if (!ev) continue;
+          const d = ev.data as Record<string, unknown>;
+          switch (ev.event) {
+            case 'wiki_start':   handlers.onWikiStart?.(d as never);   break;
+            case 'wiki_done':    handlers.onWikiDone?.(d as never);    break;
+            case 'author_start': handlers.onAuthorStart?.(d as never); break;
+            case 'say':          handlers.onSay?.(d as never);         break;
+            case 'author_done':  handlers.onAuthorDone?.(d as never);  break;
+            case 'done':         handlers.onDone?.(d as never);        break;
+            case 'error':
+              handlers.onError?.(new Error((d.error as string) ?? 'distill error'));
+              break;
+          }
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      handlers.onError?.(err as Error);
+    }
+  })();
+  return () => ctrl.abort();
+}
+
+/** Upload a SKILL.md (plus optional references/) into ``skills/<slug>/``.
+ *  Slug must match ``[a-z][a-z0-9-]{1,63}``. The backend writes the file
+ *  as-is and validates by re-loading; bad frontmatter rolls the upload
+ *  back. References are name+content pairs that land under
+ *  ``skills/<slug>/references/``. */
+export function uploadSkill(body: {
+  slug: string;
+  content: string;
+  references?: { name: string; content: string }[];
+  overwrite?: boolean;
+  /** When provided, the backend also writes ``packs/<slug>.json`` and
+   *  registers a ``<slug>-pitch`` planner template so the skill is
+   *  immediately hireable. The distill flow always sends this. */
+  pack?: SuggestedPack;
+}): Promise<ApiSkill & { skipped_references?: string[]; pack_created?: string | null }> {
+  return getJson('/api/skills', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+// --- Data inventory (Library → Data tab) ----------------------------------
+
+export type ApiDataCategory =
+  | 'filings'
+  | 'snapshots'
+  | 'transcripts'
+  | 'news'
+  | 'ownership'
+  | 'earnings'
+  | 'research';
+
+export type ApiDataInventoryRow = {
+  category: ApiDataCategory;
+  count: number;
+  tickers: string[];
+  last_updated: string | null;
+};
+
+export type ApiDataItem = {
+  category: ApiDataCategory;
+  ticker: string;
+  analyst: string;
+  path: string;
+  type: string;
+  date: string;
+  size: string;
+  modified_at: number;
+};
+
+export function getDataInventory(): Promise<{
+  inventory: ApiDataInventoryRow[];
+  items: ApiDataItem[];
+}> {
+  return getJson('/api/data');
+}
+
+// --- Packs (persona bundles) ---------------------------------------------
+
+export type ApiPackWorkflow = {
+  command: string;        // planner template slug, e.g. "buffett-pitch"
+  name: string;           // chip label
+  description: string;    // tooltip / explainer
+};
+
+export type ApiPack = {
+  id: string;
+  name: string;
+  title: string;
+  sector_hint: string;
+  voice: string;
+  skills: string[];
+  default_template: string | null;
+  workflows: ApiPackWorkflow[];
+  avatar_color: string | null;
+};
+
+export function getPacks(): Promise<{ packs: ApiPack[] }> {
+  return getJson<{ packs: ApiPack[] }>('/api/packs');
+}
+
+export function getPack(packId: string): Promise<ApiPack> {
+  return getJson<ApiPack>(`/api/packs/${encodeURIComponent(packId)}`);
+}
+
+/** Hire an analyst pre-filled from a persona pack. */
+export function createAnalystFromPack(body: {
+  pack_id: string;
+  name?: string;
+  title?: string;
+  sector?: string;
+  persona?: string;
+  coverage?: string[];
+}): Promise<ApiAnalyst> {
+  return getJson<ApiAnalyst>('/api/analysts/from-pack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
   });
 }
 
@@ -438,6 +708,9 @@ export type ApiEngagementFile = {
   category: string;
   size: number;
   modified_at: number;
+  /** True for files under ``memos/`` — the engagement's headline output.
+   *  The right-rail Files view stacks these at the top. */
+  is_output?: boolean;
 };
 
 export function getEngagementFiles(analyst: string, ticker: string): Promise<{
@@ -588,6 +861,27 @@ export function getMemoCandidates(ownerKey: string): Promise<{
   return getJson(`/api/chats/${encodeURIComponent(ownerKey)}/memo/candidates`);
 }
 
+/** Route a free-form chat message to a workflow + ticker, or to plain chat.
+ *
+ *  Called from the chat composer at Send time, only when no chip is
+ *  selected. Two Haiku calls behind the scenes (workflow + ticker) — if
+ *  the message doesn't fit a workflow, returns ``workflow: null`` and
+ *  the UI continues to the regular chat path. */
+export function suggestWorkflow(
+  ownerKey: string,
+  body: {
+    message: string;
+    workflows: { command: string; name: string; description?: string }[];
+  },
+): Promise<{
+  workflow: string | null;
+  workflow_name: string | null;
+  workflow_description: string | null;
+  ticker: string | null;
+}> {
+  return jpost(`/api/chats/${encodeURIComponent(ownerKey)}/suggest-workflow`, body);
+}
+
 export function suggestMemoTicker(
   ownerKey: string,
   body: { message: string; candidates?: ApiMemoCandidate[] | null },
@@ -614,6 +908,10 @@ export type MemoStreamHandlers = {
   onTaskDone?: (data: { task_id: string; skill: string; elapsed: number; result: unknown }) => void;
   onTaskError?: (data: { task_id: string; skill: string; error: string }) => void;
   onTaskBlocked?: (data: { task_id: string; blocked_by: string[] }) => void;
+  /** Agent thinking-out-loud — assistant text emitted by the SDK loop
+   *  *during* a task. ``task_id`` is auto-attached by the dispatcher so
+   *  the UI can show the latest say under the right task row. */
+  onSay?: (data: { task_id?: string; message: string; elapsed?: number }) => void;
   onMemoReady?: (data: { memo_path: string | null; memo_text: string | null }) => void;
   onDone?: (data: { summary: Record<string, unknown>; session: ApiChatSession | null }) => void;
   onError?: (err: Error) => void;
@@ -663,6 +961,7 @@ export function streamMemoRun(
             case 'task_done':         handlers.onTaskDone?.(d as never);         break;
             case 'task_error':        handlers.onTaskError?.(d as never);        break;
             case 'task_blocked':      handlers.onTaskBlocked?.(d as never);      break;
+            case 'say':               handlers.onSay?.(d as never);              break;
             case 'memo_ready':        handlers.onMemoReady?.(d as never);        break;
             case 'done':              handlers.onDone?.(d as never);             break;
             case 'error':             handlers.onError?.(new Error((d.error as string) ?? 'memo run error')); break;

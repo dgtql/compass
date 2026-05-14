@@ -13,6 +13,8 @@ import {
   Library,
   Database,
   Bookmark,
+  Users,
+  Workflow as WorkflowIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
@@ -34,6 +36,8 @@ export type View =
   | { kind: 'knowledge' }
   | { kind: 'skills' }
   | { kind: 'data' }
+  | { kind: 'people' }
+  | { kind: 'workflows' }
   | { kind: 'analyst-detail'; slug: string }
   | { kind: 'ticker-coverage'; ticker: string };
 
@@ -187,6 +191,18 @@ export function Sidebar({ view, onNavigate, onOpenHire, analysts }: Props) {
               label="Skills"
               active={view.kind === 'skills'}
               onClick={() => onNavigate({ kind: 'skills' })}
+            />
+            <NavItem
+              icon={Users}
+              label="Talent pool"
+              active={view.kind === 'people'}
+              onClick={() => onNavigate({ kind: 'people' })}
+            />
+            <NavItem
+              icon={WorkflowIcon}
+              label="Workflows"
+              active={view.kind === 'workflows'}
+              onClick={() => onNavigate({ kind: 'workflows' })}
             />
             <NavItem
               icon={Database}

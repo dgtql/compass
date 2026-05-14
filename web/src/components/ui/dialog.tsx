@@ -34,6 +34,9 @@ export function Dialog({ open, onClose, title, description, children, maxWidth =
       <div
         className={cn(
           'relative w-full bg-card text-card-foreground rounded-lg border border-border shadow-lg',
+          // Cap height so the modal always fits the viewport; flex column
+          // so the header is sticky-feeling and the body scrolls.
+          'max-h-[90vh] flex flex-col',
           maxWidth
         )}
         role="dialog"
@@ -41,20 +44,20 @@ export function Dialog({ open, onClose, title, description, children, maxWidth =
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors z-10"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
         </button>
         {(title || description) && (
-          <div className="px-6 pt-5 pb-3 border-b border-border">
+          <div className="px-6 pt-5 pb-3 border-b border-border shrink-0">
             {title && <h2 className="text-lg font-semibold tracking-tight">{title}</h2>}
             {description && (
               <p className="text-sm text-muted-foreground mt-1">{description}</p>
             )}
           </div>
         )}
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto scrollbar-thin">{children}</div>
       </div>
     </div>
   );

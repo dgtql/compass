@@ -5,6 +5,10 @@ phase: ingest
 runner: agent
 allowed-tools: WebSearch WebFetch Write
 model: claude-sonnet-4-6
+max_turns: 25
+needs:
+  - brief
+output: corpus/research/{query_slug}-{date}.md
 ---
 
 # web-research

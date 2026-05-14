@@ -125,11 +125,19 @@ class Task:
 
 @dataclass
 class Engagement:
-    """A per-analyst, per-ticker research engagement on disk."""
+    """A per-analyst, per-ticker research engagement on disk.
+
+    ``persona`` is the analyst's voice/style guide — empty for unbranded
+    analysts, populated from ``analyst.persona`` when the engagement is
+    opened via the chat path. Agent-mode skills append this to their
+    system prompt so the framework (skill body) + voice (persona) both
+    inform the output.
+    """
 
     analyst_slug: str
     ticker: str
     root: Path
+    persona: str = ""
 
     # --- factory -----------------------------------------------------------
 

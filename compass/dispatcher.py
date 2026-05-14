@@ -62,9 +62,13 @@ async def run_engagement(
         # Block if any dependency hasn't finished successfully.
         blocked = [d for d in task.depends_on if by_id.get(d) and by_id[d].status != "done"]
         if blocked:
-            engagement.log_event(
-                {"type": "task_blocked", "task_id": task.id, "blocked_by": blocked}
-            )
+            blocked_event = {"type": "task_blocked", "task_id": task.id, "blocked_by": blocked}
+            engagement.log_event(blocked_event)
+            if on_event is not None:
+                try:
+                    on_event(blocked_event)
+                except Exception:  # noqa: BLE001
+                    pass
             skipped += 1
             continue
 
@@ -102,33 +106,70 @@ async def _run_one_task(
         except Exception:  # noqa: BLE001
             pass
 
+    # Auto-tag every event the skill emits with the current ``task_id``
+    # so the UI can correlate agent ``say`` chatter with the task that
+    # produced it (agent_helper emits ``say`` events with no task context
+    # — the dispatcher is the only layer that knows which task is running).
+    parent_on_event = on_event
+
+    def _tagged_on_event(event: dict[str, Any]) -> None:
+        if parent_on_event is None:
+            return
+        merged = {"task_id": task.id, **event}
+        try:
+            parent_on_event(merged)
+        except Exception:  # noqa: BLE001 — never let a sink break the run
+            pass
+
     try:
         spec = load_skill(task.skill)
-        run_fn = import_run_function(spec)
-        result = await run_fn(engagement=engagement, task=task, on_event=on_event)
+        if spec.run_py.exists():
+            # Hand-authored Python: skill ships its own ``scripts/run.py``.
+            run_fn = import_run_function(spec)
+            result = await run_fn(engagement=engagement, task=task, on_event=_tagged_on_event)
+        else:
+            # SKILL.md only — drive via the universal runner. Frontmatter
+            # ``needs:`` / ``output:`` tell us what artifacts to surface and
+            # where the agent writes.
+            from compass.agent_helper import run_agent_skill_default
+            result = await run_agent_skill_default(
+                spec=spec, engagement=engagement, task=task, on_event=_tagged_on_event,
+            )
         task.status = "done"
         task.error = None
-        engagement.log_event(
-            {
-                "type": "task_done",
-                "task_id": task.id,
-                "skill": task.skill,
-                "elapsed": round(time.monotonic() - started, 2),
-                "result": result if isinstance(result, dict) else {"value": str(result)},
-            }
-        )
+        done_event = {
+            "type": "task_done",
+            "task_id": task.id,
+            "skill": task.skill,
+            "elapsed": round(time.monotonic() - started, 2),
+            "result": result if isinstance(result, dict) else {"value": str(result)},
+        }
+        engagement.log_event(done_event)
+        # Also forward through the dispatcher's on_event so the SSE memo
+        # stream sees the transition in real time. Without this the
+        # frontend's memoRun.tasks stayed pinned at ``in-progress`` and
+        # relied on the engagement-context refetch to catch up.
+        if on_event is not None:
+            try:
+                on_event(done_event)
+            except Exception:  # noqa: BLE001
+                pass
     except Exception as exc:  # noqa: BLE001
         task.status = "error"
         task.error = f"{type(exc).__name__}: {exc}"
-        engagement.log_event(
-            {
-                "type": "task_error",
-                "task_id": task.id,
-                "skill": task.skill,
-                "error": task.error,
-                "trace": traceback.format_exc(limit=4),
-            }
-        )
+        err_event = {
+            "type": "task_error",
+            "task_id": task.id,
+            "skill": task.skill,
+            "error": task.error,
+            "trace": traceback.format_exc(limit=4),
+        }
+        engagement.log_event(err_event)
+        if on_event is not None:
+            try:
+                on_event(err_event)
+            except Exception:  # noqa: BLE001
+                pass
     finally:
         task.finished_at = _now_iso()
 

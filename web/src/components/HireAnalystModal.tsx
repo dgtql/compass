@@ -19,10 +19,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   createAnalyst,
+  createAnalystFromPack,
   getMyUniverse,
+  getPacks,
   getSectors,
   getUniverse,
   type ApiAnalyst,
+  type ApiPack,
   type ApiTicker,
   type ApiWatchlistEntry,
 } from '@/lib/api';
@@ -34,9 +37,12 @@ type Props = {
   onClose: () => void;
   /** Fired with the created analyst after a successful POST. */
   onCreated?: (analyst: ApiAnalyst) => void;
+  /** When set, the modal pre-selects this pack on open (so deep-linking
+   *  from People → Hire lands on the right persona). */
+  initialPackId?: string | null;
 };
 
-export function HireAnalystModal({ open, onClose, onCreated }: Props) {
+export function HireAnalystModal({ open, onClose, onCreated, initialPackId }: Props) {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [sector, setSector] = useState<string | null>(null);
@@ -54,6 +60,16 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Persona packs (Buffett, ...) — fetched once on open. When a pack is
+  // selected we pre-fill the form fields below from its defaults so the
+  // user can override on the way out.
+  const [packs, setPacks] = useState<ApiPack[]>([]);
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+  const selectedPack = useMemo(
+    () => packs.find((p) => p.id === selectedPackId) ?? null,
+    [packs, selectedPackId],
+  );
+
   // Reset form whenever the modal opens (so reopening doesn't carry stale state).
   useEffect(() => {
     if (!open) return;
@@ -64,11 +80,37 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
     setCoverage(new Set());
     setUniverseMatches([]);
     setError(null);
+    setSelectedPackId(null);
     getSectors().then(setSectors).catch(() => setSectors([]));
     getMyUniverse()
       .then((wl) => setMyUniverse(wl.tickers))
       .catch(() => setMyUniverse([]));
+    getPacks()
+      .then((r) => {
+        setPacks(r.packs);
+        // Pre-select a pack if the caller asked for one (People tab deep-link).
+        if (initialPackId) {
+          const target = r.packs.find((p) => p.id === initialPackId);
+          if (target) applyPack(target);
+        }
+      })
+      .catch(() => setPacks([]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // When a pack is picked, pre-fill the form from its defaults. The user
+  // can still edit anything before hitting Hire.
+  function applyPack(pack: ApiPack | null) {
+    if (!pack) {
+      setSelectedPackId(null);
+      return;
+    }
+    setSelectedPackId(pack.id);
+    setName(pack.name);
+    setTitle(pack.title);
+    setSector(pack.sector_hint || null);
+    setPersona(pack.voice);
+  }
 
   // Fetch the broader-universe matches when sector changes.
   useEffect(() => {
@@ -131,13 +173,24 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      const analyst = await createAnalyst({
-        name: name.trim(),
-        sector,
-        coverage: Array.from(coverage),
-        persona: persona.trim(),
-        title: title.trim() || undefined,
-      });
+      const analyst = selectedPack
+        // Pack route — backend pulls skills, default_template, pack id
+        // from the pack manifest; everything else is form-overridable.
+        ? await createAnalystFromPack({
+            pack_id: selectedPack.id,
+            name: name.trim() || undefined,
+            title: title.trim() || undefined,
+            sector,
+            persona: persona.trim(),
+            coverage: Array.from(coverage),
+          })
+        : await createAnalyst({
+            name: name.trim(),
+            sector,
+            coverage: Array.from(coverage),
+            persona: persona.trim(),
+            title: title.trim() || undefined,
+          });
       onCreated?.(analyst);
       onClose();
     } catch (err) {
@@ -156,6 +209,58 @@ export function HireAnalystModal({ open, onClose, onCreated }: Props) {
       maxWidth="max-w-2xl"
     >
       <div className="space-y-5">
+        {/* Pack selector — pick a famous-PM template, or skip for a hand-rolled analyst */}
+        {packs.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Hire from a template <span className="text-muted-foreground/60 normal-case font-normal lowercase">— optional</span>
+              </label>
+              {selectedPack && (
+                <button
+                  onClick={() => applyPack(null)}
+                  disabled={submitting}
+                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {packs.map((p) => {
+                const isSelected = selectedPackId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => applyPack(isSelected ? null : p)}
+                    disabled={submitting}
+                    title={p.voice}
+                    className={cn(
+                      'text-left px-3 py-2 rounded-md border transition-colors min-w-[180px]',
+                      isSelected
+                        ? 'bg-primary/10 border-primary text-foreground'
+                        : 'bg-card border-border hover:bg-accent hover:border-primary/40',
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className={cn('w-3 h-3', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                      <span className="text-sm font-medium">{p.name}</span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                      {p.title} · {p.workflows.length} workflow{p.workflows.length === 1 ? '' : 's'}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {selectedPack && (
+              <div className="text-[11px] text-muted-foreground italic pl-1">
+                Pre-filled from <strong>{selectedPack.name}</strong>. Edit any field before hiring.
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">

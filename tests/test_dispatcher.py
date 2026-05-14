@@ -45,3 +45,36 @@ async def test_dependency_block_skips_dependent(engagement) -> None:
     # `a` is already error, `b` is blocked; neither runs anew.
     assert summary["ran"] == 0
     assert summary["skipped"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_dispatcher_falls_back_to_universal_runner(
+    engagement, monkeypatch,
+) -> None:
+    """A SKILL.md-only skill (no run.py) routes through ``run_agent_skill_default``.
+
+    Stubbing the universal runner keeps this test offline — we only check
+    the dispatch path, not that the SDK actually produced anything.
+    """
+    captured: dict[str, Any] = {}
+
+    async def stub_default_runner(*, spec, engagement, task, on_event=None):
+        captured["spec_slug"] = spec.slug
+        captured["task_id"] = task.id
+        return {"artifact": "memos/buffett-pitch/stub.md", "skill": spec.slug}
+
+    # Patch the symbol where the dispatcher imports it (lazy import inside
+    # ``_run_one_task`` resolves at call time, so patching the source module
+    # is what takes effect).
+    import compass.agent_helper as ah
+    monkeypatch.setattr(ah, "run_agent_skill_default", stub_default_runner)
+
+    # Buffett ships SKILL.md only — no scripts/run.py. Perfect probe.
+    task = Task(id="t", stage="compose", title="run buffett",
+                skill="buffett", artifact_path="memos/buffett-pitch/2026-05-13.md")
+    engagement.save_tasks([task])
+    summary = await run_engagement(engagement)
+
+    assert summary["ran"] == 1
+    assert summary["errors"] == 0
+    assert captured == {"spec_slug": "buffett", "task_id": "t"}

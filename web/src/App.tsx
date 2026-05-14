@@ -7,6 +7,8 @@ import { KnowledgeView } from '@/components/views/KnowledgeView';
 import { MasterAgentView } from '@/components/views/MasterAgentView';
 import { SkillsView } from '@/components/views/SkillsView';
 import { DataView } from '@/components/views/DataView';
+import { PeopleView } from '@/components/views/PeopleView';
+import { WorkflowsView } from '@/components/views/WorkflowsView';
 import { TickerCoverageView } from '@/components/views/TickerCoverageView';
 import { HireAnalystModal } from '@/components/HireAnalystModal';
 import { EngagementProvider } from '@/contexts/EngagementContext';
@@ -24,6 +26,8 @@ function viewToHash(v: View): string {
     case 'knowledge':       return '#/knowledge';
     case 'skills':          return '#/skills';
     case 'data':            return '#/data';
+    case 'people':          return '#/people';
+    case 'workflows':       return '#/workflows';
     case 'analyst-detail':  return `#/analyst/${encodeURIComponent(v.slug)}`;
     case 'ticker-coverage': return `#/ticker/${encodeURIComponent(v.ticker)}`;
   }
@@ -39,6 +43,8 @@ function hashToView(hash: string): View {
     case 'knowledge':    return { kind: 'knowledge' };
     case 'skills':       return { kind: 'skills' };
     case 'data':         return { kind: 'data' };
+    case 'people':       return { kind: 'people' };
+    case 'workflows':    return { kind: 'workflows' };
     case 'analyst':      return arg ? { kind: 'analyst-detail', slug: decodeURIComponent(arg) } : { kind: 'dashboard' };
     case 'ticker':       return arg ? { kind: 'ticker-coverage', ticker: decodeURIComponent(arg) } : { kind: 'dashboard' };
     default:             return { kind: 'dashboard' };
@@ -48,6 +54,9 @@ function hashToView(hash: string): View {
 export function App() {
   const [view, setView] = useState<View>(() => hashToView(window.location.hash));
   const [hireOpen, setHireOpen] = useState(false);
+  /** Optional pack to pre-select when the Hire modal opens. Set by the
+   *  People tab's Hire button so the modal lands on the right persona. */
+  const [hirePackId, setHirePackId] = useState<string | null>(null);
   // Suppress the hashchange→setView round trip caused by our own push.
   const lastWrittenHash = useRef<string>('');
 
@@ -120,13 +129,24 @@ export function App() {
         {view.kind === 'knowledge' && <KnowledgeView />}
         {view.kind === 'skills' && <SkillsView />}
         {view.kind === 'data' && <DataView />}
+        {view.kind === 'people' && (
+          <PeopleView
+            onHireFromPack={(packId) => {
+              setHirePackId(packId);
+              setHireOpen(true);
+            }}
+          />
+        )}
+        {view.kind === 'workflows' && <WorkflowsView />}
         {view.kind === 'ticker-coverage' && <TickerCoverageView ticker={view.ticker} />}
       </main>
       <HireAnalystModal
         open={hireOpen}
-        onClose={() => setHireOpen(false)}
+        onClose={() => { setHireOpen(false); setHirePackId(null); }}
+        initialPackId={hirePackId}
         onCreated={(a) => {
           reloadAnalysts();
+          setHirePackId(null);
           setView({ kind: 'analyst-detail', slug: a.slug });
         }}
       />
