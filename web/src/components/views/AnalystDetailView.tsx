@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pencil, Check, X, Loader2, ChevronRight, ChevronDown, Trash2, AlertTriangle } from 'lucide-react';
+import { Pencil, Check, X, Loader2, ChevronRight, ChevronDown, Trash2, AlertTriangle, Plus, Search } from 'lucide-react';
 import { marked } from 'marked';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,10 @@ import {
   getEngagementFiles,
   getPack,
   getSectors,
+  getUniverse,
   lookupTickers,
   updateAnalyst,
+  updateAnalystCoverage,
   type ApiAnalyst,
   type ApiAnalystDeliverable,
   type ApiAnalystTaskRow,
@@ -255,7 +257,11 @@ export function AnalystDetailView({
         )}
 
         {tab === 'coverage' && (
-          <div className="overflow-y-auto scrollbar-thin h-full p-6 max-w-5xl mx-auto">
+          <div className="overflow-y-auto scrollbar-thin h-full p-6 max-w-5xl mx-auto space-y-4">
+            <AddCoverageInline
+              analyst={analyst}
+              onCoverageChanged={() => onAnalystUpdated?.()}
+            />
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Coverage universe</CardTitle>
@@ -786,6 +792,183 @@ function EditRow({ label, children }: { label: string; children: React.ReactNode
       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
       {children}
     </div>
+  );
+}
+
+/** Quick-add panel for the Coverage tab. Collapsed by default — click
+ *  "Add ticker" to expand a searchable picker (coverage-aware so already-
+ *  added tickers grey out). Calls ``PUT /api/analysts/{slug}/coverage``
+ *  with the new union; on success we bubble ``onCoverageChanged`` which
+ *  triggers an analyst-roster reload so the Coverage grid re-renders. */
+function AddCoverageInline({
+  analyst,
+  onCoverageChanged,
+}: {
+  analyst: ApiAnalyst;
+  onCoverageChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [matches, setMatches] = useState<ApiTicker[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [adding, setAdding] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const coverageSet = useMemo(() => new Set(analyst.coverage), [analyst.coverage]);
+
+  // Debounced universe search. Fires at ≥ 1 char so a single-letter ticker
+  // (e.g. "C" for Citigroup) is reachable. 200ms is tight enough to feel
+  // responsive without spamming the backend.
+  useEffect(() => {
+    if (!open) return;
+    const q = query.trim();
+    if (q.length < 1) {
+      setMatches([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const handle = window.setTimeout(() => {
+      getUniverse({ query: q, limit: 15 })
+        .then((u) => setMatches(u.tickers))
+        .catch(() => setMatches([]))
+        .finally(() => setSearching(false));
+    }, 200);
+    return () => {
+      window.clearTimeout(handle);
+      setSearching(false);
+    };
+  }, [query, open]);
+
+  async function addTicker(ticker: string) {
+    if (coverageSet.has(ticker)) return;
+    setAdding(ticker);
+    setError(null);
+    try {
+      const nextCoverage = [...analyst.coverage, ticker];
+      await updateAnalystCoverage(analyst.slug, nextCoverage);
+      onCoverageChanged();
+      setQuery('');
+      setMatches([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAdding(null);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex items-center justify-end">
+        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+          <Plus className="w-3.5 h-3.5" />
+          Add ticker
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-3 space-y-0 pb-3">
+        <div>
+          <CardTitle className="text-base">Add to coverage</CardTitle>
+          <CardDescription>
+            Search the universe — try a symbol ("NVDA", "AKSO.OL"), Bloomberg form ("AKSO NO"), or company name.
+          </CardDescription>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => { setOpen(false); setQuery(''); setMatches([]); setError(null); }}
+        >
+          <X className="w-3.5 h-3.5" />
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+            placeholder="Type to search the universe…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-8 h-9 text-sm"
+          />
+        </div>
+
+        {error && (
+          <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-md p-2">
+            <strong>Couldn't add:</strong> {error}
+          </div>
+        )}
+
+        <div className="max-h-60 overflow-y-auto scrollbar-thin">
+          {searching && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground italic py-2">
+              <Loader2 className="w-3 h-3 animate-spin" /> Searching…
+            </div>
+          )}
+          {!searching && query.trim().length === 0 && (
+            <div className="text-xs text-muted-foreground italic py-2">
+              Type to search. Universe spans US (NYSE/NASDAQ/AMEX) and EU (Oslo/London/Paris/Frankfurt/Amsterdam/Swiss).
+            </div>
+          )}
+          {!searching && query.trim().length > 0 && matches.length === 0 && (
+            <div className="text-xs text-muted-foreground italic py-2">
+              No matches for "{query}".
+            </div>
+          )}
+          {!searching && matches.length > 0 && (
+            <ul className="divide-y divide-border">
+              {matches.map((t) => {
+                const already = coverageSet.has(t.ticker);
+                const isAdding = adding === t.ticker;
+                return (
+                  <li
+                    key={t.ticker}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
+                        <span className="font-mono">{t.ticker}</span>
+                        <span className="text-muted-foreground font-normal truncate">{t.name}</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {t.exchange}
+                        {t.sector ? ` · ${t.sector}` : ''}
+                        {t.cap_bucket ? ` · ${CAP_LABELS[t.cap_bucket] ?? t.cap_bucket}` : ''}
+                      </div>
+                    </div>
+                    {already ? (
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-0.5 rounded bg-muted shrink-0">
+                        already covered
+                      </span>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addTicker(t.ticker)}
+                        disabled={isAdding}
+                        className="shrink-0"
+                      >
+                        {isAdding ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Plus className="w-3.5 h-3.5" />
+                        )}
+                        Add
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
