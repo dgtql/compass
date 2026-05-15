@@ -35,10 +35,12 @@ import {
   deleteChatTask,
   getChats,
   getMemoCandidates,
+  getUniverse,
   getWorkflows,
   saveDataSpec,
   suggestWorkflow,
   type ApiPackWorkflow,
+  type ApiTicker,
   type ApiWorkflow,
   streamChatMessage,
   streamMemoRun,
@@ -1086,11 +1088,24 @@ export function ChatPane({
                     )}
                     {!pendingRoute.ticker && (
                       <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
-                        Couldn't resolve a ticker — falling back to chat unless you confirm anyway.
+                        Couldn't auto-resolve a ticker — pick one below.
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* Ticker picker — visible when the router couldn't resolve
+                    one from the message. Searches coverage first (instant,
+                    in-memory), then the broader universe as the PM types. */}
+                {!pendingRoute.ticker && (
+                  <RouteTickerPicker
+                    candidates={memoCandidates}
+                    onPick={(ticker) => setPendingRoute((prev) => (
+                      prev ? { ...prev, ticker } : prev
+                    ))}
+                  />
+                )}
+
                 <div className="flex flex-wrap gap-2 justify-end">
                   <Button
                     variant="ghost" size="sm"
@@ -1110,7 +1125,7 @@ export function ChatPane({
                     size="sm"
                     onClick={confirmRouterSuggestion}
                     disabled={!pendingRoute.ticker}
-                    title={pendingRoute.ticker ? 'Run this workflow' : 'No ticker resolved'}
+                    title={pendingRoute.ticker ? 'Run this workflow' : 'Pick a ticker first'}
                   >
                     <Sparkles className="w-3 h-3" />
                     Run {pendingRoute.name}
@@ -1506,6 +1521,172 @@ function WelcomePanel({
  *  ticker in the composer message and Haiku auto-resolves it server-side.
  *  We only surface the *result* here — a small pill when we've got one,
  *  a hint otherwise. */
+/** Searchable ticker picker shown inside the router-suggestion banner
+ *  when Haiku detected a workflow but couldn't bind it to a ticker.
+ *
+ *  Two tiers:
+ *
+ *    1. **Coverage** — the analyst's coverage list (memoCandidates).
+ *       Filtered in-memory by the search query; renders as clickable chips.
+ *    2. **Universe** — debounced server-side ranked search via
+ *       ``getUniverse``. Excludes coverage tickers to avoid duplicates.
+ *       Fires only when the query is ≥ 2 chars.
+ *
+ *  Clicking a chip calls ``onPick`` with the ticker string. The parent
+ *  (the pendingRoute confirmation card) then enables the Run button.
+ */
+function RouteTickerPicker({
+  candidates,
+  onPick,
+}: {
+  candidates: ApiMemoCandidate[];
+  onPick: (ticker: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [universeMatches, setUniverseMatches] = useState<ApiTicker[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  // Coverage filter — instant, since the list is small and already loaded.
+  const filteredCoverage = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return candidates;
+    return candidates.filter((c) =>
+      (c.ticker || '').toLowerCase().includes(q)
+      || (c.name || '').toLowerCase().includes(q)
+    );
+  }, [candidates, query]);
+
+  // Debounced universe search — only when the PM has typed something
+  // substantial. 200ms is short enough to feel responsive, long enough
+  // to coalesce keystrokes.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setUniverseMatches([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const handle = window.setTimeout(() => {
+      getUniverse({ query: q, limit: 8 })
+        .then((u) => setUniverseMatches(u.tickers))
+        .catch(() => setUniverseMatches([]))
+        .finally(() => setSearching(false));
+    }, 200);
+    return () => {
+      window.clearTimeout(handle);
+      setSearching(false);
+    };
+  }, [query]);
+
+  // Universe results minus tickers already shown under Coverage.
+  const universeOnly = useMemo(() => {
+    const coverageSet = new Set(candidates.map((c) => c.ticker));
+    return universeMatches.filter((t) => !coverageSet.has(t.ticker));
+  }, [universeMatches, candidates]);
+
+  const queryActive = query.trim().length >= 2;
+  const noMatches = queryActive
+    && !searching
+    && filteredCoverage.length === 0
+    && universeOnly.length === 0;
+
+  return (
+    <div className="pt-2 mt-1 border-t border-primary/20 space-y-2">
+      <div className="relative">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+        <Input
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+          placeholder='Search coverage or universe — try "AKSO", "MC.PA", "AZN", "Aker"…'
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-7 h-8 text-xs"
+        />
+      </div>
+
+      <div className="max-h-44 overflow-y-auto space-y-2 scrollbar-thin">
+        {/* Coverage tier */}
+        {filteredCoverage.length > 0 && (
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+              {queryActive && filteredCoverage.length !== candidates.length
+                ? `Coverage · ${filteredCoverage.length} match${filteredCoverage.length === 1 ? '' : 'es'}`
+                : 'Coverage'}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {filteredCoverage.map((c) => (
+                <RouteTickerChip
+                  key={c.ticker}
+                  ticker={c.ticker}
+                  name={c.name || ''}
+                  onClick={() => onPick(c.ticker)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Universe tier — only when the PM typed something */}
+        {(searching || universeOnly.length > 0) && (
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+              From the universe
+              {searching && (
+                <Loader2 className="inline-block w-2.5 h-2.5 animate-spin ml-1 text-muted-foreground/60" />
+              )}
+            </div>
+            {universeOnly.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {universeOnly.map((t) => (
+                  <RouteTickerChip
+                    key={t.ticker}
+                    ticker={t.ticker}
+                    name={t.name}
+                    onClick={() => onPick(t.ticker)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {noMatches && (
+          <div className="text-[11px] text-muted-foreground italic">
+            No matches for "{query}". Try the bare symbol or the company name.
+          </div>
+        )}
+
+        {!queryActive && candidates.length === 0 && (
+          <div className="text-[11px] text-muted-foreground italic">
+            No coverage yet — type a symbol or company name to search the universe.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RouteTickerChip({
+  ticker,
+  name,
+  onClick,
+}: {
+  ticker: string;
+  name: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={name}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono bg-card border border-border hover:bg-primary/10 hover:border-primary/50 transition-colors"
+    >
+      {ticker}
+    </button>
+  );
+}
+
 function MemoTickerStatus({
   candidates,
   ticker,
