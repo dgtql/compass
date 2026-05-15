@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   getDataInventory,
+  getDataSources,
   type ApiDataCategory,
   type ApiDataInventoryRow,
   type ApiDataItem,
+  type ApiDataSource,
 } from '@/lib/api';
 
 const CATEGORY_LABEL: Record<ApiDataCategory, string> = {
@@ -53,6 +55,7 @@ const ALL_CATEGORIES: ApiDataCategory[] = [
 export function DataView() {
   const [inventory, setInventory] = useState<ApiDataInventoryRow[]>([]);
   const [items, setItems] = useState<ApiDataItem[]>([]);
+  const [dataSources, setDataSources] = useState<ApiDataSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<ApiDataCategory | 'all'>('all');
@@ -60,8 +63,12 @@ export function DataView() {
   const refresh = () => {
     setLoading(true);
     setError(null);
-    getDataInventory()
-      .then((r) => { setInventory(r.inventory); setItems(r.items); })
+    Promise.all([getDataInventory(), getDataSources()])
+      .then(([inv, sources]) => {
+        setInventory(inv.inventory);
+        setItems(inv.items);
+        setDataSources(sources.data_sources);
+      })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   };
@@ -179,6 +186,60 @@ export function DataView() {
             );
           })}
         </div>
+
+        {/* Data-source registry — derived from skill frontmatter */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              Data-source registry
+              <Badge variant="outline" className="text-[10px]">
+                {dataSources.length} producer{dataSources.length === 1 ? '' : 's'}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Categories Compass can fetch. Each entry is a <code className="font-mono text-[11px]">fetch-*</code> skill
+              with a <code className="font-mono text-[11px]">produces:</code> block in its frontmatter — drop a new
+              skill folder under <code className="font-mono text-[11px]">skills/</code> and it appears here on the
+              next load. Compose skills consume these via <code className="font-mono text-[11px]">needs:</code>.
+            </CardDescription>
+          </CardHeader>
+          <div className="px-6 pb-6">
+            {dataSources.length === 0 ? (
+              <div className="text-sm text-muted-foreground italic">
+                No producers registered yet.
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
+                    <th className="font-medium pb-2 pr-3">Category</th>
+                    <th className="font-medium pb-2 pr-3">Producer</th>
+                    <th className="font-medium pb-2 pr-3">Params</th>
+                    <th className="font-medium pb-2 pr-3">Output</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataSources.map((ds) => (
+                    <tr key={ds.category} className="border-t border-border">
+                      <td className="py-2 pr-3 font-mono text-xs font-medium">{ds.category}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-muted-foreground">{ds.producer_skill}</td>
+                      <td className="py-2 pr-3 text-xs text-muted-foreground">
+                        {ds.params.length === 0 ? (
+                          <span className="italic">—</span>
+                        ) : (
+                          ds.params.join(', ')
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 font-mono text-[11px] text-muted-foreground">
+                        {ds.output_pattern || <span className="italic">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </Card>
 
         {/* Items table */}
         <Card>

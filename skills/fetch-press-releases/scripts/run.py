@@ -8,6 +8,7 @@ from typing import Any
 
 from compass.engagement import Engagement, Task
 from compass.ingest.edgar import EdgarSource
+from compass.universe import ticker_region
 
 
 async def run(
@@ -18,6 +19,13 @@ async def run(
 ) -> dict[str, Any]:
     params = task.params or {}
     limit = int(params.get("limit", 5))
+
+    region = ticker_region(engagement.ticker)
+    if region != "US":
+        return {
+            "count": 0,
+            "skipped_reason": f"{engagement.ticker} is a {region} ticker; SEC 8-Ks unavailable.",
+        }
 
     docs = EdgarSource().fetch(
         engagement.ticker,

@@ -54,10 +54,9 @@ SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers_exchange.json"
 
 REGIONS: tuple[str, ...] = ("US", "EU")
 
-# Which regions have data. EU is a roadmap placeholder for now — listed so
-# the UI can show the chip but tickers come back empty until we have a
-# European seed.
-ACTIVE_REGIONS: tuple[str, ...] = ("US",)
+# Which regions have data. EU is hand-curated (no equivalent of the SEC's
+# authoritative file — see ``compass/data/universe/eu-tickers.json``).
+ACTIVE_REGIONS: tuple[str, ...] = ("US", "EU")
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +184,55 @@ _EXCHANGE_BUCKETS: dict[str, str] = {
     "Pink Sheets":  "OTC",
 }
 
-ALLOWED_EXCHANGES: tuple[str, ...] = ("NYSE", "NASDAQ", "AMEX")
+ALLOWED_EXCHANGES: tuple[str, ...] = (
+    # US
+    "NYSE", "NASDAQ", "AMEX",
+    # EU — labels chosen to read well in the UI filter pills.
+    "Oslo", "London", "Paris", "Frankfurt", "Amsterdam", "Swiss",
+)
+
+# Which region each exchange belongs to. Used so the Universe page can
+# narrow its exchange filter to those that match the selected region —
+# otherwise the UI shows Oslo / London under "United States" and the
+# table comes back empty.
+EXCHANGE_REGION: dict[str, str] = {
+    "NYSE":      "US",
+    "NASDAQ":    "US",
+    "AMEX":      "US",
+    "Oslo":      "EU",
+    "London":    "EU",
+    "Paris":     "EU",
+    "Frankfurt": "EU",
+    "Amsterdam": "EU",
+    "Swiss":     "EU",
+}
+
+
+def exchanges_for_region(region: str | None) -> list[str]:
+    """Return exchanges valid for ``region`` (or all when ``region`` is None/empty)."""
+    if not region:
+        return list(ALLOWED_EXCHANGES)
+    region_upper = region.upper()
+    return [e for e in ALLOWED_EXCHANGES if EXCHANGE_REGION.get(e, "").upper() == region_upper]
+
+
+def ticker_region(ticker: str) -> str:
+    """Look up a ticker's region. Defaults to ``"US"`` for unknown tickers.
+
+    The default is intentional — if a PM types a free-form symbol that
+    isn't in the universe seed, fetch-sec-filing should still try
+    EDGAR (which is what the old behaviour was) rather than silently
+    skipping. EU tickers always come *through* the seed, so they get
+    the correct ``"EU"`` tag.
+    """
+    universe = load_universe()
+    if universe is None:
+        return "US"
+    sym = (ticker or "").upper()
+    for t in universe.tickers:
+        if t.ticker.upper() == sym:
+            return (t.region or "US").upper()
+    return "US"
 
 
 # yfinance returns sectors in Yahoo's taxonomy, which differs from GICS in
@@ -214,9 +261,19 @@ def normalize_sector(yahoo_sector: str | None) -> str | None:
 
 
 def universe_path() -> Path:
-    """Where the seed JSON lives on disk (inside the installed package)."""
+    """Where the US seed JSON lives. Kept under the old name so existing
+    callers (``compass refresh-universe``, tests) don't break.
+    """
     base = Path(compass.__file__).resolve().parent
     return base / "data" / "universe" / "us-tickers.json"
+
+
+def eu_universe_path() -> Path:
+    """Where the EU seed JSON lives. Hand-curated — no equivalent of the
+    SEC's authoritative file for European exchanges.
+    """
+    base = Path(compass.__file__).resolve().parent
+    return base / "data" / "universe" / "eu-tickers.json"
 
 
 # ---------------------------------------------------------------------------
@@ -226,13 +283,21 @@ def universe_path() -> Path:
 
 @dataclass
 class Ticker:
-    cik: int
-    ticker: str
-    name: str
-    exchange: str               # normalized: NYSE | NASDAQ | AMEX | OTC
+    # CIK is the SEC's identifier — required for US filers, zero for EU
+    # tickers that have no SEC filings (we still keep them in the universe
+    # for search / coverage, fetch-sec-filing just skips them).
+    cik: int = 0
+    ticker: str = ""
+    name: str = ""
+    exchange: str = ""              # NYSE | NASDAQ | AMEX | Oslo | London | Paris | Frankfurt | Amsterdam | Swiss
+    region: str = "US"              # "US" | "EU" — drives the region filter
     sector: str | None = None
     industry: str | None = None
     cap_bucket: str | None = None   # blue-chip | large | mid | small | micro
+    # Bloomberg-style ticker (e.g. "AKSO NO" for AKSO.OL) — kept for
+    # display + search. Optional; only populated for EU rows where the
+    # case-study / PM vocabulary uses this form.
+    bloomberg_ticker: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -435,10 +500,48 @@ def save_universe(universe: Universe, *, path: Path | None = None) -> Path:
 
 
 def load_universe(*, path: Path | None = None) -> Universe | None:
-    p = path or universe_path()
-    if not p.exists():
+    """Load the ticker universe.
+
+    Default behaviour (``path=None``) loads ``us-tickers.json`` AND
+    ``eu-tickers.json``, merges them into a single ``Universe`` whose
+    ``region`` field reads ``"MULTI"`` (each ticker carries its own
+    ``region`` for filtering). Pass ``path`` to load a single file —
+    useful for tests and for the legacy single-region callers.
+    """
+    if path is not None:
+        if not path.exists():
+            return None
+        return Universe.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+    us_path = universe_path()
+    eu_path = eu_universe_path()
+    us_universe: Universe | None = None
+    eu_universe: Universe | None = None
+    if us_path.exists():
+        us_universe = Universe.from_dict(json.loads(us_path.read_text(encoding="utf-8")))
+        # Older seed files predate the per-ticker region field — default any
+        # missing values to "US" so the filter still works.
+        for t in us_universe.tickers:
+            if not t.region:
+                t.region = "US"
+    if eu_path.exists():
+        eu_universe = Universe.from_dict(json.loads(eu_path.read_text(encoding="utf-8")))
+        for t in eu_universe.tickers:
+            if not t.region:
+                t.region = "EU"
+
+    if us_universe is None and eu_universe is None:
         return None
-    return Universe.from_dict(json.loads(p.read_text(encoding="utf-8")))
+    if us_universe is None:
+        return eu_universe
+    if eu_universe is None:
+        return us_universe
+    return Universe(
+        as_of=max(us_universe.as_of, eu_universe.as_of),
+        region="MULTI",
+        source=f"merge:{us_universe.source}+{eu_universe.source}",
+        tickers=[*us_universe.tickers, *eu_universe.tickers],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -515,6 +618,7 @@ def enrich_existing(
 def filter_tickers(
     universe: Universe,
     *,
+    region: str | None = None,
     sector: str | None = None,
     exchange: str | None = None,
     cap_bucket: str | None = None,
@@ -531,13 +635,17 @@ def filter_tickers(
     closely the query matches a ticker / name — exact ticker match first,
     then ticker prefix, then name word-start, then substring. Typing
     ``"C"`` lands JPMorgan ticker ``"C"`` (Citigroup) at the top, not the
-    long list of names that happen to contain a 'c'.
+    long list of names that happen to contain a 'c'. Bloomberg-form
+    tickers (``AKSO NO``) match too — useful for PM vocabulary on EU names.
     """
     rows = universe.tickers
+    if region:
+        rl = region.upper()
+        rows = [r for r in rows if (r.region or "US").upper() == rl]
     if sector:
         rows = [r for r in rows if (r.sector or "").lower() == sector.lower()]
     if exchange:
-        rows = [r for r in rows if r.exchange.upper() == exchange.upper()]
+        rows = [r for r in rows if r.exchange.lower() == exchange.lower()]
     if cap_bucket:
         rows = [r for r in rows if (r.cap_bucket or "") == cap_bucket.lower()]
     if query:
@@ -554,19 +662,20 @@ def _score_query(t: Ticker, query: str) -> int:
     """Higher score = better match. 0 means no match (filtered out).
 
     Tiers:
-    * 1000 — ticker == query (exact)
-    * 500  — ticker starts with query
+    * 1000 — ticker (or Bloomberg form) == query (exact)
+    * 500  — ticker (or Bloomberg form) starts with query
     * 300  — name starts with query
     * 100  — any word of name starts with query (e.g. "C" → "Citigroup")
-    * 50   — query is a substring of the ticker
+    * 50   — query is a substring of the ticker / Bloomberg form
     * 10   — query is a substring of the name
     """
     ql = query.lower()
     tl = t.ticker.lower()
     nl = t.name.lower()
-    if tl == ql:
+    bl = (t.bloomberg_ticker or "").lower()
+    if tl == ql or (bl and bl == ql):
         return 1000
-    if tl.startswith(ql):
+    if tl.startswith(ql) or (bl and bl.startswith(ql)):
         return 500
     if nl.startswith(ql):
         return 300
@@ -574,7 +683,7 @@ def _score_query(t: Ticker, query: str) -> int:
     for word in nl.replace(",", " ").replace(".", " ").split():
         if word.startswith(ql):
             return 100
-    if ql in tl:
+    if ql in tl or (bl and ql in bl):
         return 50
     if ql in nl:
         return 10

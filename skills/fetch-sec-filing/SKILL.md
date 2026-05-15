@@ -3,6 +3,10 @@ name: fetch-sec-filing
 description: Pull a specific SEC filing (10-K, 10-Q, 8-K, etc.) for a ticker into the engagement's `corpus/filings/` tree. Uses `edgartools` so the output is clean Markdown — no HTML/XBRL preprocessing needed.
 phase: ingest
 runner: deterministic
+produces:
+  category: filings
+  params: [form]
+  output_pattern: corpus/filings/{form}/{accession}/primary.md
 ---
 
 # fetch-sec-filing

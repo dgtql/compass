@@ -170,14 +170,18 @@ def test_gics_sectors_have_eleven() -> None:
 
 
 def test_allowed_exchanges_known() -> None:
-    assert set(ALLOWED_EXCHANGES) == {"NYSE", "NASDAQ", "AMEX"}
+    # US (from SEC's ticker file) + EU (hand-curated).
+    assert set(ALLOWED_EXCHANGES) == {
+        "NYSE", "NASDAQ", "AMEX",
+        "Oslo", "London", "Paris", "Frankfurt", "Amsterdam", "Swiss",
+    }
 
 
-def test_regions_include_eu_placeholder() -> None:
+def test_regions_include_eu() -> None:
     assert "US" in REGIONS
-    assert "EU" in REGIONS  # placeholder for the UI roadmap pill
+    assert "EU" in REGIONS
     assert "US" in ACTIVE_REGIONS
-    assert "EU" not in ACTIVE_REGIONS  # not populated yet
+    assert "EU" in ACTIVE_REGIONS
 
 
 # --- cap-bucket classifier --------------------------------------------------

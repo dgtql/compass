@@ -20,6 +20,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { getWorkflows, type ApiWorkflow } from '@/lib/api';
+import { WorkflowDetailModal } from '@/components/WorkflowDetailModal';
 
 const PHASE_ICON: Record<ApiWorkflow['phases'][number], React.ComponentType<{ className?: string }>> = {
   setup:    LayoutGrid,
@@ -41,6 +42,7 @@ export function WorkflowsView() {
   const [workflows, setWorkflows] = useState<ApiWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openWorkflow, setOpenWorkflow] = useState<ApiWorkflow | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,7 +104,7 @@ export function WorkflowsView() {
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {generic.map((wf) => (
-                    <WorkflowCard key={wf.name} wf={wf} />
+                    <WorkflowCard key={wf.name} wf={wf} onOpen={() => setOpenWorkflow(wf)} />
                   ))}
                 </div>
               </section>
@@ -117,7 +119,7 @@ export function WorkflowsView() {
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {packWorkflows.map((wf) => (
-                    <WorkflowCard key={wf.name} wf={wf} />
+                    <WorkflowCard key={wf.name} wf={wf} onOpen={() => setOpenWorkflow(wf)} />
                   ))}
                 </div>
               </section>
@@ -125,6 +127,13 @@ export function WorkflowsView() {
           </>
         )}
       </div>
+
+      <WorkflowDetailModal
+        open={openWorkflow !== null}
+        onClose={() => setOpenWorkflow(null)}
+        templateName={openWorkflow?.name ?? null}
+        displayName={openWorkflow?.display_name ?? openWorkflow?.name ?? undefined}
+      />
     </div>
   );
 }
@@ -148,9 +157,20 @@ function SectionHeader({
   );
 }
 
-function WorkflowCard({ wf }: { wf: ApiWorkflow }) {
+function WorkflowCard({ wf, onOpen }: { wf: ApiWorkflow; onOpen: () => void }) {
   return (
-    <Card className="flex flex-col">
+    <Card
+      className="flex flex-col cursor-pointer transition-colors hover:border-primary/50 hover:bg-accent/30"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

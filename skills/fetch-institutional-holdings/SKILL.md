@@ -3,6 +3,9 @@ name: fetch-institutional-holdings
 description: Pull top institutional + mutual-fund holders and concentration metrics into `corpus/ownership/institutional-<date>.json`. Sources from yfinance, which aggregates SEC Form 13F filings.
 phase: ingest
 runner: deterministic
+produces:
+  category: holdings
+  output_pattern: corpus/ownership/institutional-{date}.json
 ---
 
 # fetch-institutional-holdings

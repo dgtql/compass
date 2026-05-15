@@ -3,6 +3,9 @@ name: fetch-press-releases
 description: Pull recent 8-K filings (material events — earnings releases, M&A, debt, leadership changes, regulatory actions) into `corpus/filings/8-K/<accession>/`. Uses edgartools for clean Markdown rendering and a metadata index.
 phase: ingest
 runner: deterministic
+produces:
+  category: press-releases
+  output_pattern: corpus/filings/8-K/{accession}/primary.md
 ---
 
 # fetch-press-releases

@@ -3,6 +3,9 @@ name: fetch-insider-trades
 description: Pull recent insider transactions (buys, sells, option exercises by officers and directors) into `corpus/ownership/insider-trades-<date>.json`. Sources from yfinance's insider feed (which aggregates SEC Form 4 filings).
 phase: ingest
 runner: deterministic
+produces:
+  category: insider
+  output_pattern: corpus/ownership/insider-trades-{date}.json
 ---
 
 # fetch-insider-trades

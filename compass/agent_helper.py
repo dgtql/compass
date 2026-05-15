@@ -224,6 +224,7 @@ _CATEGORY_GLOBS: dict[str, list[str]] = {
     "snapshots":   ["corpus/snapshots/**/*.md"],
     "transcripts": ["corpus/transcripts/**/*.md"],
     "news":        ["corpus/news/**/*.json"],
+    "overview":    ["corpus/overview/*.md"],
     "insider":     ["corpus/ownership/insider-*.json"],
     "holdings":    ["corpus/ownership/institutional-*.json"],
     "earnings":    ["corpus/earnings/**/*.json"],

@@ -3,6 +3,9 @@ name: fetch-news
 description: Pull recent ticker-tagged news headlines into `corpus/news/<date>.json`. v1 uses Yahoo Finance's news feed; v2 will add a real web-search provider (Brave / Tavily) when the engagement needs queries beyond the ticker tag.
 phase: ingest
 runner: deterministic
+produces:
+  category: news
+  output_pattern: corpus/news/{date}.json
 ---
 
 # fetch-news

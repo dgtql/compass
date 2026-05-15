@@ -109,7 +109,9 @@ def test_buffett_skill_loads_with_inferred_runner() -> None:
     assert spec.runner == "agent"
     assert "Read" in spec.allowed_tools  # default when frontmatter omits Read
     # Frontmatter declares needs + output for the universal runner.
-    assert "filings" in spec.needs
+    # Buffett now declares filings parameterized by form (10-K, 10-Q)
+    # so the data-source registry can stamp distinct ingest tasks.
+    assert any(n.startswith("filings") for n in spec.needs), spec.needs
     assert "brief" in spec.needs
     assert spec.output is not None and "buffett-pitch" in spec.output
     # No run.py — dispatch goes through run_agent_skill_default.
@@ -181,6 +183,7 @@ async def test_dispatcher_routes_buffett_through_universal_runner(
     assert captured["task_id"] == "compose-buffett"
     assert captured["task_skill"] == "buffett"
     assert captured["task_params"]["path"] == "B"
-    # Universal runner sees the artifact-category list from frontmatter.
-    assert "filings" in captured["needs"]
+    # Universal runner sees the artifact-category list from frontmatter
+    # (filings is parameterized by form for the data-source registry).
+    assert any(n.startswith("filings") for n in captured["needs"]), captured["needs"]
     assert "brief" in captured["needs"]

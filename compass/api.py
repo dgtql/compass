@@ -316,9 +316,9 @@ async def _drive_run(run: dict, engagement: Engagement) -> None:
 
 @app.get("/api/universe")
 def get_universe(
-    region: str = Query("US", description="Region — only 'US' has data; 'EU' is a placeholder."),
+    region: str | None = Query(None, description="Region filter: 'US' or 'EU'. Omit to get the merged universe."),
     sector: str | None = Query(None, description="Filter by sector."),
-    exchange: str | None = Query(None, description="Filter by exchange (NYSE/NASDAQ/AMEX)."),
+    exchange: str | None = Query(None, description="Filter by exchange (NYSE / NASDAQ / AMEX / Oslo / London / Paris / Frankfurt / Amsterdam / Swiss)."),
     cap_bucket: str | None = Query(None, description="Filter by market-cap bucket."),
     query: str | None = Query(None, description="Ranked search across ticker + name."),
     offset: int = Query(0, ge=0, description="Pagination offset (rows to skip)."),
@@ -334,39 +334,38 @@ def get_universe(
     Run ``compass refresh-universe`` once to seed the file. Subsequent
     calls reuse the in-memory load.
     """
-    # EU is a placeholder for v1. Return the same shape with empty rows so
-    # the UI can keep its region selector enabled.
-    if region.upper() == "EU":
-        return {
-            "as_of": "",
-            "region": "EU",
-            "source": "placeholder",
-            "total": 0,
-            "matched": 0,
-            "count": 0,
-            "offset": 0,
-            "tickers": [],
-        }
-
     loaded = load_universe()
     if loaded is None:
         raise HTTPException(
             status_code=503,
             detail="universe seed missing — run `compass refresh-universe` first.",
         )
+
+    # Region filter goes through filter_tickers; the response's top-level
+    # region echoes the request so the UI knows what was filtered to.
+    region_upper = region.upper() if region else None
     matched = filter_tickers(
         loaded,
+        region=region_upper,
         sector=sector,
         exchange=exchange,
         cap_bucket=cap_bucket,
         query=query,
     )
     page = matched[offset : offset + limit]
+
+    if region_upper:
+        in_region = sum(1 for t in loaded.tickers if (t.region or "US").upper() == region_upper)
+        response_region = region_upper
+    else:
+        in_region = len(loaded.tickers)
+        response_region = loaded.region
+
     return {
         "as_of": loaded.as_of,
-        "region": loaded.region,
+        "region": response_region,
         "source": loaded.source,
-        "total": len(loaded.tickers),
+        "total": in_region,
         "matched": len(matched),
         "count": len(page),
         "offset": offset,
@@ -385,7 +384,7 @@ def get_regions() -> list[dict]:
 
 _REGION_LABELS: dict[str, str] = {
     "US": "United States",
-    "EU": "Europe (coming soon)",
+    "EU": "Europe",
 }
 
 
@@ -395,8 +394,11 @@ def get_sectors() -> list[str]:
 
 
 @app.get("/api/universe/exchanges")
-def get_exchanges() -> list[str]:
-    return list(ALLOWED_EXCHANGES)
+def get_exchanges(
+    region: str | None = Query(None, description="Narrow to exchanges that belong to this region (e.g. 'US' or 'EU'). Omit for all."),
+) -> list[str]:
+    from compass.universe import exchanges_for_region
+    return exchanges_for_region(region)
 
 
 @app.get("/api/universe/cap-buckets")
@@ -1695,6 +1697,40 @@ def get_templates() -> list[str]:
     return list_templates()
 
 
+@app.get("/api/templates/{name}/tasks")
+def get_template_tasks(name: str, ticker: str = Query("TICKER", min_length=1)) -> dict:
+    """Return a template's full task list — used by the workflow diagram viewer.
+
+    Plans against a stub engagement (no filesystem side effects) so the
+    UI can render the DAG without materializing anything. ``ticker`` is
+    interpolated into task titles / paths; pass a real ticker to preview
+    what the plan will look like for that engagement.
+
+    Each task carries enough for a React-Flow diagram: ``id``, ``stage``,
+    ``title``, ``skill``, ``priority``, ``task_type``, ``description``,
+    ``params``, ``artifact_path``, ``depends_on``.
+    """
+    from compass.planner import TEMPLATES
+    from compass.engagement import Engagement
+
+    if name not in TEMPLATES:
+        raise HTTPException(status_code=404, detail=f"unknown template: {name}")
+    stub_root = Path("__preview__") / "preview-analyst" / ticker
+    eng = Engagement(
+        analyst_slug="preview-analyst", ticker=ticker, root=stub_root,
+    )
+    try:
+        tasks = TEMPLATES[name](eng)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"failed to plan {name}: {exc}")
+    return {
+        "name": name,
+        "ticker": ticker,
+        "task_count": len(tasks),
+        "tasks": [t.to_dict() for t in tasks],
+    }
+
+
 @app.get("/api/templates/detail")
 def get_templates_detail() -> dict:
     """Workflows catalog — every planner template with metadata.
@@ -1921,6 +1957,22 @@ def _scan_artifacts(engagement: Engagement) -> list[dict]:
                 }
             )
     return out
+
+
+# --- data-source registry --------------------------------------------------
+
+
+@app.get("/api/data-sources")
+def get_data_sources() -> dict:
+    """List every data category Compass knows how to fetch.
+
+    Derived from skill frontmatter — any SKILL.md with a ``produces:``
+    block contributes one entry. Adding a new fetch skill via the upload
+    UI makes a new entry appear here on next request, no restart needed.
+    """
+    from compass.data_sources import list_data_sources
+    rows = list_data_sources()
+    return {"count": len(rows), "data_sources": [r.to_dict() for r in rows]}
 
 
 # --- dashboard aggregations -------------------------------------------------

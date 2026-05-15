@@ -3,6 +3,9 @@ name: fetch-earnings-history
 description: Multi-year earnings history (revenue, EPS actual vs. estimate, surprise %), forward revenue estimates, and analyst recommendation changes into `corpus/earnings/history-<date>.json`. Sources from yfinance.
 phase: ingest
 runner: deterministic
+produces:
+  category: earnings
+  output_pattern: corpus/earnings/history-{date}.json
 ---
 
 # fetch-earnings-history

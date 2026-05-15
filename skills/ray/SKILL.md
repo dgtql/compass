@@ -13,9 +13,11 @@ model: claude-sonnet-4-6
 max_turns: 40
 needs:
   - brief
-  - filings
+  - filings(10-K)
+  - filings(10-Q)
   - snapshots
   - news
+  - overview
   - segments
   - kpis
 output: memos/ray-pitch/{date}.md

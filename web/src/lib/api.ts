@@ -12,9 +12,13 @@ export type ApiTicker = {
   ticker: string;
   name: string;
   exchange: string;
+  /** 'US' | 'EU' — which seed file this row came from. */
+  region?: string;
   sector: string | null;
   industry: string | null;
   cap_bucket: string | null;   // 'blue-chip' | 'large' | 'mid' | 'small' | 'micro' | null
+  /** Bloomberg-style ticker (e.g. "AKSO NO"). EU rows only. */
+  bloomberg_ticker?: string | null;
 };
 
 export type ApiUniverse = {
@@ -67,8 +71,9 @@ export function getSectors(): Promise<string[]> {
   return getJson<string[]>('/api/universe/sectors');
 }
 
-export function getExchanges(): Promise<string[]> {
-  return getJson<string[]>('/api/universe/exchanges');
+export function getExchanges(region?: string): Promise<string[]> {
+  const qs = region ? `?region=${encodeURIComponent(region)}` : '';
+  return getJson<string[]>(`/api/universe/exchanges${qs}`);
 }
 
 export function getRegions(): Promise<ApiRegion[]> {
@@ -987,6 +992,67 @@ export function streamMemoRun(
     }
   })();
   return () => ctrl.abort();
+}
+
+// --- Template detail (workflow diagram viewer) ----------------------------
+
+export type ApiTemplateTask = {
+  id: string;
+  stage: string;
+  title: string;
+  skill: string;
+  status: string;
+  priority: string;
+  task_type: string;
+  description: string | null;
+  params: Record<string, unknown>;
+  artifact_path: string | null;
+  depends_on: string[];
+  next_action_prompt: string | null;
+  requires_human_approval: boolean;
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
+};
+
+/** Return a planner template's full task list — what the dispatcher would
+ *  execute if it were run today. Reads against a stub engagement; safe to
+ *  call repeatedly without side effects. */
+export function getTemplateTasks(
+  name: string,
+  ticker = 'TICKER',
+): Promise<{ name: string; ticker: string; task_count: number; tasks: ApiTemplateTask[] }> {
+  return getJson(
+    `/api/templates/${encodeURIComponent(name)}/tasks?ticker=${encodeURIComponent(ticker)}`,
+  );
+}
+
+// --- Data-source registry --------------------------------------------------
+
+export type ApiDataSource = {
+  /** Category name the compose-skill ``needs:`` shops from. */
+  category: string;
+  /** Skill slug that knows how to fetch this category. */
+  producer_skill: string;
+  /** Params the producer accepts (e.g. ["form"] for fetch-sec-filing). */
+  params: string[];
+  /** Documentation-grade pattern showing where files land. */
+  output_pattern: string;
+  /** Description copied from the producer skill's frontmatter. */
+  description: string;
+};
+
+/** List every data category Compass knows how to fetch.
+ *
+ *  Derived from skill frontmatter — uploading a new fetch-* skill (with a
+ *  ``produces:`` block) makes a new entry appear here on the next call.
+ */
+export function getDataSources(): Promise<{
+  count: number;
+  data_sources: ApiDataSource[];
+}> {
+  return getJson('/api/data-sources');
 }
 
 // --- Dashboard aggregations -----------------------------------------------

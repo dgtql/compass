@@ -6,10 +6,11 @@
  * Pagination is server-side: the API returns `matched` (filtered total)
  * and we step through it with `offset`.
  *
- * Region selector lists US (active) and EU (placeholder / coming soon).
+ * Region selector lists US and EU. The exchange filter is region-aware
+ * (re-fetched on region change) so picking US doesn't surface Oslo /
+ * London / Paris, and vice versa.
  * Cap-bucket selector is categorical: Blue chip / Large / Mid / Small /
- * Micro — computed once from yfinance and frozen, so it never goes
- * stale.
+ * Micro — computed once from yfinance (US) or hand-assigned (EU).
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -62,26 +63,36 @@ export function UniverseView() {
 
   const [watchlistSet, setWatchlistSet] = useState<Set<string>>(new Set());
 
-  // Static lookups (regions / exchanges / cap buckets / watchlist) load
-  // once on mount.
+  // Static lookups (regions / cap buckets / watchlist) load once on mount.
+  // Exchanges are region-aware — fetched separately below.
   useEffect(() => {
     let cancelled = false;
     Promise.all([
       getRegions().catch(() => [{ id: 'US', label: 'United States', active: true }] as ApiRegion[]),
-      getExchanges().catch(() => []),
       getCapBuckets().catch(() => []),
       getCapBucketLabels().catch(() => ({}) as Record<string, string>),
       getMyUniverse().catch(() => ({ tickers: [] as { ticker: string }[] })),
-    ]).then(([r, e, c, labels, wl]) => {
+    ]).then(([r, c, labels, wl]) => {
       if (cancelled) return;
       setRegions(r);
-      setExchanges(e);
       setCapBuckets(c);
       setCapLabels(labels);
       setWatchlistSet(new Set(wl.tickers.map((t) => t.ticker)));
     });
     return () => { cancelled = true; };
   }, []);
+
+  // Exchanges depend on the selected region — refetch when it changes.
+  // Reset the exchange filter to "All" so a stale selection from the
+  // previous region doesn't silently filter every row out.
+  useEffect(() => {
+    let cancelled = false;
+    getExchanges(region)
+      .then((list) => { if (!cancelled) setExchanges(list); })
+      .catch(() => { if (!cancelled) setExchanges([]); });
+    setExchange(ALL);
+    return () => { cancelled = true; };
+  }, [region]);
 
   // Debounce search input so typing doesn't fire a request per keystroke.
   useEffect(() => {
@@ -148,11 +159,12 @@ export function UniverseView() {
           <p className="text-sm text-muted-foreground mt-1">
             {error
               ? 'The backend is not reachable.'
-              : region === 'EU'
-                ? 'European coverage is on the roadmap — no data yet.'
-                : loading
-                  ? 'Loading…'
-                  : `${total.toLocaleString()} US-listed names indexed${asOf ? ` · as of ${asOf}` : ''}.`}
+              : loading
+                ? 'Loading…'
+                : (() => {
+                    const regionLabel = activeRegion?.label ?? region;
+                    return `${total.toLocaleString()} ${regionLabel}-listed names indexed${asOf ? ` · as of ${asOf}` : ''}.`;
+                  })()}
           </p>
         </div>
 
@@ -185,18 +197,7 @@ export function UniverseView() {
 
         {error && <ErrorPanel error={error} />}
 
-        {!error && region === 'EU' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">No European seed yet</CardTitle>
-              <CardDescription>
-                Compass starts with US-listed names. European coverage will plug into the same shape (sector, cap bucket, exchange filters) when the seed lands. Switch back to <span className="text-primary cursor-pointer" onClick={() => setRegion('US')}>United States</span> for now.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
-
-        {!error && region !== 'EU' && (
+        {!error && (
           <>
             {/* Search + exchange */}
             <Card>
@@ -204,7 +205,11 @@ export function UniverseView() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder='Type "C" for Citigroup, "TSLA" for Tesla… ranked search.'
+                    placeholder={
+                      region === 'EU'
+                        ? 'Type "AKSO NO" for Aker Solutions, "ASML" for ASML… ranked search.'
+                        : 'Type "C" for Citigroup, "TSLA" for Tesla… ranked search.'
+                    }
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     className="pl-9"

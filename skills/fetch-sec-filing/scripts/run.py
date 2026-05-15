@@ -1,4 +1,10 @@
-"""fetch-sec-filing — pull SEC filings via edgartools."""
+"""fetch-sec-filing — pull SEC filings via edgartools.
+
+Skips non-US tickers cleanly (EDGAR doesn't carry foreign listings without
+a CIK). The dispatcher records a ``done`` task with ``count: 0`` and the
+downstream compose agent sees "(none yet)" for the filings category —
+the memo still gets composed from whatever else was fetched.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +12,7 @@ from typing import Any
 
 from compass.engagement import Engagement, Task
 from compass.ingest.edgar import EdgarSource
+from compass.universe import ticker_region
 
 
 async def run(
@@ -17,6 +24,17 @@ async def run(
     params = task.params or {}
     form = params.get("form", "10-K")
     limit = int(params.get("limit", 1))
+
+    # Region gate — EDGAR is US-only. Skip cleanly so the pipeline
+    # continues with whatever EU-applicable producers can fetch.
+    region = ticker_region(engagement.ticker)
+    if region != "US":
+        return {
+            "form": form,
+            "limit": limit,
+            "count": 0,
+            "skipped_reason": f"{engagement.ticker} is a {region} ticker; SEC has no filings.",
+        }
 
     source = EdgarSource()
     docs = source.fetch(

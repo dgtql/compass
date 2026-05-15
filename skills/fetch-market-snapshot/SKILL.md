@@ -3,6 +3,9 @@ name: fetch-market-snapshot
 description: Pull today's Yahoo Finance snapshot for the engagement's ticker — price, 52-week range, analyst consensus, recent financials, top news headlines — into `corpus/snapshots/yahoo/<date>.md`.
 phase: ingest
 runner: deterministic
+produces:
+  category: snapshots
+  output_pattern: corpus/snapshots/yahoo/{date}.md
 ---
 
 # fetch-market-snapshot

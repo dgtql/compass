@@ -13,6 +13,7 @@ needs:
   - gates
   - snapshots
   - news
+  - overview
 output: analysis/sections/{ticker}__{memo_type}__{section_slug}.md
 ---
 

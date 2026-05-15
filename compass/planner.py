@@ -17,12 +17,138 @@ Adding a template = adding a function that returns ``list[Task]``.
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime, timezone
 from typing import Callable
 
 from compass.engagement import Engagement, Task
 
 TEMPLATES: dict[str, Callable[[Engagement], list[Task]]] = {}
+
+
+# ---------------------------------------------------------------------------
+# Registry-driven ingest derivation
+# ---------------------------------------------------------------------------
+#
+# A compose skill's ``needs:`` is a shopping list of artifact categories
+# it wants surfaced in its prompt at run time. For the *ingest* portion
+# of that list, the data-source registry knows which producer skill
+# handles each category. ``auto_ingest_tasks`` walks the list and stamps
+# out the right ingest tasks — so dropping a new ``fetch-*`` skill (with
+# a ``produces:`` block) into the skills folder makes it instantly
+# usable by any compose skill whose ``needs:`` already names that
+# category.
+
+_NEED_RE = re.compile(r"^([a-zA-Z_-]+)(?:\(([^)]+)\))?$")
+
+
+def auto_ingest_tasks(
+    *,
+    compose_skill_slug: str,
+    engagement: Engagement,
+    depends_on: list[str] | None = None,
+    default_priority: str = "medium",
+) -> list[Task]:
+    """Generate ingest tasks for a compose skill's declared ``needs:``.
+
+    For each category in the compose skill's frontmatter that maps to an
+    *ingest-stage* producer in the data-source registry, return a Task
+    that invokes that producer. Categories with no producer (yet) are
+    silently skipped — the compose agent's user prompt will show
+    "(none yet)" for that ``needs:`` entry, which is the right UX.
+
+    Parameterized needs work too: ``filings(10-K)`` becomes a task with
+    ``params={"form": "10-K", "limit": 1}``. Two parameterized entries
+    of the same category (``filings(10-K)`` + ``filings(10-Q)``) produce
+    two distinct tasks with stable ids ``ingest-filings-10-k`` /
+    ``ingest-filings-10-q``.
+
+    The caller owns the surrounding stages — setup, analyze, compose,
+    maintain. This helper only fills the ingest portion of the DAG.
+    """
+    # Lazy imports — keep planner.py importable in contexts where the
+    # data-source registry / skill loader haven't been initialized yet.
+    from compass.data_sources import find_producer
+    from compass.skills import load_skill
+
+    try:
+        compose = load_skill(compose_skill_slug)
+    except FileNotFoundError:
+        return []
+
+    today = date.today().isoformat()
+    ticker = engagement.ticker
+    deps = list(depends_on or [])
+    out: list[Task] = []
+    seen_ids: set[str] = set()
+
+    for need in compose.needs:
+        m = _NEED_RE.match(need.strip())
+        if not m:
+            continue
+        category = m.group(1).lower()
+        arg = (m.group(2) or "").strip() or None
+
+        ds = find_producer(category)
+        if ds is None:
+            continue  # No producer registered for this category — skip.
+
+        # Confirm the producer is an ingest-stage skill. (Future-proofs
+        # against analyze-stage skills declaring ``produces:`` later.)
+        try:
+            producer = load_skill(ds.producer_skill)
+        except FileNotFoundError:
+            continue
+        if producer.phase != "ingest":
+            continue
+
+        # Stable task id. Parameterized needs append the slug-safe arg so
+        # `filings(10-K)` + `filings(10-Q)` get distinct ids.
+        if arg:
+            arg_slug = re.sub(r"[^a-z0-9]+", "-", arg.lower()).strip("-") or "arg"
+            task_id = f"ingest-{category}-{arg_slug}"
+            title = f"Fetch {ticker} latest {arg}"
+            params: dict = {"limit": 1}
+            # The producer's declared params drive what we pass through.
+            # Today the only param-aware producer is fetch-sec-filing
+            # with ``form``; this generalizes cleanly when more arrive.
+            for p in ds.params:
+                params[p] = arg
+        else:
+            task_id = f"ingest-{category}"
+            title = f"{category.replace('-', ' ').title()} for {ticker}"
+            params = {}
+
+        if task_id in seen_ids:
+            continue
+        seen_ids.add(task_id)
+
+        # Output path: substitute what we know; leave producer-only
+        # placeholders (like ``{accession}``) unfilled so they don't
+        # appear in tasks.json as garbled text. If anything remains
+        # unsubstituted, drop the path — the producer's run.py will
+        # write to its conventional location anyway.
+        artifact_path: str | None = None
+        if ds.output_pattern:
+            substituted = ds.output_pattern
+            for marker, value in (("{date}", today), ("{ticker}", ticker), ("{form}", arg or "")):
+                substituted = substituted.replace(marker, value)
+            if "{" not in substituted:
+                artifact_path = substituted
+
+        out.append(Task(
+            id=task_id,
+            stage="ingest",
+            title=title,
+            skill=ds.producer_skill,
+            priority=default_priority,
+            task_type="ingestion",
+            params=params,
+            artifact_path=artifact_path,
+            depends_on=list(deps),
+        ))
+
+    return out
 
 
 def _run_stamp() -> str:
@@ -54,17 +180,34 @@ def _run_stamp() -> str:
 def _make_persona_pitch_template(skill_slug: str, person_name: str = ""):
     """Return a planner function that wires ``skill_slug`` at compose.
 
-    The returned function follows the same shape as ``_buffett_pitch``
-    (full data spine + KPI extraction + one compose task + brief refresh),
-    but its compose task invokes the named persona skill.
+    The returned function builds:
+
+    * **setup-brief** — always (the brief is the planning frame).
+    * **ingest** — derived from the compose skill's ``needs:`` via the
+      data-source registry. Drop a new ``fetch-*`` skill that produces a
+      category the persona already needs, and the next plan picks it up
+      automatically — no Python change.
+    * **analyze** — hardcoded recipe (parse-10k-segments + extract-kpis),
+      conditional on the compose skill having declared the relevant
+      categories AND the ingest having generated the upstream task. The
+      analyze stage will move to a registry the same way ingest did,
+      once compose skills consistently declare ``segments``/``kpis``
+      categories in their needs.
+    * **compose** — one task invoking ``skill_slug``.
+    * **maintain-update-brief** — propagate findings back.
+
+    Hand-authored persona templates (``buffett-pitch``) take precedence
+    over this factory at registration time.
     """
     display = person_name or skill_slug
 
     def _pitch(engagement: Engagement) -> list[Task]:
+        from compass.skills import load_skill
+
         t = engagement.ticker
-        today = date.today().isoformat()
         tasks: list[Task] = []
 
+        # --- Setup ---------------------------------------------------------
         tasks.append(Task(
             id="setup-brief",
             stage="setup",
@@ -74,41 +217,68 @@ def _make_persona_pitch_template(skill_slug: str, person_name: str = ""):
             task_type="planning",
             artifact_path=".pipeline/docs/coverage_brief.json",
         ))
-        tasks.append(Task(
-            id="ingest-10k", stage="ingest", title=f"Fetch {t} latest 10-K",
-            skill="fetch-sec-filing", priority="high", task_type="ingestion",
-            params={"form": "10-K", "limit": 1}, depends_on=["setup-brief"],
-        ))
-        tasks.append(Task(
-            id="ingest-10q", stage="ingest", title=f"Fetch {t} latest 10-Q",
-            skill="fetch-sec-filing", priority="medium", task_type="ingestion",
-            params={"form": "10-Q", "limit": 1}, depends_on=["setup-brief"],
-        ))
-        tasks.append(Task(
-            id="ingest-snapshot", stage="ingest", title=f"Yahoo snapshot for {t}",
-            skill="fetch-market-snapshot", priority="medium", task_type="ingestion",
-            artifact_path=f"corpus/snapshots/yahoo/{today}.md",
+
+        # --- Ingest — registry-derived from the persona's `needs:` --------
+        # Auto-derivation: the compose skill declares the categories it
+        # wants surfaced; the registry maps those to producer skills; we
+        # stamp out the matching ingest tasks. Adding a new producer
+        # (e.g. fetch-transcripts) lights up here automatically as long
+        # as the persona's needs list includes the category.
+        ingest_tasks = auto_ingest_tasks(
+            compose_skill_slug=skill_slug,
+            engagement=engagement,
             depends_on=["setup-brief"],
-        ))
-        tasks.append(Task(
-            id="ingest-news", stage="ingest", title=f"Recent news for {t}",
-            skill="fetch-news", priority="medium", task_type="ingestion",
-            artifact_path=f"corpus/news/{today}.json",
-            depends_on=["setup-brief"],
-        ))
-        tasks.append(Task(
-            id="analyze-segments", stage="analyze",
-            title="Parse 10-K into structured sections",
-            skill="parse-10k-segments", priority="high", task_type="analysis",
-            depends_on=["ingest-10k"],
-        ))
-        tasks.append(Task(
-            id="analyze-kpis", stage="analyze",
-            title="Extract KPIs into a structured table",
-            skill="extract-kpis", priority="high", task_type="analysis",
-            artifact_path=f"analysis/kpis/{t}__kpis.json",
-            depends_on=["analyze-segments", "ingest-snapshot"],
-        ))
+        )
+        # Prioritize the 10-K higher than the others — analyze-segments
+        # depends on it and downstream tasks block waiting for it.
+        for it in ingest_tasks:
+            if it.id == "ingest-filings-10-k":
+                it.priority = "high"
+        tasks.extend(ingest_tasks)
+        ingest_ids = {it.id for it in ingest_tasks}
+
+        # Load the persona's compose skill so we can gate analyze + the
+        # compose dependency list on what categories it actually declared.
+        try:
+            compose = load_skill(skill_slug)
+            compose_needs_str = " ".join(compose.needs)
+        except FileNotFoundError:
+            compose_needs_str = ""
+
+        # --- Analyze (still hardcoded — gated on declared needs) ----------
+        analyze_ids: list[str] = []
+        wants_segments = "segments" in compose_needs_str
+        wants_kpis = "kpis" in compose_needs_str
+        if wants_segments and "ingest-filings-10-k" in ingest_ids:
+            tasks.append(Task(
+                id="analyze-segments", stage="analyze",
+                title="Parse 10-K into structured sections",
+                skill="parse-10k-segments", priority="high", task_type="analysis",
+                depends_on=["ingest-filings-10-k"],
+            ))
+            analyze_ids.append("analyze-segments")
+        if wants_kpis:
+            kpi_deps = list(analyze_ids)
+            if "ingest-snapshots" in ingest_ids:
+                kpi_deps.append("ingest-snapshots")
+            tasks.append(Task(
+                id="analyze-kpis", stage="analyze",
+                title="Extract KPIs into a structured table",
+                skill="extract-kpis", priority="high", task_type="analysis",
+                artifact_path=f"analysis/kpis/{t}__kpis.json",
+                depends_on=kpi_deps,
+            ))
+            analyze_ids.append("analyze-kpis")
+
+        # --- Compose ------------------------------------------------------
+        # Depend on whichever analyze tasks ran + any news ingest (so the
+        # agent sees fresh headlines when composing). Falls back to
+        # setup-brief if nothing else was generated.
+        compose_deps = analyze_ids[:]
+        if "ingest-news" in ingest_ids and "ingest-news" not in compose_deps:
+            compose_deps.append("ingest-news")
+        if not compose_deps:
+            compose_deps = ["setup-brief"]
         tasks.append(Task(
             id=f"compose-{skill_slug}",
             stage="compose",
@@ -118,14 +288,17 @@ def _make_persona_pitch_template(skill_slug: str, person_name: str = ""):
             task_type="writing",
             params={"path": "B", "memo_type": f"{skill_slug}-pitch"},
             artifact_path=f"memos/{skill_slug}-pitch/{_run_stamp()}.md",
-            depends_on=["analyze-segments", "analyze-kpis", "ingest-news"],
+            depends_on=compose_deps,
             description=(
                 f"Apply {display}'s full framework end-to-end. Read the "
-                f"brief, parsed 10-K segments, KPI extraction, snapshot, "
-                f"and recent news. Produce a structured pitch memo that "
-                f"follows the skill's Standard Output Format."
+                f"brief and all available ingested artifacts (filings, "
+                f"snapshot, news, plus anything else the data-source "
+                f"registry surfaced). Produce a structured pitch memo "
+                f"that follows the skill's Standard Output Format."
             ),
         ))
+
+        # --- Maintain -----------------------------------------------------
         tasks.append(Task(
             id="maintain-update-brief",
             stage="maintain",
@@ -710,97 +883,16 @@ def _deep_dive(engagement: Engagement) -> list[Task]:
 # the next without authoring a separate SKILL.md per workflow.
 
 
-@template("buffett-pitch")
-def _buffett_pitch(engagement: Engagement) -> list[Task]:
-    """Path B — full Buffett deep analysis on a covered ticker.
-
-    Same data spine as ``pitch-memo``; the compose phase collapses to one
-    holistic task that produces the structured memo (Conclusion / Circle of
-    Competence / Business Quality / Financial Snapshot / Valuation / Sell
-    Criteria / Key Risks / Monitoring Indicators / Overall Assessment).
-    """
-    today = date.today().isoformat()
-    t = engagement.ticker
-    tasks: list[Task] = []
-
-    tasks.append(Task(
-        id="setup-brief",
-        stage="setup",
-        title=f"Build coverage brief for {t}",
-        skill="build-coverage-brief",
-        priority="high",
-        task_type="planning",
-        artifact_path=".pipeline/docs/coverage_brief.json",
-    ))
-
-    tasks.append(Task(
-        id="ingest-10k", stage="ingest", title=f"Fetch {t} latest 10-K",
-        skill="fetch-sec-filing", priority="high", task_type="ingestion",
-        params={"form": "10-K", "limit": 1}, depends_on=["setup-brief"],
-    ))
-    tasks.append(Task(
-        id="ingest-10q", stage="ingest", title=f"Fetch {t} latest 10-Q",
-        skill="fetch-sec-filing", priority="medium", task_type="ingestion",
-        params={"form": "10-Q", "limit": 1}, depends_on=["setup-brief"],
-    ))
-    tasks.append(Task(
-        id="ingest-snapshot", stage="ingest", title=f"Yahoo snapshot for {t}",
-        skill="fetch-market-snapshot", priority="medium", task_type="ingestion",
-        artifact_path=f"corpus/snapshots/yahoo/{today}.md",
-        depends_on=["setup-brief"],
-    ))
-    tasks.append(Task(
-        id="ingest-news", stage="ingest", title=f"Recent news for {t}",
-        skill="fetch-news", priority="medium", task_type="ingestion",
-        artifact_path=f"corpus/news/{today}.json",
-        depends_on=["setup-brief"],
-    ))
-
-    tasks.append(Task(
-        id="analyze-segments", stage="analyze",
-        title="Parse 10-K into structured sections",
-        skill="parse-10k-segments", priority="high", task_type="analysis",
-        depends_on=["ingest-10k"],
-    ))
-    tasks.append(Task(
-        id="analyze-kpis", stage="analyze",
-        title="Extract KPIs into a structured table",
-        skill="extract-kpis", priority="high", task_type="analysis",
-        artifact_path=f"analysis/kpis/{t}__kpis.json",
-        depends_on=["analyze-segments", "ingest-snapshot"],
-    ))
-
-    tasks.append(Task(
-        id="compose-buffett",
-        stage="compose",
-        title=f"Buffett deep analysis for {t}",
-        skill="buffett",
-        priority="high",
-        task_type="writing",
-        params={"path": "B", "memo_type": "buffett-pitch"},
-        artifact_path=f"memos/buffett-pitch/{_run_stamp()}.md",
-        depends_on=["analyze-segments", "analyze-kpis", "ingest-news"],
-        description=(
-            "Apply Buffett's full Path B framework: business quality "
-            "(moat type + trend), management integrity, financial snapshot "
-            "(ROIC, owner earnings, cash conversion), intrinsic value + "
-            "margin of safety, sell-criteria item-by-item, key risks, "
-            "monitoring indicators. Cite paths to artifacts read."
-        ),
-    ))
-
-    tasks.append(Task(
-        id="maintain-update-brief",
-        stage="maintain",
-        title="Propagate Buffett's findings back into the brief",
-        skill="update-coverage-brief",
-        priority="medium",
-        task_type="maintenance",
-        artifact_path=".pipeline/docs/coverage_brief.json",
-        depends_on=["compose-buffett"],
-    ))
-
-    return tasks
+# ``buffett-pitch`` is intentionally NOT hand-authored — the persona
+# factory (_make_persona_pitch_template) generates it from the buffett
+# compose skill's ``needs:``. That way Buffett picks up any new producer
+# the registry adds (e.g. ``overview`` via fetch-wikipedia-overview) the
+# same way Munger and Ray already do. The hand-authored version used to
+# live here; deleted on the registry refactor so it doesn't drift.
+#
+# ``buffett-quick-filter`` and ``buffett-sell-check`` stay hand-authored
+# because their compose phase is meaningfully different from the standard
+# pitch shape (different params, lighter data spine, no analyze stage).
 
 
 @template("buffett-quick-filter")

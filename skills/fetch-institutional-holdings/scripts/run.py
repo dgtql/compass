@@ -10,6 +10,7 @@ from typing import Any
 import yfinance as yf
 
 from compass.engagement import Engagement, Task
+from compass.universe import ticker_region
 
 
 def _row_to_dict(row) -> dict[str, Any]:
@@ -69,6 +70,17 @@ async def run(
 ) -> dict[str, Any]:
     params = task.params or {}
     limit = int(params.get("limit", 20))
+
+    region = ticker_region(engagement.ticker)
+    if region != "US":
+        return {
+            "institutional_count": 0,
+            "mutual_fund_count": 0,
+            "skipped_reason": (
+                f"{engagement.ticker} is a {region} ticker; 13F holdings are "
+                f"SEC-only and won't be available."
+            ),
+        }
 
     t = yf.Ticker(engagement.ticker)
 

@@ -43,6 +43,13 @@ class SkillSpec:
 
     ``runner`` is inferred at load time when not declared explicitly:
     a skill with no ``scripts/run.py`` is assumed to be an agent skill.
+
+    ``produces`` is the data-source-registry contract: when set, this
+    skill is a *producer* for some category (e.g. ``filings``, ``news``).
+    The planner's auto-ingest derivation looks up which producer skill
+    satisfies each ``needs:`` category. Shape:
+    ``{"category": str, "params": list[str], "output_pattern": str}``.
+    Absent → this skill doesn't produce a registry-tracked category.
     """
 
     slug: str
@@ -57,6 +64,9 @@ class SkillSpec:
     model: str | None
     body: str                        # SKILL.md content after frontmatter
     path: Path                       # absolute path to the skill directory
+    # Defaults to None so test fixtures and other callers that construct
+    # SkillSpec directly don't have to know about the registry.
+    produces: dict[str, Any] | None = None
 
     @property
     def scripts_dir(self) -> Path:
@@ -142,6 +152,22 @@ def load_skill(slug: str) -> SkillSpec:
     output_val = meta.get("output")
     output = str(output_val).strip() if output_val else None
 
+    # produces: block — present on producer skills (fetch-*). Either a
+    # dict from the frontmatter parser, or None when the skill doesn't
+    # declare it. The dict's ``params`` value may come back as a list or
+    # a string (inline ``[a, b]`` vs. multi-line) — coerce to list for
+    # consumer convenience.
+    produces_raw = meta.get("produces")
+    produces: dict[str, Any] | None
+    if isinstance(produces_raw, dict) and produces_raw.get("category"):
+        produces = {
+            "category": str(produces_raw["category"]).strip(),
+            "params": _coerce_list(produces_raw.get("params", [])),
+            "output_pattern": str(produces_raw.get("output_pattern", "")).strip(),
+        }
+    else:
+        produces = None
+
     return SkillSpec(
         slug=slug,
         name=str(meta.get("name", slug)),
@@ -155,6 +181,7 @@ def load_skill(slug: str) -> SkillSpec:
         model=(str(meta["model"]).strip() if meta.get("model") else None),
         body=body.strip(),
         path=skill_dir,
+        produces=produces,
     )
 
 
@@ -261,10 +288,12 @@ def _parse_frontmatter(text: str) -> dict[str, Any]:
             out[key] = (" " if value == ">" else "\n").join(block)
             continue
 
-        # ---------- list (empty value followed by `- item` lines) ----------
+        # ---------- list OR nested dict (empty value, indented children) ----
         if value == "":
             items: list[str] = []
+            sub: dict[str, Any] = {}
             saw_item = False
+            saw_sub_kv = False
             while i < n:
                 nxt = lines[i]
                 if not nxt.strip():
@@ -282,9 +311,33 @@ def _parse_frontmatter(text: str) -> dict[str, Any]:
                     items.append(ls[1:].strip().strip("'\""))
                     saw_item = True
                     i += 1
+                elif ":" in ls:
+                    # Nested key: value. One level deep — enough for
+                    # ``produces: {category, params, output_pattern}``.
+                    sk, _, sv = ls.partition(":")
+                    sk_clean = sk.strip()
+                    sv_clean = sv.strip().strip("'\"")
+                    # Inline list value: ``params: [form, limit]``.
+                    if sv_clean.startswith("[") and sv_clean.endswith("]"):
+                        inner = sv_clean[1:-1]
+                        sv_value: Any = [
+                            x.strip().strip("'\"")
+                            for x in inner.split(",")
+                            if x.strip()
+                        ]
+                    else:
+                        sv_value = sv_clean
+                    sub[sk_clean] = sv_value
+                    saw_sub_kv = True
+                    i += 1
                 else:
                     break
-            out[key] = items if saw_item else ""
+            if saw_item:
+                out[key] = items
+            elif saw_sub_kv:
+                out[key] = sub
+            else:
+                out[key] = ""
             continue
 
         # ---------- simple scalar ----------
