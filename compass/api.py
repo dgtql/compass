@@ -1128,6 +1128,11 @@ def _candidate_tickers_for_owner(owner_key: str) -> list[dict]:
             "ticker": s,
             "name": row.name if row is not None else None,
             "sector": row.sector if row is not None else None,
+            # Surface the Bloomberg form so the Haiku ticker resolver can
+            # match a PM message that says "AKSO NO" against an "AKSO.OL"
+            # candidate. Without this the model has nothing to bridge the
+            # PM's vocabulary to the Yahoo-form lookup key.
+            "bloomberg_ticker": row.bloomberg_ticker if row is not None else None,
         })
     return out
 

@@ -389,10 +389,21 @@ async def suggest_memo_ticker(
 
 
 _TICKER_SYSTEM_PROMPT = (
-    "You map a portfolio manager's free-text research request to a single "
-    "stock ticker from a constrained list. "
-    "Reply with ONLY the ticker symbol (uppercase, no quotes, no extra words). "
-    "If none of the listed tickers fits the message, reply with the single word NONE."
+    "You resolve a portfolio manager's free-text mention of a stock to one "
+    "ticker from a constrained list.\n"
+    "\n"
+    "The PM may write the ticker in any of these forms — all should match:\n"
+    "  - Bare symbol: 'AKSO' → match 'AKSO.OL' if that's the list entry\n"
+    "  - Yahoo form: 'AKSO.OL' → 'AKSO.OL'\n"
+    "  - Bloomberg form: 'AKSO NO' → 'AKSO.OL' (Norway suffix)\n"
+    "  - Bloomberg form: 'AZN LN' → 'AZN.L' (London suffix)\n"
+    "  - Bloomberg form: 'NESN SE' → 'NESN.SW' (Swiss suffix)\n"
+    "  - Company name: 'Aker Solutions' → 'AKSO.OL'\n"
+    "\n"
+    "Reply with EXACTLY the ticker as it appears in the list (preserve the\n"
+    "'.suffix' if present — match the list entry character-for-character).\n"
+    "If no candidate fits, reply with the single word NONE.\n"
+    "No quotes, no extra words."
 )
 
 
@@ -401,15 +412,22 @@ def _suggest_ticker_sync(message: str, candidates: list[dict]) -> str | None:
 
     os.environ.setdefault("CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK", "1")
 
-    roster_lines = "\n".join(
-        f"  {c.get('ticker', '').upper()} — {c.get('name') or '(no name)'}"
-        for c in candidates
-        if c.get("ticker")
-    )
+    # Surface bloomberg_ticker in the roster so the model can bridge a
+    # PM's vocabulary ("AKSO NO") to the Yahoo-form lookup key ("AKSO.OL").
+    def _line(c: dict) -> str:
+        ticker = c.get("ticker", "").strip()
+        if not ticker:
+            return ""
+        bt = (c.get("bloomberg_ticker") or "").strip()
+        name = c.get("name") or "(no name)"
+        alias = f" / {bt}" if bt else ""
+        return f"  {ticker}{alias} — {name}"
+
+    roster_lines = "\n".join(line for line in (_line(c) for c in candidates) if line)
     user_prompt = (
-        f"Tickers available:\n{roster_lines}\n\n"
+        f"Tickers available (Yahoo form / Bloomberg form — Company name):\n{roster_lines}\n\n"
         f"PM's message: {message}\n\n"
-        f"Pick one ticker from the list, or NONE."
+        f"Reply with the matching ticker from the list (case-sensitive — keep the .suffix), or NONE."
     )
 
     options_kwargs: dict = {
@@ -443,14 +461,34 @@ def _suggest_ticker_sync(message: str, candidates: list[dict]) -> str | None:
     except Exception:  # noqa: BLE001
         return None
 
-    candidate = raw.strip().strip(".").strip("`").strip('"').strip("'").upper()
+    candidate = raw.strip().strip("`").strip('"').strip("'").upper()
     if not candidate or candidate == "NONE":
         return None
-    # Sometimes the model emits "Ticker: NVDA" — take the first token.
+    # Sometimes the model emits "Ticker: NVDA" or "AKSO." — clean up
+    # punctuation but preserve mid-dots like "AKSO.OL".
     candidate = candidate.split()[0] if candidate.split() else candidate
-    candidate = candidate.strip(",.;:")
+    candidate = candidate.strip(",;:").rstrip(".")
+
+    # 1. Exact match — happy path
     if candidate in valid:
         return candidate
+
+    # 2. Bloomberg-form match — PM typed "AKSO NO" → Haiku returned
+    # "AKSO" → check if any candidate's Bloomberg first-token matches.
+    for c in candidates:
+        bt = (c.get("bloomberg_ticker") or "").strip().upper()
+        if bt:
+            bt_first = bt.split()[0]
+            if bt_first == candidate:
+                return (c.get("ticker") or "").upper()
+
+    # 3. Yahoo-form prefix match — Haiku returned "AKSO" and the unique
+    # candidate is "AKSO.OL". Only accept when there's exactly one match
+    # to avoid silent ambiguity (e.g. "A" → many candidates).
+    prefix_matches = [v for v in valid if v.startswith(candidate + ".")]
+    if len(prefix_matches) == 1:
+        return prefix_matches[0]
+
     return None
 
 
@@ -471,9 +509,10 @@ async def suggest_workflow(
     message = (message or "").strip()
     if not message or not workflows:
         return None
-    # Very short messages are almost always chat — don't spend a Haiku
-    # call on "hi" or "what?".
-    if len(message.split()) < 4:
+    # Single-word messages are almost always chat — don't spend a Haiku
+    # call on "hi" or "what?". But "Pitch AKSO" (2 words) is a real
+    # research request, so we keep the threshold low.
+    if len(message.split()) < 2:
         return None
 
     import asyncio
@@ -482,14 +521,30 @@ async def suggest_workflow(
 
 
 _WORKFLOW_SYSTEM_PROMPT = (
-    "You map a portfolio manager's free-text message to a single workflow "
-    "command from a constrained list. Workflows are end-to-end pipelines "
-    "(e.g. a pitch memo, a sell-criteria check). "
-    "Reply with ONLY the workflow command (lowercase, no quotes, no extra words). "
-    "If the message is a follow-up question, a clarification, idle "
-    "conversation, or doesn't clearly trigger a workflow, reply with the "
-    "single word NONE. When in doubt prefer NONE — bias toward chat over a "
-    "long pipeline run."
+    "You route a portfolio manager's free-text message to a workflow "
+    "command from a constrained list. Workflows are end-to-end research "
+    "pipelines (e.g. a pitch memo, a sell-criteria check).\n"
+    "\n"
+    "Pick a workflow when the message is a research request — for example:\n"
+    "  'Give me a pitch for AKSO'        → buffett-pitch / pitch-memo (whichever fits)\n"
+    "  'Write me a memo on NVDA'         → buffett-pitch / pitch-memo\n"
+    "  'Run a quick filter on MSFT'      → buffett-quick-filter\n"
+    "  'Should we sell AAPL?'            → buffett-sell-check\n"
+    "  'Earnings reaction on JPM'        → earnings-reaction\n"
+    "  'Quarterly update on TSLA'        → maintenance-refresh\n"
+    "  'Deep dive on AMD'                → deep-dive\n"
+    "\n"
+    "If a persona-specific workflow (e.g. buffett-pitch) is in the list, "
+    "PREFER it over the generic equivalent (pitch-memo) — the PM is in that "
+    "analyst's chat for a reason.\n"
+    "\n"
+    "Reply NONE only when the message is clearly NOT a workflow trigger:\n"
+    "  'hi', 'thanks', 'what do you think?', 'tell me more', 'why?'\n"
+    "  follow-up questions on something already discussed\n"
+    "  small talk, clarifications, idle chat\n"
+    "\n"
+    "Reply with ONLY the workflow command (lowercase, no quotes, no extra words),\n"
+    "or the single word NONE."
 )
 
 

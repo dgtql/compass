@@ -617,17 +617,44 @@ export function ChatPane({
     setPendingMessage(trimmed);
     setInput('');
     // Memo-flow branch: a memo template is active (generic Memo chip or
-    // pack workflow chip) AND a ticker is picked → route to the skill-based
-    // engagement runner instead of the chat LLM. Works whether the user
-    // is on the welcome screen (no active session) or in a brand-new
-    // empty session (clicked "+ New task" first, then a workflow chip).
+    // pack workflow chip). If the PM already picked a ticker, we run
+    // straight away. If not, do a last-chance synchronous resolve from
+    // the typed message — handles the "clicked chip, typed 'AKSO',
+    // hit Send before the 600ms debounce fired" race that otherwise
+    // strands the user with a grey button or surprising chat fallback.
     if (
       selectedTemplate !== null &&
-      memoTicker &&
       (!active || active.messages.length === 0)
     ) {
-      setPendingMessage(null);
-      await sendMemo(trimmed, memoTicker, selectedTemplate, active?.id);
+      let resolvedTicker: string | null = memoTicker;
+      if (!resolvedTicker) {
+        setRouting(true);
+        try {
+          const res = await suggestMemoTicker(ownerKey, { message: trimmed });
+          resolvedTicker = res.ticker ?? null;
+        } catch {
+          resolvedTicker = null;
+        } finally {
+          setRouting(false);
+        }
+      }
+      if (resolvedTicker) {
+        setMemoTicker(resolvedTicker);
+        setPendingMessage(null);
+        await sendMemo(trimmed, resolvedTicker, selectedTemplate, active?.id);
+        return;
+      }
+      // No ticker resolved — surface a confirmation card so the PM can
+      // pick from the dropdown, rather than silently routing to chat.
+      const pack = (packWorkflows ?? []).find((w) => w.command === selectedTemplate);
+      const generic = genericWorkflows.find((w) => w.name === selectedTemplate);
+      setPendingRoute({
+        command: selectedTemplate,
+        name: pack?.name ?? generic?.display_name ?? selectedTemplate,
+        description: pack?.description ?? generic?.description ?? 'Pick a ticker below to run this workflow.',
+        ticker: null,
+        message: trimmed,
+      });
       return;
     }
 
@@ -1170,7 +1197,6 @@ export function ChatPane({
                   || sending
                   || routing
                   || pendingRoute !== null
-                  || (selectedTemplate !== null && !memoTicker && !active)
                 }
                 size="sm"
               >

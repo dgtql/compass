@@ -40,7 +40,9 @@ async def test_suggest_workflow_short_circuits_on_empty_workflows() -> None:
 async def test_suggest_workflow_short_circuits_on_too_short_message(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """< 4 words skip the Haiku call entirely — it's almost always chat."""
+    """Single-word messages skip the Haiku call entirely — 'hi' / 'what?'
+    are almost always chat. Two-word messages like 'Pitch AKSO' are real
+    research requests so they go through to Haiku."""
     from compass import llm
     sentinel = {"called": False}
 
@@ -50,7 +52,7 @@ async def test_suggest_workflow_short_circuits_on_too_short_message(
 
     monkeypatch.setattr(llm, "_suggest_workflow_sync", fake_sync)
     out = await llm.suggest_workflow(
-        message="hi there",
+        message="hi",
         workflows=[{"command": "x", "name": "X"}],
     )
     assert out is None
