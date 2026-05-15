@@ -5,6 +5,7 @@ phase: ingest
 runner: deterministic
 produces:
   category: holdings
+  regions: [US]
   output_pattern: corpus/ownership/institutional-{date}.json
 ---
 

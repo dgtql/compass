@@ -43,6 +43,12 @@ class DataSource:
     ``fetch-sec-filing`` that's ``["form"]`` so a consumer's
     ``needs: filings(10-K)`` resolves to ``fetch-sec-filing(form=10-K)``.
 
+    ``regions`` lists ticker regions this producer can satisfy. Empty
+    means *all regions* (default for universal producers like Yahoo).
+    SEC-only producers carry ``["US"]``. The planner filters by this so
+    SEC tasks don't even get planned for EU tickers (no green checkmark
+    on an impossible task).
+
     ``output_pattern`` is mostly documentation — it shows where files
     land on disk. Substitution markers (``{date}``, ``{ticker}``,
     ``{accession}``, ``{form}``) are filled at run time by the producer
@@ -54,6 +60,14 @@ class DataSource:
     params: list[str] = field(default_factory=list)
     output_pattern: str = ""
     description: str = ""
+    regions: list[str] = field(default_factory=list)
+
+    def supports_region(self, region: str | None) -> bool:
+        """True if this producer applies to ``region``. An empty regions
+        list means the producer is universal (Yahoo, Wikipedia, etc.)."""
+        if not self.regions:
+            return True
+        return (region or "").upper() in self.regions
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -83,6 +97,7 @@ def list_data_sources() -> list[DataSource]:
             params=list(skill.produces.get("params") or []),
             output_pattern=str(skill.produces.get("output_pattern") or ""),
             description=skill.description,
+            regions=[r.upper() for r in (skill.produces.get("regions") or [])],
         ))
     out.sort(key=lambda d: d.category)
     return out
@@ -118,4 +133,5 @@ def producer_for_skill(skill: SkillSpec | None) -> DataSource | None:
         params=list(skill.produces.get("params") or []),
         output_pattern=str(skill.produces.get("output_pattern") or ""),
         description=skill.description,
+        regions=[r.upper() for r in (skill.produces.get("regions") or [])],
     )

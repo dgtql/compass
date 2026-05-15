@@ -96,23 +96,156 @@ def test_fetch_institutional_holdings_skips_eu_ticker(eu_engagement: Engagement)
     assert "skipped_reason" in result
 
 
-def test_buffett_pitch_for_akso_still_plans_full_dag() -> None:
-    """The skip behaviour is at *run* time — the plan still includes the
-    SEC tasks (they just return early when executed). That's the right
-    shape: the WorkflowsView graph stays uniform across regions, and the
-    runtime decides what to actually do.
+def test_buffett_pitch_for_akso_skips_sec_at_plan_time() -> None:
+    """Layer 2: producers carry ``regions: [US]`` in their frontmatter,
+    so the planner doesn't even stamp SEC tasks for EU tickers. Universal
+    producers (Yahoo, Wikipedia) still show up. The runtime ``skipped``
+    path is reserved for edge cases (free-form tickers that default to
+    US but turn out non-US, future region-conditional producers).
     """
     from compass.planner import TEMPLATES
     eng = Engagement(analyst_slug="preview", ticker="AKSO.OL", root=Path("__preview__"))
     tasks = TEMPLATES["buffett-pitch"](eng)
     ingest_ids = {t.id for t in tasks if t.stage == "ingest"}
-    # Registry-driven, so the overview producer is in
-    assert "ingest-overview" in ingest_ids
-    # SEC tasks are still planned — they just no-op at runtime
-    assert any("filings" in tid for tid in ingest_ids)
-    # And the universal yfinance producers
+
+    # SEC-only producers should NOT be planned for AKSO.OL
+    assert not any("filings" in tid for tid in ingest_ids), ingest_ids
+    assert "ingest-press-releases" not in ingest_ids
+    assert "ingest-insider" not in ingest_ids
+    assert "ingest-holdings" not in ingest_ids
+    assert "ingest-earnings" not in ingest_ids
+
+    # Universal producers should be present
     assert "ingest-snapshots" in ingest_ids
     assert "ingest-news" in ingest_ids
+    assert "ingest-overview" in ingest_ids
+
+
+def test_buffett_pitch_for_nvda_plans_full_dag() -> None:
+    """Sanity: US tickers get the full SEC + yfinance + Wikipedia spine."""
+    from compass.planner import TEMPLATES
+    eng = Engagement(analyst_slug="preview", ticker="NVDA", root=Path("__preview__"))
+    tasks = TEMPLATES["buffett-pitch"](eng)
+    ingest_ids = {t.id for t in tasks if t.stage == "ingest"}
+    assert "ingest-filings-10-k" in ingest_ids
+    assert "ingest-filings-10-q" in ingest_ids
+    assert "ingest-snapshots" in ingest_ids
+    assert "ingest-news" in ingest_ids
+    assert "ingest-overview" in ingest_ids
+
+
+def test_pitch_memo_for_akso_drops_sec_and_skips_analyze_segments() -> None:
+    """pitch-memo (hand-authored) was refactored to delegate ingest to
+    auto_ingest_tasks. For AKSO.OL: no SEC tasks → no analyze-segments
+    (its dependency was filtered out). analyze-kpis still runs from
+    the Yahoo snapshot, so the gate + compose stages continue to make
+    sense for an EU ticker.
+    """
+    from compass.planner import TEMPLATES
+    eng = Engagement(analyst_slug="preview", ticker="AKSO.OL", root=Path("__preview__"))
+    tasks = TEMPLATES["pitch-memo"](eng)
+    ids = {t.id for t in tasks}
+    # SEC tasks gone
+    assert not any("filings" in tid for tid in ids), ids
+    # analyze-segments dropped (depends on ingest-filings-10-k which is gone)
+    assert "analyze-segments" not in ids
+    # analyze-kpis still runs (depends on ingest-snapshots which is universal)
+    assert "analyze-kpis" in ids
+    # Gate runs against whatever analyze tasks DID run
+    assert "analyze-gate" in ids
+    # Compose still happens
+    assert "compose-thesis" in ids
+    assert "compose-assemble" in ids
+
+
+def test_pitch_memo_for_nvda_keeps_full_dag() -> None:
+    from compass.planner import TEMPLATES
+    eng = Engagement(analyst_slug="preview", ticker="NVDA", root=Path("__preview__"))
+    tasks = TEMPLATES["pitch-memo"](eng)
+    ids = {t.id for t in tasks}
+    assert "ingest-filings-10-k" in ids
+    assert "analyze-segments" in ids  # 10-K parse still runs
+
+
+def test_dispatcher_marks_task_as_skipped_when_run_returns_skipped_reason() -> None:
+    """Producer skills that return ``{"skipped_reason": "..."}`` should
+    flow through the dispatcher as status ``"skipped"`` (not ``"done"``)
+    and emit a ``task_skipped`` event."""
+    import asyncio as _aio
+    from compass.dispatcher import run_engagement
+    from compass.skills import SkillSpec
+    import compass.skills as skills_mod
+    import compass.agent_helper as ah
+
+    # Use the real fetch-sec-filing skill against an EU ticker — that's
+    # the exact path the user hit.
+    import tempfile, os
+    tmpdir = tempfile.mkdtemp()
+    os.environ["COMPASS_DATA_DIR"] = tmpdir
+    try:
+        eng = Engagement.open("AKSO.OL", analyst="warren-buffett")
+        # Plant a single task that calls fetch-sec-filing (which is region-gated).
+        task = Task(
+            id="ingest-10k-test",
+            stage="ingest",
+            title="t",
+            skill="fetch-sec-filing",
+            params={"form": "10-K", "limit": 1},
+        )
+        eng.save_tasks([task])
+
+        events: list[dict] = []
+        summary = _aio.run(run_engagement(eng, on_event=lambda e: events.append(e)))
+
+        # Reload tasks from disk to see the dispatcher's saved status.
+        reloaded = eng.load_tasks()
+        assert reloaded[0].status == "skipped", reloaded[0].status
+        # Event firehose carries the explicit type.
+        assert any(e.get("type") == "task_skipped" for e in events), events
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def test_skipped_dependency_does_not_block_downstream() -> None:
+    """A skipped task counts as a satisfying completion — downstream
+    tasks shouldn't block on it. Otherwise a single region-skip would
+    halt the rest of the pipeline."""
+    import asyncio as _aio
+    from compass.dispatcher import run_engagement
+
+    import tempfile, os
+    tmpdir = tempfile.mkdtemp()
+    os.environ["COMPASS_DATA_DIR"] = tmpdir
+    try:
+        eng = Engagement.open("AKSO.OL", analyst="warren-buffett")
+        eng.save_tasks([
+            Task(id="ingest-10k", stage="ingest", title="t",
+                 skill="fetch-sec-filing",
+                 params={"form": "10-K", "limit": 1}),
+            Task(id="ingest-news", stage="ingest", title="t",
+                 skill="fetch-news", depends_on=["ingest-10k"]),
+        ])
+        events: list[dict] = []
+        # We don't actually want to hit Yahoo from the test — let it run
+        # but assert it wasn't blocked. The fetch-news task may error
+        # without network, but we only care about the blocking behaviour.
+        _aio.run(run_engagement(eng, on_event=lambda e: events.append(e),
+                                stop_on_error=False))
+        reloaded = {t.id: t for t in eng.load_tasks()}
+        # ingest-10k is skipped (region gate). ingest-news shouldn't be
+        # blocked just because its upstream was a skip.
+        assert reloaded["ingest-10k"].status == "skipped"
+        assert reloaded["ingest-news"].status != "pending"
+        # No task_blocked event for ingest-news
+        blocked_for_news = [
+            e for e in events
+            if e.get("type") == "task_blocked" and e.get("task_id") == "ingest-news"
+        ]
+        assert not blocked_for_news, blocked_for_news
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def test_fetch_wikipedia_overview_writes_marker_when_not_found(

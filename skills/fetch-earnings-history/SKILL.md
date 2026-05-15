@@ -5,6 +5,7 @@ phase: ingest
 runner: deterministic
 produces:
   category: earnings
+  regions: [US]
   output_pattern: corpus/earnings/history-{date}.json
 ---
 

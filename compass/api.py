@@ -1146,6 +1146,7 @@ async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
         event: plan_done           data: {task_count, tasks: [...]}
         event: task_start          data: {task_id, skill, ...}
         event: task_done           data: {task_id, skill, elapsed, result}
+        event: task_skipped        data: {task_id, skill, elapsed, result, skipped_reason}
         event: task_error          data: {task_id, skill, error}
         event: task_blocked        data: {task_id, blocked_by: [...]}
         event: memo_ready          data: {memo_path, memo_text}

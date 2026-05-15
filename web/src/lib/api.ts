@@ -924,6 +924,11 @@ export type MemoStreamHandlers = {
   onPlanDone?: (data: { task_count: number; tasks: ApiMemoPlanTask[] }) => void;
   onTaskStart?: (data: { task_id: string; skill: string }) => void;
   onTaskDone?: (data: { task_id: string; skill: string; elapsed: number; result: unknown }) => void;
+  /** Producer ran but bailed deliberately — e.g. a US-only SEC skill seeing
+   *  an EU ticker. ``skipped_reason`` is the human-readable explanation. */
+  onTaskSkipped?: (data: {
+    task_id: string; skill: string; elapsed: number; result: unknown; skipped_reason: string;
+  }) => void;
   onTaskError?: (data: { task_id: string; skill: string; error: string }) => void;
   onTaskBlocked?: (data: { task_id: string; blocked_by: string[] }) => void;
   /** Agent thinking-out-loud — assistant text emitted by the SDK loop
@@ -977,6 +982,7 @@ export function streamMemoRun(
             case 'plan_done':         handlers.onPlanDone?.(d as never);         break;
             case 'task_start':        handlers.onTaskStart?.(d as never);        break;
             case 'task_done':         handlers.onTaskDone?.(d as never);         break;
+            case 'task_skipped':      handlers.onTaskSkipped?.(d as never);      break;
             case 'task_error':        handlers.onTaskError?.(d as never);        break;
             case 'task_blocked':      handlers.onTaskBlocked?.(d as never);      break;
             case 'say':               handlers.onSay?.(d as never);              break;

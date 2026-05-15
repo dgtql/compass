@@ -59,8 +59,14 @@ async def run_engagement(
         if task.status != "pending":
             skipped += 1
             continue
-        # Block if any dependency hasn't finished successfully.
-        blocked = [d for d in task.depends_on if by_id.get(d) and by_id[d].status != "done"]
+        # Block if any dependency hasn't finished successfully. A runtime
+        # ``skipped`` (producer ran but bailed deliberately, e.g. EU ticker
+        # hitting a US-only fetcher) counts as a satisfying completion —
+        # downstream tasks shouldn't block on it.
+        blocked = [
+            d for d in task.depends_on
+            if by_id.get(d) and by_id[d].status not in ("done", "skipped")
+        ]
         if blocked:
             blocked_event = {"type": "task_blocked", "task_id": task.id, "blocked_by": blocked}
             engagement.log_event(blocked_event)
@@ -135,15 +141,23 @@ async def _run_one_task(
             result = await run_agent_skill_default(
                 spec=spec, engagement=engagement, task=task, on_event=_tagged_on_event,
             )
-        task.status = "done"
+
+        # Producer skills can signal "I ran but bailed deliberately" by
+        # returning a result with a ``skipped_reason`` key. Distinguish
+        # that from genuine success so the UI doesn't show a green check
+        # next to a task that didn't actually do anything.
+        is_skipped = isinstance(result, dict) and bool(result.get("skipped_reason"))
+        task.status = "skipped" if is_skipped else "done"
         task.error = None
         done_event = {
-            "type": "task_done",
+            "type": "task_skipped" if is_skipped else "task_done",
             "task_id": task.id,
             "skill": task.skill,
             "elapsed": round(time.monotonic() - started, 2),
             "result": result if isinstance(result, dict) else {"value": str(result)},
         }
+        if is_skipped:
+            done_event["skipped_reason"] = result["skipped_reason"]
         engagement.log_event(done_event)
         # Also forward through the dispatcher's on_event so the SSE memo
         # stream sees the transition in real time. Without this the

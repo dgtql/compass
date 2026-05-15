@@ -157,6 +157,12 @@ def load_skill(slug: str) -> SkillSpec:
     # declare it. The dict's ``params`` value may come back as a list or
     # a string (inline ``[a, b]`` vs. multi-line) — coerce to list for
     # consumer convenience.
+    #
+    # ``regions`` lets a producer declare which ticker regions it can
+    # actually satisfy (e.g. ``[US]`` for SEC-only sources). Missing /
+    # empty means "all regions" — the producer applies universally.
+    # The planner reads this against the ticker's region at plan time
+    # and skips stamping tasks for producers that don't match.
     produces_raw = meta.get("produces")
     produces: dict[str, Any] | None
     if isinstance(produces_raw, dict) and produces_raw.get("category"):
@@ -164,6 +170,7 @@ def load_skill(slug: str) -> SkillSpec:
             "category": str(produces_raw["category"]).strip(),
             "params": _coerce_list(produces_raw.get("params", [])),
             "output_pattern": str(produces_raw.get("output_pattern", "")).strip(),
+            "regions": [r.upper() for r in _coerce_list(produces_raw.get("regions", []))],
         }
     else:
         produces = None

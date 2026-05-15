@@ -8,6 +8,8 @@ model: claude-sonnet-4-6
 max_turns: 20
 needs:
   - brief
+  - filings(10-K)
+  - filings(10-Q)
   - segments
   - kpis
   - gates

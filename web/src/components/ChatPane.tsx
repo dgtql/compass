@@ -88,7 +88,7 @@ type CounterpartyAvatar = {
 
 /** Live state of a chat-driven memo run — plan tasks, statuses, and
  *  the final assembled memo if compose-assemble produced one. */
-type MemoRunStatus = 'pending' | 'in-progress' | 'done' | 'error' | 'blocked';
+type MemoRunStatus = 'pending' | 'in-progress' | 'done' | 'skipped' | 'error' | 'blocked';
 
 type MemoRunTask = {
   id: string;
@@ -101,6 +101,10 @@ type MemoRunTask = {
    *  task completes; rendered under the row while it's in-progress. */
   latestSay?: string;
   error?: string;
+  /** Producer-supplied explanation when ``status === 'skipped'`` — e.g.
+   *  "AKSO.OL is an EU ticker; SEC has no filings." Shown inline in the
+   *  task row. */
+  skippedReason?: string;
   elapsed?: number;
 };
 
@@ -549,6 +553,15 @@ export function ChatPane({
             ...prev,
             tasks: prev.tasks.map((t) => (
               t.id === task_id ? { ...t, status: 'done', elapsed, latestSay: undefined } : t
+            )),
+          } : prev)),
+        onTaskSkipped: ({ task_id, elapsed, skipped_reason }) =>
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => (
+              t.id === task_id
+                ? { ...t, status: 'skipped', elapsed, latestSay: undefined, skippedReason: skipped_reason }
+                : t
             )),
           } : prev)),
         onSay: ({ task_id, message }) => {
@@ -1728,10 +1741,12 @@ function MemoRunPanel({
   const error = run?.error;
 
   // "All tasks done" — both the in-flight memoRun and the resumed-from-disk
-  // case (run === null, liveTasks all done). Drives the default-collapsed
-  // disclosure: once everything's finished the chat bubble is the headline
-  // output, not the task list.
-  const allDone = tasks.length > 0 && tasks.every((t) => t.status === 'done');
+  // case (run === null, liveTasks all done). Skipped counts as terminal
+  // (the producer ran and bailed deliberately — no further work coming).
+  // Drives the default-collapsed disclosure: once everything's finished
+  // the chat bubble is the headline output, not the task list.
+  const isTerminal = (s: MemoRunStatus) => s === 'done' || s === 'skipped';
+  const allDone = tasks.length > 0 && tasks.every((t) => isTerminal(t.status));
   const isCompleted = finished || (run === null && allDone);
 
   // Default-collapse the task list when the run is done. While in flight,
@@ -1756,12 +1771,12 @@ function MemoRunPanel({
       .map((stage) => ({
         stage,
         items: m.get(stage)!,
-        done: m.get(stage)!.filter((t) => t.status === 'done').length,
+        done: m.get(stage)!.filter((t) => isTerminal(t.status)).length,
         total: m.get(stage)!.length,
       }));
   }, [tasks]);
 
-  const totalDone = tasks.filter((t) => t.status === 'done').length;
+  const totalDone = tasks.filter((t) => isTerminal(t.status)).length;
 
   return (
     <div className="flex gap-3">
@@ -1866,24 +1881,48 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
       ? <AlertCircle className="w-3 h-3 text-rose-500" />
       : task.status === 'blocked'
       ? <AlertCircle className="w-3 h-3 text-amber-500" />
+      : task.status === 'skipped'
+      // SkipForward-ish glyph rendered with a dash inside a circle so we
+      // don't import another icon — distinct from done's checkmark and
+      // pending's empty circle.
+      ? <span
+          className="w-3 h-3 rounded-full border border-muted-foreground/60 text-muted-foreground flex items-center justify-center text-[8px] leading-none"
+          title="Skipped"
+        >–</span>
       : <span className="w-3 h-3 rounded-full border border-muted-foreground/40 inline-block" />;
   // Only show the agent's "thinking out loud" excerpt while the task is
   // actively running. It's cleared on task_done / task_start (next row).
   const showSay = task.status === 'in-progress' && !!task.latestSay;
+  const isSkipped = task.status === 'skipped';
   return (
     <li className="flex items-start gap-2 text-xs">
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium truncate">{task.title}</span>
+          <span className={cn(
+            'font-medium truncate',
+            isSkipped && 'text-muted-foreground line-through decoration-muted-foreground/40',
+          )}>
+            {task.title}
+          </span>
           <span className="text-[10px] text-muted-foreground font-mono">{task.skill}</span>
-          {task.elapsed != null && (
+          {isSkipped && (
+            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold px-1 py-0.5 rounded bg-muted">
+              skipped
+            </span>
+          )}
+          {task.elapsed != null && !isSkipped && (
             <span className="text-[10px] text-muted-foreground tabular-nums">{task.elapsed.toFixed(1)}s</span>
           )}
         </div>
         {showSay && (
           <div className="mt-1 text-[11px] text-muted-foreground italic leading-snug border-l-2 border-primary/40 pl-2 line-clamp-3">
             {task.latestSay}
+          </div>
+        )}
+        {isSkipped && task.skippedReason && (
+          <div className="mt-0.5 text-[11px] text-muted-foreground italic leading-snug">
+            {task.skippedReason}
           </div>
         )}
         {task.error && (

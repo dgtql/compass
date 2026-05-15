@@ -5,6 +5,7 @@ phase: ingest
 runner: deterministic
 produces:
   category: insider
+  regions: [US]
   output_pattern: corpus/ownership/insider-trades-{date}.json
 ---
 

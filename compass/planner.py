@@ -70,6 +70,7 @@ def auto_ingest_tasks(
     # data-source registry / skill loader haven't been initialized yet.
     from compass.data_sources import find_producer
     from compass.skills import load_skill
+    from compass.universe import ticker_region
 
     try:
         compose = load_skill(compose_skill_slug)
@@ -78,6 +79,7 @@ def auto_ingest_tasks(
 
     today = date.today().isoformat()
     ticker = engagement.ticker
+    region = ticker_region(ticker)
     deps = list(depends_on or [])
     out: list[Task] = []
     seen_ids: set[str] = set()
@@ -92,6 +94,13 @@ def auto_ingest_tasks(
         ds = find_producer(category)
         if ds is None:
             continue  # No producer registered for this category — skip.
+
+        # Region gate — if the producer declares supported regions and the
+        # ticker's region isn't in that list, don't even plan the task.
+        # An empty regions list means "universal" (default for Yahoo /
+        # Wikipedia producers).
+        if not ds.supports_region(region):
+            continue
 
         # Confirm the producer is an ingest-stage skill. (Future-proofs
         # against analyze-stage skills declaring ``produces:`` later.)
@@ -437,7 +446,10 @@ def inspect_template(name: str, *, ticker: str = "TICKER") -> dict:
 
 @template("pitch-memo")
 def _pitch_memo(engagement: Engagement) -> list[Task]:
-    today = date.today().isoformat()
+    """Initial-coverage pitch memo. Ingest is registry-derived so SEC tasks
+    don't get planned for EU tickers; analyze stages are conditional on
+    what was actually ingested; compose runs section-by-section regardless.
+    """
     t = engagement.ticker
     SECTIONS = [
         ("thesis",          "Thesis"),
@@ -461,87 +473,79 @@ def _pitch_memo(engagement: Engagement) -> list[Task]:
         description=f"Author or refresh the structured coverage brief for {t}. This frames every downstream task.",
     ))
 
-    # --- Ingest ------------------------------------------------------------
-    tasks.append(Task(
-        id="ingest-10k",
-        stage="ingest",
-        title=f"Fetch {t} latest 10-K",
-        skill="fetch-sec-filing",
-        priority="high",
-        task_type="ingestion",
-        params={"form": "10-K", "limit": 1},
+    # --- Ingest — registry-derived from draft-memo-section's needs --------
+    # SEC-only producers (fetch-sec-filing) declare ``regions: [US]`` so
+    # the planner doesn't stamp an ``ingest-filings-10-k`` for AKSO.OL.
+    # Yahoo and Wikipedia producers are universal — they always show up.
+    ingest_tasks = auto_ingest_tasks(
+        compose_skill_slug="draft-memo-section",
+        engagement=engagement,
         depends_on=["setup-brief"],
-        description="Pull the most recent 10-K from EDGAR into corpus/filings/10-K/.",
-    ))
-    tasks.append(Task(
-        id="ingest-10q",
-        stage="ingest",
-        title=f"Fetch {t} latest 10-Q",
-        skill="fetch-sec-filing",
-        priority="medium",
-        task_type="ingestion",
-        params={"form": "10-Q", "limit": 1},
-        depends_on=["setup-brief"],
-        description="Pull the most recent 10-Q for quarter-over-quarter context.",
-    ))
-    tasks.append(Task(
-        id="ingest-snapshot",
-        stage="ingest",
-        title=f"Yahoo market snapshot for {t}",
-        skill="fetch-market-snapshot",
-        priority="medium",
-        task_type="ingestion",
-        artifact_path=f"corpus/snapshots/yahoo/{today}.md",
-        depends_on=["setup-brief"],
-        description="Capture today's price, analyst consensus, and recent financial-statement summary.",
-    ))
-    tasks.append(Task(
-        id="ingest-news",
-        stage="ingest",
-        title=f"Recent news for {t}",
-        skill="fetch-news",
-        priority="medium",
-        task_type="ingestion",
-        artifact_path=f"corpus/news/{today}.json",
-        depends_on=["setup-brief"],
-        description="Pull recent ticker-tagged news headlines for the catalysts/risks framing.",
-    ))
+    )
+    # Bump 10-K to high priority — analyze-segments waits on it.
+    for it in ingest_tasks:
+        if it.id == "ingest-filings-10-k":
+            it.priority = "high"
+    tasks.extend(ingest_tasks)
+    ingest_ids = {it.id for it in ingest_tasks}
 
-    # --- Analyze -----------------------------------------------------------
-    tasks.append(Task(
-        id="analyze-segments",
-        stage="analyze",
-        title="Parse 10-K into structured sections",
-        skill="parse-10k-segments",
-        priority="high",
-        task_type="analysis",
-        depends_on=["ingest-10k"],
-        description="Split the 10-K markdown into Business / MD&A / Risk Factors / Financials artifacts.",
-    ))
-    tasks.append(Task(
-        id="analyze-kpis",
-        stage="analyze",
-        title="Extract KPIs into a structured table",
-        skill="extract-kpis",
-        priority="high",
-        task_type="analysis",
-        artifact_path=f"analysis/kpis/{t}__kpis.json",
-        depends_on=["analyze-segments", "ingest-snapshot"],
-        description="Pull revenue, margin, cash, and debt for the last 2-3 reporting periods.",
-    ))
-    tasks.append(Task(
-        id="analyze-gate",
-        stage="analyze",
-        title="Quality gate: brief vs evidence coverage",
-        skill="gate-coverage-check",
-        priority="medium",
-        task_type="review",
-        artifact_path=f"analysis/gates/coverage-check.json",
-        depends_on=["analyze-segments", "analyze-kpis"],
-        description="Verify every key question in the brief is supported by an artifact.",
-    ))
+    # --- Analyze — conditional on what actually got planned ---------------
+    analyze_ids: list[str] = []
+    if "ingest-filings-10-k" in ingest_ids:
+        tasks.append(Task(
+            id="analyze-segments",
+            stage="analyze",
+            title="Parse 10-K into structured sections",
+            skill="parse-10k-segments",
+            priority="high",
+            task_type="analysis",
+            depends_on=["ingest-filings-10-k"],
+            description="Split the 10-K markdown into Business / MD&A / Risk Factors / Financials artifacts.",
+        ))
+        analyze_ids.append("analyze-segments")
+
+    # KPIs need at least the snapshot to be useful. segments is a bonus.
+    if "ingest-snapshots" in ingest_ids:
+        kpi_deps = list(analyze_ids)
+        kpi_deps.append("ingest-snapshots")
+        tasks.append(Task(
+            id="analyze-kpis",
+            stage="analyze",
+            title="Extract KPIs into a structured table",
+            skill="extract-kpis",
+            priority="high",
+            task_type="analysis",
+            artifact_path=f"analysis/kpis/{t}__kpis.json",
+            depends_on=kpi_deps,
+            description="Pull revenue, margin, cash, and debt for the last 2-3 reporting periods.",
+        ))
+        analyze_ids.append("analyze-kpis")
+
+    # Gate runs only when there's actually something to gate against.
+    if analyze_ids:
+        tasks.append(Task(
+            id="analyze-gate",
+            stage="analyze",
+            title="Quality gate: brief vs evidence coverage",
+            skill="gate-coverage-check",
+            priority="medium",
+            task_type="review",
+            artifact_path="analysis/gates/coverage-check.json",
+            depends_on=list(analyze_ids),
+            description="Verify every key question in the brief is supported by an artifact.",
+        ))
+        analyze_ids.append("analyze-gate")
 
     # --- Compose -----------------------------------------------------------
+    # Sections depend on the gate (if it ran) else on the analyze tasks
+    # (if any ran) else on whatever ingested. Always have something.
+    if "analyze-gate" in analyze_ids:
+        section_deps = ["analyze-gate"]
+    elif analyze_ids:
+        section_deps = list(analyze_ids)
+    else:
+        section_deps = list(ingest_ids) or ["setup-brief"]
+
     section_ids: list[str] = []
     for slug, label in SECTIONS:
         task_id = f"compose-{slug}"
@@ -555,8 +559,8 @@ def _pitch_memo(engagement: Engagement) -> list[Task]:
             task_type="writing",
             params={"section_slug": slug, "section_label": label, "memo_type": "pitch"},
             artifact_path=f"analysis/sections/{t}__pitch__{slug}.md",
-            depends_on=["analyze-gate"],
-            description=f"Write the '{label}' section using the brief and analyze-phase artifacts. Cite paths.",
+            depends_on=list(section_deps),
+            description=f"Write the '{label}' section using the brief and any analyze-phase artifacts. Cite paths.",
         ))
 
     tasks.append(Task(

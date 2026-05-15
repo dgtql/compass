@@ -95,7 +95,7 @@ class Task:
     stage: str
     title: str
     skill: str
-    status: str = "pending"          # pending | in-progress | done | review | error
+    status: str = "pending"          # pending | in-progress | done | skipped | review | error
     priority: str = "medium"          # high | medium | low
     task_type: str = "execution"
     description: str | None = None

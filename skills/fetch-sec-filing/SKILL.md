@@ -6,6 +6,7 @@ runner: deterministic
 produces:
   category: filings
   params: [form]
+  regions: [US]
   output_pattern: corpus/filings/{form}/{accession}/primary.md
 ---
 

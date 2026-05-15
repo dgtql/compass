@@ -5,6 +5,7 @@ phase: ingest
 runner: deterministic
 produces:
   category: press-releases
+  regions: [US]
   output_pattern: corpus/filings/8-K/{accession}/primary.md
 ---
 
