@@ -21,18 +21,25 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from compass.dispatcher import run_engagement
-from compass.engagement import Engagement, list_engagements, resolve_analyst
+from compass.engagement import (
+    Engagement,
+    compute_analyst_live_status,
+    engagements_root,
+    list_engagements,
+    resolve_analyst,
+)
 from compass.planner import list_templates, plan as plan_template
 from compass.skills import list_skills
 from compass.universe import (
@@ -57,6 +64,7 @@ from compass.analysts import (
     create_analyst,
     delete_analyst,
     get_analyst,
+    hire_data_engineer,
     list_analysts,
     update_analyst,
     update_analyst_coverage,
@@ -74,9 +82,10 @@ from compass.chats import (
 
 load_dotenv()
 
-app = FastAPI(title="Compass API", version="0.18.0")
+app = FastAPI(title="Compass API", version="0.19.0")
 
 _STATIC_DIR = Path(__file__).parent / "static"
+_SPECS_DIR = Path(__file__).resolve().parent.parent / "specs" / "data"
 
 # In-memory run registry: run_id -> dict. Lets the UI poll a long-running
 # `compass run` invocation without holding the HTTP request open.
@@ -458,7 +467,7 @@ def remove_from_my_universe(ticker: str) -> dict:
 
 class CreateAnalystReq(BaseModel):
     name: str
-    sector: str
+    sector: str | None = None
     coverage: list[str] = []
     persona: str = ""
     title: str | None = None
@@ -492,11 +501,36 @@ class UpdateAnalystReq(BaseModel):
     coverage: list[str] | None = None
 
 
+def _enrich_with_live_status(analyst_dict: dict) -> dict:
+    """Override ``status`` + ``current_focus`` with values derived from the
+    analyst's engagement task lists. The stored ``Analyst.status`` field
+    is a static default; the live status is what the UI cares about. We
+    leave the persisted record alone — only the response is enriched.
+    """
+    slug = analyst_dict.get("slug") or ""
+    if not slug:
+        return analyst_dict
+    live = compute_analyst_live_status(slug)
+    analyst_dict["status"] = live["status"]
+    # Only override current_focus when the live view actually has one,
+    # so a manually-set static focus survives an idle analyst.
+    if live["current_focus"]:
+        analyst_dict["current_focus"] = live["current_focus"]
+    analyst_dict["active_task_count"] = live["active_task_count"]
+    return analyst_dict
+
+
 @app.get("/api/analysts")
 def get_analysts() -> dict:
-    """List every hired analyst."""
+    """List every hired analyst. ``status`` and ``current_focus`` are
+    enriched with live values derived from each analyst's engagement
+    tasks — so a sidebar / dashboard rendering this payload reflects
+    what the pod is actually doing right now."""
     items = list_analysts()
-    return {"count": len(items), "analysts": [a.to_dict() for a in items]}
+    return {
+        "count": len(items),
+        "analysts": [_enrich_with_live_status(a.to_dict()) for a in items],
+    }
 
 
 @app.post("/api/analysts", status_code=201)
@@ -517,6 +551,19 @@ def post_analyst(req: CreateAnalystReq) -> dict:
     return analyst.to_dict()
 
 
+@app.post("/api/analysts/data-engineer")
+def post_hire_data_engineer(response: Response) -> dict:
+    """Hire the singleton Data Engineer role.
+
+    Idempotent — returns 201 on first hire, 200 if the DE was already on
+    the roster. The response body is the analyst record either way so
+    the UI can route to the analyst-detail view without an extra fetch.
+    """
+    analyst, created = hire_data_engineer()
+    response.status_code = 201 if created else 200
+    return analyst.to_dict()
+
+
 @app.post("/api/analysts/from-pack", status_code=201)
 def post_analyst_from_pack(req: HireFromPackReq) -> dict:
     """Hire an analyst pre-filled from a persona pack.
@@ -532,7 +579,10 @@ def post_analyst_from_pack(req: HireFromPackReq) -> dict:
     try:
         analyst = create_analyst(
             name=(req.name or pack.name),
-            sector=(req.sector or pack.sector_hint),
+            # Use the PM's pick verbatim — no silent fallback to
+            # ``pack.sector_hint``. If the PM left it blank in the UI,
+            # the analyst is hired as a generalist (no sector).
+            sector=req.sector,
             coverage=req.coverage,
             persona=(req.persona if req.persona is not None else pack.voice),
             title=(req.title or pack.title),
@@ -553,7 +603,7 @@ def get_analyst_by_slug(slug: str) -> dict:
     analyst = get_analyst(slug)
     if analyst is None:
         raise HTTPException(status_code=404, detail=f"analyst not found: {slug}")
-    return analyst.to_dict()
+    return _enrich_with_live_status(analyst.to_dict())
 
 
 @app.put("/api/analysts/{slug}")
@@ -1871,6 +1921,219 @@ def _scan_artifacts(engagement: Engagement) -> list[dict]:
                 }
             )
     return out
+
+
+# --- dashboard aggregations -------------------------------------------------
+#
+# Used by the home Dashboard view. Each endpoint walks every engagement on
+# disk and emits a flat, presentation-ready list. Cheap enough at typical
+# pod sizes (a few analysts × few tickers × few dozen tasks) — revisit if
+# it ever becomes hot.
+
+
+def _parse_iso_to_epoch(s: str) -> float:
+    if not s:
+        return 0.0
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+    except (ValueError, TypeError):
+        return 0.0
+
+
+_CITATION_SOURCE_RE = re.compile(r"\(source:\s*[^)]+\)", re.IGNORECASE)
+
+
+def _memo_excerpt(text: str, *, max_chars: int = 220) -> str:
+    """First non-heading, non-empty paragraph from a memo, capped to ``max_chars``."""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or line.startswith("---"):
+            continue
+        if len(line) > max_chars:
+            return line[:max_chars].rstrip() + "…"
+        return line
+    return ""
+
+
+@app.get("/api/dashboard/active-tasks")
+def get_dashboard_active_tasks(
+    limit: int = Query(20, ge=1, le=100),
+) -> dict:
+    """Flat list of in-progress + pending engagement tasks across the pod.
+
+    Sorted: in-progress first (longest-running at top so the slow ones are
+    visible), then pending. ``elapsed_sec`` measured from ``started_at``
+    (0 for not-yet-started pending tasks).
+    """
+    from datetime import datetime, timezone
+
+    items: list[dict] = []
+    root = engagements_root()
+    if not root.exists():
+        return {"count": 0, "tasks": []}
+
+    now_epoch = datetime.now(timezone.utc).timestamp()
+
+    for analyst_dir in root.iterdir():
+        if not analyst_dir.is_dir():
+            continue
+        for ticker_dir in analyst_dir.iterdir():
+            if not ticker_dir.is_dir():
+                continue
+            tasks_path = ticker_dir / ".pipeline" / "tasks.json"
+            if not tasks_path.exists():
+                continue
+            try:
+                payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+                tasks = payload.get("tasks") or []
+            except (json.JSONDecodeError, OSError):
+                continue
+            for t in tasks:
+                status = str(t.get("status") or "").strip()
+                if status not in ("in-progress", "pending"):
+                    continue
+                started = str(t.get("started_at") or "")
+                started_epoch = _parse_iso_to_epoch(started)
+                elapsed = (now_epoch - started_epoch) if started_epoch > 0 else 0.0
+                items.append({
+                    "id": f"{analyst_dir.name}/{ticker_dir.name}/{t.get('id') or ''}",
+                    "task_id": str(t.get("id") or ""),
+                    "title": str(t.get("title") or t.get("skill") or "(untitled task)"),
+                    "skill": str(t.get("skill") or ""),
+                    "stage": str(t.get("stage") or ""),
+                    "status": status,
+                    "analyst": analyst_dir.name,
+                    "ticker": ticker_dir.name,
+                    "started_at": started,
+                    "elapsed_sec": int(elapsed),
+                })
+
+    items.sort(key=lambda r: (
+        0 if r["status"] == "in-progress" else 1,
+        -r["elapsed_sec"],
+    ))
+    capped = items[:limit]
+    return {"count": len(capped), "tasks": capped}
+
+
+@app.get("/api/dashboard/recent-memos")
+def get_dashboard_recent_memos(
+    limit: int = Query(10, ge=1, le=50),
+) -> dict:
+    """Most-recently-modified memo files across every engagement.
+
+    Each row is presentation-ready: title (``<TICKER> · <type>``), a
+    short excerpt drawn from the first non-heading line, citation count
+    (rough — counts ``(source: …)`` mentions), and the engagement
+    coordinates so the UI can route a click.
+    """
+    from datetime import datetime, timezone
+
+    items: list[dict] = []
+    root = engagements_root()
+    if not root.exists():
+        return {"count": 0, "memos": []}
+
+    for analyst_dir in root.iterdir():
+        if not analyst_dir.is_dir():
+            continue
+        for ticker_dir in analyst_dir.iterdir():
+            if not ticker_dir.is_dir():
+                continue
+            memos_dir = ticker_dir / "memos"
+            if not memos_dir.exists():
+                continue
+            for memo_type_dir in memos_dir.iterdir():
+                if not memo_type_dir.is_dir():
+                    continue
+                for memo_path in memo_type_dir.glob("*.md"):
+                    try:
+                        text = memo_path.read_text(encoding="utf-8", errors="replace")
+                        stat = memo_path.stat()
+                    except OSError:
+                        continue
+                    rel_path = memo_path.relative_to(ticker_dir).as_posix()
+                    items.append({
+                        "id": f"{analyst_dir.name}/{ticker_dir.name}/{rel_path}",
+                        "title": f"{ticker_dir.name} · {memo_type_dir.name}",
+                        "excerpt": _memo_excerpt(text),
+                        "analyst": analyst_dir.name,
+                        "ticker": ticker_dir.name,
+                        "type": memo_type_dir.name,
+                        "path": rel_path,
+                        # Date: use the YYYY-MM-DD stem when present, else
+                        # the file's modified date in UTC.
+                        "date": (
+                            memo_path.stem
+                            if memo_path.stem[:4].isdigit()
+                            else datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).date().isoformat()
+                        ),
+                        "citation_count": len(_CITATION_SOURCE_RE.findall(text)),
+                        "modified_at": stat.st_mtime,
+                    })
+
+    items.sort(key=lambda r: r["modified_at"], reverse=True)
+    capped = items[:limit]
+    return {"count": len(capped), "memos": capped}
+
+
+# --- data-source specs ------------------------------------------------------
+#
+# The Data Engineer chat surface produces a markdown spec at the end of a
+# scoping conversation; the PM saves it via this endpoint. Specs land at
+# ``specs/data/<slug>.md`` at the repo root (committable, reviewable),
+# NOT under the gitignored ``data/`` dir.
+#
+# v1 deliberately does not auto-author a fetch skill from the spec — the
+# spec is the input to a later step (human, or a future distill-style
+# agent for code skills).
+
+
+class SaveDataSpecReq(BaseModel):
+    slug: str
+    content: str
+
+
+_SPEC_SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{1,63}$")
+
+
+@app.post("/api/specs/data", status_code=201)
+def post_save_data_spec(req: SaveDataSpecReq) -> dict:
+    """Save a Data-Engineer-produced spec to ``specs/data/<slug>.md``."""
+    slug = (req.slug or "").strip().lower()
+    if not _SPEC_SLUG_RE.match(slug):
+        raise HTTPException(
+            status_code=400,
+            detail="slug must start with a letter, then lowercase letters / digits / hyphens (max 64 chars)",
+        )
+    if not (req.content or "").strip():
+        raise HTTPException(status_code=400, detail="content cannot be empty")
+    _SPECS_DIR.mkdir(parents=True, exist_ok=True)
+    spec_path = _SPECS_DIR / f"{slug}.md"
+    spec_path.write_text(req.content, encoding="utf-8")
+    return {
+        "slug": slug,
+        "path": str(spec_path.relative_to(_SPECS_DIR.parent.parent)).replace("\\", "/"),
+        "bytes": spec_path.stat().st_size,
+    }
+
+
+@app.get("/api/specs/data")
+def get_data_specs() -> dict:
+    """List every saved data-source spec (newest first)."""
+    if not _SPECS_DIR.exists():
+        return {"count": 0, "specs": []}
+    rows = []
+    for p in _SPECS_DIR.glob("*.md"):
+        rows.append({
+            "slug": p.stem,
+            "path": str(p.relative_to(_SPECS_DIR.parent.parent)).replace("\\", "/"),
+            "bytes": p.stat().st_size,
+            "modified_at": p.stat().st_mtime,
+        })
+    rows.sort(key=lambda r: r["modified_at"], reverse=True)
+    return {"count": len(rows), "specs": rows}
 
 
 # --- static SPA -------------------------------------------------------------

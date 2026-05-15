@@ -1,13 +1,20 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Sparkles, FileText, Clock, ListChecks, BookOpen, Lightbulb, Brain } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { fmtElapsed } from '@/lib/utils';
-import { mockMemos, mockTasks, mockNotes } from '@/mocks/data';
-import type { ApiAnalyst } from '@/lib/api';
+import {
+  getDashboardActiveTasks,
+  getDashboardRecentMemos,
+  lookupTickers,
+  type ApiAnalyst,
+  type ApiDashboardMemo,
+  type ApiDashboardTask,
+  type ApiTicker,
+} from '@/lib/api';
 
 type Props = {
   analysts: ApiAnalyst[];
@@ -33,9 +40,60 @@ export function DashboardView({
   onOpenUniverse,
   onOpenKnowledge,
 }: Props) {
-  const activeTasks = mockTasks.filter((t) => t.status === 'running' || t.status === 'queued');
-  const recentMemos = mockMemos.slice(0, 4);
-  const recentNotes = mockNotes.slice(0, 3);
+  const [activeTasks, setActiveTasks] = useState<ApiDashboardTask[]>([]);
+  const [recentMemos, setRecentMemos] = useState<ApiDashboardMemo[]>([]);
+  const [coverageRows, setCoverageRows] = useState<ApiTicker[]>([]);
+
+  // Live fetches on mount + whenever the analyst roster changes (a new
+  // hire / fire / coverage edit). Cheap — backend just walks the
+  // engagement tree.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getDashboardActiveTasks(20).catch(() => ({ count: 0, tasks: [] as ApiDashboardTask[] })),
+      getDashboardRecentMemos(4).catch(() => ({ count: 0, memos: [] as ApiDashboardMemo[] })),
+    ]).then(([t, m]) => {
+      if (cancelled) return;
+      setActiveTasks(t.tasks);
+      setRecentMemos(m.memos);
+    });
+    return () => { cancelled = true; };
+  }, [analysts.length]);
+
+  // Hydrate every covered ticker against the universe so we can group by
+  // GICS sector for the Coverage map. One round trip per dashboard load.
+  useEffect(() => {
+    const allCoverage = Array.from(
+      new Set(analysts.flatMap((a) => a.coverage)),
+    );
+    if (allCoverage.length === 0) {
+      setCoverageRows([]);
+      return;
+    }
+    let cancelled = false;
+    lookupTickers(allCoverage)
+      .then((r) => { if (!cancelled) setCoverageRows(r.tickers); })
+      .catch(() => { if (!cancelled) setCoverageRows([]); });
+    return () => { cancelled = true; };
+  }, [analysts]);
+
+  const runningCount = activeTasks.filter((t) => t.status === 'in-progress').length;
+  const pendingCount = activeTasks.filter((t) => t.status === 'pending').length;
+
+  /** GICS sector → distinct ticker count (deduped across analysts).
+   *  An analyst's stated ``sector`` is a label, not authoritative — what
+   *  matters here is the sector of each ticker they actually cover. */
+  const coverageBySector = useMemo(() => {
+    const counts = new Map<string, Set<string>>();
+    for (const t of coverageRows) {
+      const s = t.sector ?? 'Unclassified';
+      if (!counts.has(s)) counts.set(s, new Set());
+      counts.get(s)!.add(t.ticker);
+    }
+    return Array.from(counts.entries())
+      .map(([sector, tickers]) => ({ sector, count: tickers.size }))
+      .sort((a, b) => b.count - a.count);
+  }, [coverageRows]);
 
   return (
     <div className="overflow-y-auto scrollbar-thin h-full">
@@ -46,8 +104,9 @@ export function DashboardView({
             <h1 className="text-2xl font-semibold tracking-tight">Good morning</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Your pod has {analysts.length} {analysts.length === 1 ? 'analyst' : 'analysts'} covering {' '}
-              {analysts.reduce((sum, a) => sum + a.coverage.length, 0)} names. {' '}
-              {activeTasks.length} task{activeTasks.length === 1 ? '' : 's'} running.
+              {coverageRows.length} {coverageRows.length === 1 ? 'name' : 'names'}. {' '}
+              {runningCount} task{runningCount === 1 ? '' : 's'} running
+              {pendingCount > 0 && <>, {pendingCount} pending</>}.
             </p>
           </div>
           <div className="flex gap-2">
@@ -169,14 +228,19 @@ export function DashboardView({
               ) : (
                 <ul className="space-y-2">
                   {activeTasks.map((t) => {
-                    const analyst = analysts.find((a) => a.slug === t.analystSlug);
+                    const analyst = analysts.find((a) => a.slug === t.analyst);
+                    const isRunning = t.status === 'in-progress';
                     return (
                       <li
                         key={t.id}
                         className="flex items-center gap-3 p-2 rounded-md hover:bg-accent/50 cursor-pointer"
                         onClick={() => analyst && onOpenAnalyst(analyst.slug)}
                       >
-                        <span className="spinner shrink-0" />
+                        {isRunning ? (
+                          <span className="spinner shrink-0" />
+                        ) : (
+                          <span className="shrink-0 w-2 h-2 rounded-full bg-muted-foreground/50" title="pending" />
+                        )}
                         {analyst && (
                           <Avatar
                             initials={analyst.avatar_initials}
@@ -185,9 +249,13 @@ export function DashboardView({
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate">{t.description}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {analyst?.name} · {fmtElapsed(t.durationSec)}
+                          <div className="text-sm truncate">{t.title}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {analyst?.name ?? t.analyst} · {t.ticker}
+                            {isRunning && t.elapsed_sec > 0 && (
+                              <> · {fmtElapsed(t.elapsed_sec)}</>
+                            )}
+                            {!isRunning && <> · pending</>}
                           </div>
                         </div>
                       </li>
@@ -208,36 +276,49 @@ export function DashboardView({
               <CardDescription>Latest deliverables across your pod.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3">
-                {recentMemos.map((m) => {
-                  const analyst = analysts.find((a) => a.slug === m.analystSlug);
-                  return (
-                    <li key={m.id} className="space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {analyst && (
-                            <Avatar
-                              initials={analyst.avatar_initials}
-                              color={analyst.avatar_color}
-                              size="sm"
-                            />
-                          )}
-                          <span className="text-sm font-medium truncate">{m.title}</span>
+              {recentMemos.length === 0 ? (
+                <div className="text-sm text-muted-foreground italic">
+                  No memos yet. Hire an analyst and run a workflow.
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {recentMemos.map((m) => {
+                    const analyst = analysts.find((a) => a.slug === m.analyst);
+                    return (
+                      <li
+                        key={m.id}
+                        className="space-y-1 rounded-md p-2 -mx-2 hover:bg-accent/40 cursor-pointer"
+                        onClick={() => analyst && onOpenAnalyst(analyst.slug)}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {analyst && (
+                              <Avatar
+                                initials={analyst.avatar_initials}
+                                color={analyst.avatar_color}
+                                size="sm"
+                              />
+                            )}
+                            <span className="text-sm font-medium truncate">{m.title}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] shrink-0">
+                            {m.date}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-[10px]">
-                          {m.date}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 pl-9">
-                        {m.excerpt}
-                      </p>
-                      <div className="pl-9 text-[10px] text-muted-foreground">
-                        {m.citationCount} citations · <span className="capitalize">{m.type.replace('-', ' ')}</span>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {m.excerpt && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 pl-9">
+                            {m.excerpt}
+                          </p>
+                        )}
+                        <div className="pl-9 text-[10px] text-muted-foreground">
+                          {analyst?.name ?? m.analyst}
+                          {m.citation_count > 0 && <> · {m.citation_count} citations</>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -248,64 +329,53 @@ export function DashboardView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <BookOpen className="w-4 h-4 text-primary" />
-                Knowledge base · recent notes
+                Knowledge base
               </CardTitle>
               <CardDescription>
-                Distilled ideas from memos and chats. Backlinked by <code className="text-primary">[[ticker]]</code> and <code className="text-primary">[[concept]]</code>.
+                Distilled ideas from memos and chats, backlinked by <code className="text-primary">[[ticker]]</code> and <code className="text-primary">[[concept]]</code>.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3">
-                {recentNotes.map((n) => (
-                  <li
-                    key={n.id}
-                    className="rounded-md border border-border p-3 hover:bg-accent/30 cursor-pointer"
-                    onClick={onOpenKnowledge}
-                  >
-                    <div className="flex justify-between items-baseline gap-2">
-                      <span className="text-sm font-medium">{n.title}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{n.createdAt}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                      {n.body.replace(/\[\[([^\]]+)\]\]/g, '$1')}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {n.tags.slice(0, 4).map((t) => (
-                        <span
-                          key={t}
-                          className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <div className="text-sm text-muted-foreground italic border border-dashed border-border rounded-md p-4 text-center">
+                Knowledge base hasn't shipped yet. Memos and chat transcripts
+                land on disk under <code className="font-mono text-[11px]">data/engagements/</code>;
+                distilling them into a searchable notes index is a later slice.
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-4"
+                onClick={onOpenKnowledge}
+              >
+                Open knowledge view →
+              </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Coverage map</CardTitle>
-              <CardDescription>Names in your ticker universe.</CardDescription>
+              <CardDescription>
+                Names covered by the pod, grouped by GICS sector.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {['Technology', 'Energy', 'Financials', 'Consumer'].map((sector) => {
-                  const count = analysts
-                    .filter((a) => a.sector === sector)
-                    .reduce((sum, a) => sum + a.coverage.length, 0);
-                  return (
+              {coverageBySector.length === 0 ? (
+                <div className="text-xs text-muted-foreground italic">
+                  No coverage yet. Assign tickers to an analyst.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {coverageBySector.map(({ sector, count }) => (
                     <div key={sector} className="flex items-center justify-between text-sm">
-                      <span>{sector}</span>
-                      <Badge variant="outline" className="text-[10px]">
+                      <span className="truncate pr-2">{sector}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
                         {count} name{count === 1 ? '' : 's'}
                       </Badge>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
               <Button
                 variant="outline"
                 size="sm"

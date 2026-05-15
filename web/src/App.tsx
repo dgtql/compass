@@ -57,6 +57,10 @@ export function App() {
   /** Optional pack to pre-select when the Hire modal opens. Set by the
    *  People tab's Hire button so the modal lands on the right persona. */
   const [hirePackId, setHirePackId] = useState<string | null>(null);
+  /** Role pre-selected when the Hire modal opens — lets the People tab
+   *  surface a dedicated "Hire data engineer" button that lands directly
+   *  on the DE branch of the modal. */
+  const [hireRole, setHireRole] = useState<'analyst' | 'data-engineer'>('analyst');
   // Suppress the hashchange→setView round trip caused by our own push.
   const lastWrittenHash = useRef<string>('');
 
@@ -100,7 +104,7 @@ export function App() {
       <Sidebar
         view={view}
         onNavigate={setView}
-        onOpenHire={() => setHireOpen(true)}
+        onOpenHire={() => { setHireRole('analyst'); setHireOpen(true); }}
         analysts={analysts}
       />
       <main className="flex-1 min-w-0 flex flex-col">
@@ -109,7 +113,7 @@ export function App() {
             analysts={analysts}
             onOpenAnalyst={(slug) => setView({ kind: 'analyst-detail', slug })}
             onOpenMasterAgent={() => setView({ kind: 'master-agent' })}
-            onOpenHire={() => setHireOpen(true)}
+            onOpenHire={() => { setHireRole('analyst'); setHireOpen(true); }}
             onOpenUniverse={() => setView({ kind: 'tickers', tab: 'all' })}
             onOpenKnowledge={() => setView({ kind: 'knowledge' })}
           />
@@ -121,6 +125,10 @@ export function App() {
             analysts={analysts}
             onOpenCoverage={(ticker) => setView({ kind: 'ticker-coverage', ticker })}
             onAnalystUpdated={reloadAnalysts}
+            onAnalystDeleted={() => {
+              reloadAnalysts();
+              setView({ kind: 'dashboard' });
+            }}
           />
         )}
         {view.kind === 'tickers' && <TickersView initialTab={view.tab} />}
@@ -132,7 +140,13 @@ export function App() {
         {view.kind === 'people' && (
           <PeopleView
             onHireFromPack={(packId) => {
+              setHireRole('analyst');
               setHirePackId(packId);
+              setHireOpen(true);
+            }}
+            onHireDataEngineer={() => {
+              setHireRole('data-engineer');
+              setHirePackId(null);
               setHireOpen(true);
             }}
           />
@@ -144,6 +158,8 @@ export function App() {
         open={hireOpen}
         onClose={() => { setHireOpen(false); setHirePackId(null); }}
         initialPackId={hirePackId}
+        initialRole={hireRole}
+        analysts={analysts}
         onCreated={(a) => {
           reloadAnalysts();
           setHirePackId(null);

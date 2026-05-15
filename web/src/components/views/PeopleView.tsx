@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Users, Loader2, Sparkles, UserPlus, GitBranch, Plus } from 'lucide-react';
+import { Users, Loader2, Sparkles, UserPlus, GitBranch, Plus, Database } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +24,12 @@ type Props = {
   /** Triggered when the PM clicks "Hire" on a pack — App.tsx opens the
    *  Hire modal (it already supports a pack-id selector). */
   onHireFromPack?: (packId: string) => void;
+  /** Triggered by the "Hire data engineer" header button — opens the
+   *  Hire modal with the role pre-selected to Data Engineer. */
+  onHireDataEngineer?: () => void;
 };
 
-export function PeopleView({ onHireFromPack }: Props) {
+export function PeopleView({ onHireFromPack, onHireDataEngineer }: Props) {
   const [packs, setPacks] = useState<ApiPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,10 +62,18 @@ export function PeopleView({ onHireFromPack }: Props) {
                   + 'Each bundles a skill + voice + named workflows the analyst will run.'}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
-            <Plus className="w-3.5 h-3.5" />
-            Add talent
-          </Button>
+          <div className="flex gap-2">
+            {onHireDataEngineer && (
+              <Button variant="outline" size="sm" onClick={onHireDataEngineer}>
+                <Database className="w-3.5 h-3.5" />
+                Hire data engineer
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
+              <Plus className="w-3.5 h-3.5" />
+              Add talent
+            </Button>
+          </div>
         </div>
 
         {error && (

@@ -151,6 +151,9 @@ export type ApiAnalyst = {
   skills?: string[];
   default_template?: string | null;
   pack?: string | null;
+  /** Live-derived: number of in-progress + pending engagement tasks
+   *  filed under this analyst. Server-computed at list time. */
+  active_task_count?: number;
 };
 
 export type ApiAnalystList = { count: number; analysts: ApiAnalyst[] };
@@ -161,7 +164,8 @@ export function getAnalysts(): Promise<ApiAnalystList> {
 
 export function createAnalyst(body: {
   name: string;
-  sector: string;
+  /** Optional — a generalist analyst can be hired with no sector. */
+  sector?: string | null;
   coverage?: string[];
   persona?: string;
   title?: string;
@@ -175,6 +179,15 @@ export function createAnalyst(body: {
 
 export function deleteAnalyst(slug: string): Promise<{ slug: string }> {
   return getJson(`/api/analysts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+}
+
+/** Hire the singleton Data Engineer role. Idempotent — if the DE is
+ *  already on the roster, the existing record is returned. */
+export function hireDataEngineer(): Promise<ApiAnalyst> {
+  return getJson<ApiAnalyst>('/api/analysts/data-engineer', {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+  });
 }
 
 export function updateAnalystCoverage(slug: string, coverage: string[]): Promise<ApiAnalyst> {
@@ -974,6 +987,72 @@ export function streamMemoRun(
     }
   })();
   return () => ctrl.abort();
+}
+
+// --- Dashboard aggregations -----------------------------------------------
+
+export type ApiDashboardTask = {
+  /** Composite key for React lists: ``<analyst>/<ticker>/<task_id>``. */
+  id: string;
+  task_id: string;
+  title: string;
+  skill: string;
+  stage: string;
+  status: 'in-progress' | 'pending';
+  analyst: string;
+  ticker: string;
+  started_at: string;
+  elapsed_sec: number;
+};
+
+export function getDashboardActiveTasks(
+  limit = 20,
+): Promise<{ count: number; tasks: ApiDashboardTask[] }> {
+  return getJson(`/api/dashboard/active-tasks?limit=${limit}`);
+}
+
+export type ApiDashboardMemo = {
+  /** Composite key for React lists: ``<analyst>/<ticker>/<rel_path>``. */
+  id: string;
+  title: string;
+  excerpt: string;
+  analyst: string;
+  ticker: string;
+  type: string;
+  path: string;
+  date: string;
+  citation_count: number;
+  modified_at: number;
+};
+
+export function getDashboardRecentMemos(
+  limit = 10,
+): Promise<{ count: number; memos: ApiDashboardMemo[] }> {
+  return getJson(`/api/dashboard/recent-memos?limit=${limit}`);
+}
+
+// --- Data-source specs (Data Engineer chat output) ------------------------
+
+export type ApiSavedSpec = {
+  slug: string;
+  path: string;
+  bytes: number;
+};
+
+/** Persist a Data-Engineer-produced spec to ``specs/data/<slug>.md``. */
+export function saveDataSpec(req: {
+  slug: string;
+  content: string;
+}): Promise<ApiSavedSpec> {
+  return jpost<ApiSavedSpec>('/api/specs/data', req);
+}
+
+/** List every saved data-source spec, newest first. */
+export function listDataSpecs(): Promise<{
+  count: number;
+  specs: (ApiSavedSpec & { modified_at: number })[];
+}> {
+  return getJson('/api/specs/data');
 }
 
 function _parseSse(raw: string): { event: string; data: unknown } | null {

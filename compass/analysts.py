@@ -58,6 +58,12 @@ _AVATAR_PALETTE: tuple[str, ...] = (
 
 VALID_STATUSES: tuple[str, ...] = ("idle", "working", "review", "offline")
 
+# Auto-injected system role — a pragmatic "data engineer" who chats with the
+# PM to scope new data-source ideas and produces a written spec. Not a famous
+# persona, not hired through the pack flow; ensured to exist at app startup
+# via :func:`bootstrap_data_engineer`.
+DATA_ENGINEER_SLUG = "data-engineer"
+
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -179,7 +185,7 @@ def save_roster(roster: Roster, *, path: Path | None = None) -> Path:
 def create_analyst(
     *,
     name: str,
-    sector: str,
+    sector: str | None = None,
     coverage: list[str] | None = None,
     persona: str = "",
     title: str | None = None,
@@ -194,10 +200,13 @@ def create_analyst(
 
     * ``name`` is required. The slug is derived from it (collision-resolved
       with a numeric suffix).
-    * ``sector`` must be one of the GICS sectors (`compass.universe.GICS_SECTORS`).
+    * ``sector`` is **optional** — pass ``None`` or an empty string for a
+      generalist analyst (no specialty). When provided it must match one
+      of the GICS sectors (``compass.universe.GICS_SECTORS``).
     * ``coverage`` tickers must exist in the universe seed when
       ``validate_coverage=True`` (default).
-    * ``title`` defaults to ``"Analyst · <sector>"`` if omitted.
+    * ``title`` defaults to ``"Analyst · <sector>"`` when sector is set,
+      else simply ``"Analyst"``.
     * ``skills``, ``default_template``, ``pack``, ``avatar_color`` are
       pack-aware fields. When hiring from a pack the caller passes the
       pack's values through. Hand-rolled analysts leave them as defaults.
@@ -207,7 +216,8 @@ def create_analyst(
     nm = (name or "").strip()
     if not nm:
         raise ValueError("name is required")
-    if sector not in GICS_SECTORS:
+    sector_clean = (sector or "").strip() or None
+    if sector_clean is not None and sector_clean not in GICS_SECTORS:
         raise ValueError(f"sector must be one of GICS_SECTORS, got {sector!r}")
 
     coverage_clean: list[str] = []
@@ -247,12 +257,13 @@ def create_analyst(
 
     chosen_avatar = (avatar_color or "").strip() or _pick_color(slug)
 
+    default_title = f"Analyst · {sector_clean}" if sector_clean else "Analyst"
     analyst = Analyst(
         id=_next_id(roster),
         slug=slug,
         name=nm,
-        title=(title or f"Analyst · {sector}").strip(),
-        sector=sector,
+        title=(title or default_title).strip(),
+        sector=(sector_clean or ""),
         coverage=coverage_clean,
         persona=(persona or "").strip(),
         avatar_color=chosen_avatar,
@@ -379,6 +390,49 @@ def update_analyst_coverage(
     found.coverage = upper
     save_roster(roster, path=path)
     return found
+
+
+# ---------------------------------------------------------------------------
+# System role bootstrap
+# ---------------------------------------------------------------------------
+
+
+def hire_data_engineer(*, path: Path | None = None) -> tuple[Analyst, bool]:
+    """Hire the singleton Data Engineer role. Returns ``(analyst, created)``.
+
+    Idempotent: if a record with slug ``data-engineer`` already exists,
+    returns it with ``created=False``. The DE is a role, not a persona —
+    no sector, no coverage, no pack. The chat surface special-cases
+    ``slug == "data-engineer"`` to inject the curated system prompt
+    (see ``compass.llm``), so this record's persona field stays empty.
+    """
+    roster = load_roster(path=path)
+    existing = next(
+        (a for a in roster.analysts if a.slug == DATA_ENGINEER_SLUG), None,
+    )
+    if existing is not None:
+        return existing, False
+    de = Analyst(
+        id=_next_id(roster),
+        slug=DATA_ENGINEER_SLUG,
+        name="Data Engineer",
+        title="Data Engineer",
+        sector="",
+        coverage=[],
+        persona="",
+        avatar_color="sky",
+        avatar_initials="DE",
+        status="idle",
+        hired_at=date.today().isoformat(),
+        stats=AnalystStats(),
+        current_focus=None,
+        skills=[],
+        default_template=None,
+        pack=None,
+    )
+    roster.analysts.append(de)
+    save_roster(roster, path=path)
+    return de, True
 
 
 # ---------------------------------------------------------------------------

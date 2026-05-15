@@ -276,6 +276,82 @@ def _publish_event(analyst: str, ticker: str, event: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
+def compute_analyst_live_status(analyst_slug: str) -> dict[str, Any]:
+    """Scan an analyst's engagement task lists and derive a live status.
+
+    Returns ``{status, current_focus, active_task_count, in_progress_count,
+    pending_count, error_count, total_count}``. ``status`` is one of
+    ``working`` (>=1 in-progress task) / ``review`` (>=1 review task and
+    none in-progress) / ``idle`` (everything done or no engagements).
+
+    Cheap to call — reads each engagement's ``tasks.json`` once. Errors
+    are swallowed so a corrupt task file can't break the analyst list.
+    """
+    root = engagements_root() / analyst_slug
+    out: dict[str, Any] = {
+        "status": "idle",
+        "current_focus": None,
+        "active_task_count": 0,
+        "in_progress_count": 0,
+        "pending_count": 0,
+        "error_count": 0,
+        "review_count": 0,
+        "total_count": 0,
+    }
+    if not root.exists() or not root.is_dir():
+        return out
+
+    most_recent_in_progress: tuple[float, str, str] | None = None  # (started_epoch, title, ticker)
+
+    for ticker_dir in root.iterdir():
+        if not ticker_dir.is_dir():
+            continue
+        tasks_path = ticker_dir / ".pipeline" / "tasks.json"
+        if not tasks_path.exists():
+            continue
+        try:
+            payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+            tasks = payload.get("tasks") or []
+        except (json.JSONDecodeError, OSError):
+            continue
+        for t in tasks:
+            status = str(t.get("status") or "").strip()
+            out["total_count"] += 1
+            if status == "in-progress":
+                out["in_progress_count"] += 1
+                started_str = t.get("started_at") or ""
+                started_epoch = _parse_iso_epoch(started_str)
+                title = str(t.get("title") or t.get("skill") or "Working")
+                if most_recent_in_progress is None or started_epoch > most_recent_in_progress[0]:
+                    most_recent_in_progress = (started_epoch, title, ticker_dir.name)
+            elif status == "pending":
+                out["pending_count"] += 1
+            elif status == "review":
+                out["review_count"] += 1
+            elif status == "error":
+                out["error_count"] += 1
+
+    out["active_task_count"] = out["in_progress_count"] + out["pending_count"]
+    if out["in_progress_count"] > 0:
+        out["status"] = "working"
+        if most_recent_in_progress is not None:
+            _, title, ticker = most_recent_in_progress
+            out["current_focus"] = f"{ticker} · {title}"
+    elif out["review_count"] > 0:
+        out["status"] = "review"
+    return out
+
+
+def _parse_iso_epoch(s: str) -> float:
+    """Best-effort ISO-8601 → epoch seconds. Empty / unparseable → 0.0."""
+    if not s:
+        return 0.0
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+    except (ValueError, TypeError):
+        return 0.0
+
+
 def list_engagements() -> list[dict[str, Any]]:
     """All materialized engagements on disk, newest-modified first."""
     root = engagements_root()

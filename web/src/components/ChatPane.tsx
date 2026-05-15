@@ -17,10 +17,11 @@ import { marked } from 'marked';
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
-  X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle,
+  X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle, Save,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ import {
   getChats,
   getMemoCandidates,
   getWorkflows,
+  saveDataSpec,
   suggestWorkflow,
   type ApiPackWorkflow,
   type ApiWorkflow,
@@ -74,6 +76,10 @@ const MODEL_LABEL: Record<ChatModel, string> = {
   'claude-haiku-4-5': 'Haiku 4.5',
   'claude-opus-4-7': 'Opus 4.7',
 };
+
+/** The auto-injected Data Engineer's slug. Mirrors ``DATA_ENGINEER_SLUG``
+ *  in ``compass/analysts.py``. Used to gate the "Save as spec" affordance. */
+const DATA_ENGINEER_SLUG = 'data-engineer';
 
 type CounterpartyAvatar = {
   initials: string;
@@ -383,6 +389,59 @@ export function ChatPane({
     } catch {
       refresh();
     }
+  }
+
+  /** Save-as-spec dialog state. Opens with the latest assistant message
+   *  pre-loaded as ``saveSpecContent`` and a slug parsed from the
+   *  ``**slug:** `<...>` `` line when the DE included one. */
+  const [saveSpecOpen, setSaveSpecOpen] = useState(false);
+  const [saveSpecSlug, setSaveSpecSlug] = useState('');
+  const [saveSpecContent, setSaveSpecContent] = useState('');
+  const [savingSpec, setSavingSpec] = useState(false);
+  const [saveSpecError, setSaveSpecError] = useState<string | null>(null);
+  /** Brief success state shown after the save lands. ``null`` = idle. */
+  const [saveSpecResult, setSaveSpecResult] = useState<{ path: string; bytes: number } | null>(null);
+
+  function openSaveSpec() {
+    if (!active) return;
+    const lastAssistant = [...active.messages].reverse().find((m) => m.role !== 'pm');
+    if (!lastAssistant) {
+      setSaveSpecContent('');
+      setSaveSpecSlug('');
+      setSaveSpecError('No assistant message yet — chat with the Data Engineer first.');
+      setSaveSpecResult(null);
+      setSaveSpecOpen(true);
+      return;
+    }
+    const text = lastAssistant.text;
+    const slugMatch = text.match(/\*\*slug:\*\*\s*`?([a-z][a-z0-9-]*)`?/i);
+    setSaveSpecContent(text);
+    setSaveSpecSlug(slugMatch ? slugMatch[1] : '');
+    setSaveSpecError(null);
+    setSaveSpecResult(null);
+    setSaveSpecOpen(true);
+  }
+
+  async function submitSaveSpec() {
+    const slug = saveSpecSlug.trim().toLowerCase();
+    if (!slug || !saveSpecContent.trim()) return;
+    setSavingSpec(true);
+    setSaveSpecError(null);
+    try {
+      const result = await saveDataSpec({ slug, content: saveSpecContent });
+      setSaveSpecResult({ path: result.path, bytes: result.bytes });
+    } catch (err) {
+      setSaveSpecError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingSpec(false);
+    }
+  }
+
+  function closeSaveSpec() {
+    if (savingSpec) return;
+    setSaveSpecOpen(false);
+    setSaveSpecError(null);
+    setSaveSpecResult(null);
   }
 
   function toggleTask(taskId: string) {
@@ -1077,6 +1136,20 @@ export function ChatPane({
                   </span>
                 )}
               </div>
+              <div className="flex items-center gap-2">
+                {ownerKey === DATA_ENGINEER_SLUG
+                  && active
+                  && active.messages.some((m) => m.role !== 'pm') && (
+                  <Button
+                    onClick={openSaveSpec}
+                    variant="outline"
+                    size="sm"
+                    title="Save the Data Engineer's latest reply as a data-source spec under specs/data/"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    Save as spec
+                  </Button>
+                )}
               <Button
                 onClick={() => send(input)}
                 disabled={
@@ -1105,6 +1178,7 @@ export function ChatPane({
                   </>
                 )}
               </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1141,6 +1215,93 @@ export function ChatPane({
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Save-as-spec dialog — Data Engineer flow. Pre-fills slug from the
+          ``**slug:** <x>`` line in the latest assistant message; the body
+          is the entire message (human trims pre-spec chitchat in the file). */}
+      <Dialog
+        open={saveSpecOpen}
+        onClose={closeSaveSpec}
+        title={saveSpecResult ? 'Spec saved' : 'Save data-source spec'}
+        description={
+          saveSpecResult
+            ? undefined
+            : "Persist the Data Engineer's latest reply under specs/data/."
+        }
+        maxWidth="max-w-xl"
+      >
+        {saveSpecResult ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-9 h-9 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                <Check className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div className="text-sm space-y-1">
+                <div>Saved to <code className="font-mono text-[11px]">{saveSpecResult.path}</code></div>
+                <div className="text-[11px] text-muted-foreground">{saveSpecResult.bytes} bytes</div>
+              </div>
+            </div>
+            <div className="flex justify-end pt-2 border-t border-border">
+              <Button size="sm" onClick={closeSaveSpec}>Done</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Slug
+              </label>
+              <Input
+                placeholder="e.g. insider-form-4-daily"
+                value={saveSpecSlug}
+                onChange={(e) => setSaveSpecSlug(e.target.value)}
+                disabled={savingSpec}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && saveSpecSlug.trim() && saveSpecContent.trim()) {
+                    e.preventDefault();
+                    submitSaveSpec();
+                  }
+                }}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Becomes <code className="font-mono">specs/data/&lt;slug&gt;.md</code> and the future
+                fetch skill's folder name. Lowercase letters, digits, hyphens.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Content <span className="text-muted-foreground/60 normal-case font-normal lowercase">— editable preview</span>
+              </label>
+              <Textarea
+                value={saveSpecContent}
+                onChange={(e) => setSaveSpecContent(e.target.value)}
+                rows={10}
+                disabled={savingSpec}
+                className="font-mono text-[11px] leading-relaxed"
+              />
+            </div>
+            {saveSpecError && (
+              <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-md p-2">
+                <strong>Couldn't save:</strong> {saveSpecError}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button variant="outline" size="sm" onClick={closeSaveSpec} disabled={savingSpec}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={submitSaveSpec}
+                disabled={savingSpec || !saveSpecSlug.trim() || !saveSpecContent.trim()}
+              >
+                {savingSpec && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <Save className="w-3.5 h-3.5" />
+                Save
+              </Button>
+            </div>
+          </div>
+        )}
       </Dialog>
 
       {hasRail && (

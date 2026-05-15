@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pencil, Check, X, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
+import { Pencil, Check, X, Loader2, ChevronRight, ChevronDown, Trash2, AlertTriangle } from 'lucide-react';
 import { marked } from 'marked';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useEngagement } from '@/contexts/EngagementContext';
 import { Dialog } from '@/components/ui/dialog';
 import { mockCoverages } from '@/mocks/pipeline';
 import {
+  deleteAnalyst,
   getAnalystDeliverables,
   getAnalystTasksAll,
   getEngagementArtifact,
@@ -38,6 +39,9 @@ type Props = {
   /** Called after a successful profile edit so the parent re-fetches the
    *  analyst list (sidebar + dashboard pick up the changes). */
   onAnalystUpdated?: () => void;
+  /** Called after a successful Fire — App.tsx routes away from this
+   *  view and reloads the roster. */
+  onAnalystDeleted?: (slug: string) => void;
 };
 
 type Tab = 'chat' | 'coverage' | 'deliverables' | 'tasks' | 'profile';
@@ -50,9 +54,31 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'profile', label: 'Profile' },
 ];
 
-export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpdated }: Props) {
+export function AnalystDetailView({
+  slug, analysts, onOpenCoverage, onAnalystUpdated, onAnalystDeleted,
+}: Props) {
   const [tab, setTab] = useState<Tab>('chat');
   const analyst = useMemo(() => analysts.find((a) => a.slug === slug), [slug, analysts]);
+
+  /** Fire-confirm dialog target. Null = closed. */
+  const [fireOpen, setFireOpen] = useState(false);
+  const [firing, setFiring] = useState(false);
+  const [fireError, setFireError] = useState<string | null>(null);
+
+  async function confirmFire() {
+    if (!analyst) return;
+    setFiring(true);
+    setFireError(null);
+    try {
+      await deleteAnalyst(analyst.slug);
+      setFireOpen(false);
+      onAnalystDeleted?.(analyst.slug);
+    } catch (err) {
+      setFireError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setFiring(false);
+    }
+  }
 
   // Real engagement deliverables + tasks aggregated across every
   // (analyst, ticker) the dispatcher has touched. Refetched whenever
@@ -156,6 +182,16 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
               )}
             </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setFireOpen(true)}
+            className="text-muted-foreground hover:text-rose-500"
+            title="Remove this person from the pod"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Fire
+          </Button>
         </div>
 
         {/* Tab bar */}
@@ -190,7 +226,11 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
               color: analyst.avatar_color,
             }}
             counterpartyName={analyst.name}
-            placeholder={`Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`}
+            placeholder={
+              analyst.sector
+                ? `Ask ${analyst.name.split(' ')[0]} anything — about ${analyst.sector.toLowerCase()}, a specific name, the thesis…`
+                : `Ask ${analyst.name.split(' ')[0]} anything.`
+            }
             packWorkflows={packWorkflows}
             rightRailTabs={({ activeTask }) => {
               // The right rail is scoped to the active chat task's engagement.
@@ -448,6 +488,57 @@ export function AnalystDetailView({ slug, analysts, onOpenCoverage, onAnalystUpd
           </div>
         )}
       </div>
+
+      {/* Fire-confirm dialog — destructive, so require an explicit click. */}
+      <Dialog
+        open={fireOpen}
+        onClose={() => { if (!firing) { setFireOpen(false); setFireError(null); } }}
+        title={`Fire ${analyst.name}?`}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-full bg-rose-500/15 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
+            </div>
+            <div className="text-sm space-y-1.5">
+              <div>
+                Remove <span className="font-semibold">{analyst.name}</span> from the pod?
+                This deletes their analyst record.
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Engagement files under <code className="font-mono text-[11px]">data/engagements/{analyst.slug}/</code> stay
+                on disk — they're not auto-deleted.
+              </div>
+            </div>
+          </div>
+          {fireError && (
+            <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-md p-2">
+              <strong>Couldn't fire:</strong> {fireError}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setFireOpen(false); setFireError(null); }}
+              disabled={firing}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={confirmFire}
+              disabled={firing}
+            >
+              {firing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <Trash2 className="w-3.5 h-3.5" />
+              Fire
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
