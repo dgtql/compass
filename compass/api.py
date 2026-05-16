@@ -1845,6 +1845,7 @@ def _data_category(rel: str) -> tuple[str, str] | None:
 
 def _data_date(rel: str, mtime: float) -> str:
     """Best-effort date for an artifact: filename date first, mtime fallback."""
+    from datetime import datetime, timezone
     m = _DATE_RE.search(rel)
     if m:
         return m.group(1)
