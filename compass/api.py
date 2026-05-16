@@ -1178,14 +1178,37 @@ async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
         q.put(event)
 
     async def _driver() -> dict:
+        """Run the memo + persist the master-role transcript message.
+
+        The master message is appended **inside** the driver (before SENTINEL)
+        so a mid-run client disconnect can't orphan it. If the SSE generator
+        is cancelled by the browser navigating away, the engagement files
+        keep getting written by the dispatcher (engagement runs to completion
+        as an independent task); without this, the chat transcript would
+        end at the PM's framing message and the memo would only ever surface
+        in the Deliverables tab. Capturing the message here gives the next
+        page-load a complete transcript.
+        """
+        appended_session_dict: dict | None = None
         try:
-            return await run_memo_for_chat(
+            summary = await run_memo_for_chat(
                 owner_key,
                 req.ticker,
                 template=req.template,
                 message=req.message,
                 on_event=_on_event,
             )
+            master_text = _format_memo_summary(summary)
+            if master_text:
+                try:
+                    appended = chats_append_message(
+                        owner_key, session_id, role="master", text=master_text,
+                    )
+                    appended_session_dict = appended.to_dict()
+                except ValueError:
+                    appended_session_dict = None
+            summary["_chat_session"] = appended_session_dict
+            return summary
         finally:
             q.put(SENTINEL)
 
@@ -1202,27 +1225,17 @@ async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
         except Exception as exc:  # noqa: BLE001
             yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
 
-        # Driver should be done (SENTINEL emitted in `finally`). Await its
-        # result for the final summary and to surface any exception.
+        # Driver finished (SENTINEL emitted in `finally`); the master-role
+        # chat message was already persisted inside the driver. Surface the
+        # session it returned so the frontend renders the memo bubble
+        # without needing a second refresh.
         try:
             summary = await driver_task
         except Exception as exc:  # noqa: BLE001
             yield _sse("error", {"error": f"{type(exc).__name__}: {exc}"})
             return
 
-        # Persist a master-role summary so the chat transcript carries
-        # something durable after reload.
         memo_text = summary.get("memo_text")
-        master_text = _format_memo_summary(summary)
-        session = None
-        if master_text:
-            try:
-                session = chats_append_message(
-                    owner_key, session_id, role="master", text=master_text,
-                )
-            except ValueError:
-                session = None
-
         yield _sse("done", {
             "summary": {
                 "ran": summary.get("ran", 0),
@@ -1234,7 +1247,7 @@ async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
                 "memo_path": summary.get("memo_path"),
                 "has_memo": bool(memo_text),
             },
-            "session": session.to_dict() if session is not None else None,
+            "session": summary.get("_chat_session"),
         })
 
     return StreamingResponse(

@@ -345,12 +345,18 @@ export function ChatPane({
   // mid-run page refresh resilient: the streamMemoRun SSE is gone, but the
   // EngagementContext's SSE re-subscribes and re-fetches tasks from disk.
   //
+  // Gated on ``!loading`` so a tab-switch remount (which empties sessions
+  // until the first refresh completes) doesn't transiently null the
+  // engagement — that would tear down the right-rail SSE and leave the
+  // tasks panel stale until the user manually refreshes the page.
+  //
   // Special case: master-agent idea-exploration runs land under the synthetic
   // ``house`` analyst with an ``IDEA-<slug>`` ticker — we know that without
   // needing the dispatcher to tell us, so the rails light up immediately.
   // Master-agent *ticker* memos still skip until we persist the resolved
   // analyst on ApiChatTask.
   useEffect(() => {
+    if (loading) return;
     if (!activeTask || !activeTask.coverageTicker) {
       setEngagement(null);
       return;
@@ -365,7 +371,7 @@ export function ChatPane({
       return;
     }
     setEngagement({ analyst: ownerKey, ticker });
-  }, [activeTask, ownerKey, setEngagement]);
+  }, [activeTask, ownerKey, setEngagement, loading]);
 
   // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
   // a memo flow is active (any template) and no ticker has been picked yet.
