@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CitedMarkdown } from '@/components/markdown/CitedMarkdown';
+import { themeKeyFromText } from '@/lib/theme-key';
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
@@ -154,16 +155,6 @@ const ACADEMIC_TEMPLATE = 'academic-exploration';
 /** True iff ``template`` is one of the theme-keyed (no-ticker) workflows. */
 function isThemeTemplate(template: string | null): boolean {
   return template === IDEA_TEMPLATE || template === ACADEMIC_TEMPLATE;
-}
-
-/** Mirror of ``compass.chat_skills.theme_key_from_text`` — turn the PM's
- *  raw framing message into the IDEA-<slug> "ticker" the backend expects.
- *  Idempotent for the same input so the engagement directory stays stable
- *  across re-runs of the same theme. */
-function themeKeyFromText(text: string, maxLen = 40): string {
-  const cleaned = (text || '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const body = (cleaned || 'UNTITLED').slice(0, maxLen).replace(/-+$/, '');
-  return `IDEA-${body}`;
 }
 
 type Props = {

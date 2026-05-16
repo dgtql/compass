@@ -12,11 +12,11 @@ import {
   getEngagementArtifact,
   getEngagementFiles,
   getEngagementTasks,
-  getJson,
   type ApiAnalystDeliverable,
   type ApiEngagementFile,
   type ApiEngagementTask,
 } from '@/lib/api';
+import { ideaTickerFromChatTask } from '@/lib/theme-key';
 import { cn } from '@/lib/utils';
 
 type Tab = 'chat' | 'deliverables' | 'tasks' | 'profile';
@@ -37,11 +37,6 @@ const HOUSE_SLUG = 'house';
  *  hammer the API. */
 const RAIL_POLL_MS = 2500;
 
-type EngagementListItem = {
-  analyst: string;
-  ticker: string;
-  modified_at: number;
-};
 
 export function MasterAgentView() {
   const [tab, setTab] = useState<Tab>('chat');
@@ -89,24 +84,21 @@ export function MasterAgentView() {
             counterpartyName="the master agent"
             placeholder="Ask the master agent anything — your pod, your memos, your notes."
             rightRailTabs={({ activeTask }) => {
-              // Engagement scoping rule: if the active chat task carries
-              // a coverage ticker that starts with IDEA-, that's the
-              // engagement we render. Otherwise fall back to the most
-              // recently modified ``house`` engagement on disk — handy
-              // when the chat task pre-dated the coverage_ticker fix or
-              // when the PM is browsing without a fresh active session.
-              const ticker = activeTask?.coverageTicker ?? null;
-              const pinned = ticker?.startsWith('IDEA-') ? ticker : null;
+              // Scope the rails to the *current session's* engagement so
+              // switching between chat tasks switches the right rail.
+              // Falls back to title-based recovery for chat tasks that
+              // were created before ``coverageTicker`` was persisted.
+              const ticker = ideaTickerFromChatTask(activeTask);
               return [
                 {
                   id: 'tasks',
                   label: 'Tasks',
-                  content: <HouseTasksRail pinnedTicker={pinned} />,
+                  content: <HouseTasksRail ticker={ticker} />,
                 },
                 {
                   id: 'files',
                   label: 'Files',
-                  content: <HouseFilesRail pinnedTicker={pinned} />,
+                  content: <HouseFilesRail ticker={ticker} />,
                 },
               ];
             }}
@@ -144,47 +136,13 @@ export function MasterAgentView() {
 
 // --- Right-rail rails (direct-poll, no EngagementContext) ------------------
 
-/** Resolve which house engagement the right rail should render.
- *
- *  Precedence:
- *  1. ``pinnedTicker`` (when the active chat task carries an IDEA-* slug)
- *  2. The most recently modified ``house`` engagement on disk
- *  3. None (rails show a friendly empty state)
- *
- *  We re-poll the engagement list every few seconds so kicking off a new
- *  trading-idea run replaces the pin within a tick.
- */
-function useResolvedHouseTicker(pinnedTicker: string | null): string | null {
-  const [fallback, setFallback] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (pinnedTicker) return; // pin wins; no need to poll
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const list = await getJson<EngagementListItem[]>('/api/engagements');
-        if (cancelled) return;
-        const house = list
-          .filter((e) => e.analyst === HOUSE_SLUG)
-          .sort((a, b) => (b.modified_at ?? 0) - (a.modified_at ?? 0));
-        setFallback(house[0]?.ticker ?? null);
-      } catch {
-        // non-fatal — keep last value
-      }
-    };
-    tick();
-    const id = window.setInterval(tick, RAIL_POLL_MS * 2);
-    return () => { cancelled = true; window.clearInterval(id); };
-  }, [pinnedTicker]);
-
-  return pinnedTicker ?? fallback;
-}
-
 /** Tasks rail (right side of master-agent chat). Polls
  *  ``/api/engagements/house/<ticker>/tasks`` directly so we don't depend
- *  on the chat task carrying a coverage_ticker. */
-function HouseTasksRail({ pinnedTicker }: { pinnedTicker: string | null }) {
-  const ticker = useResolvedHouseTicker(pinnedTicker);
+ *  on the chat task carrying a coverage_ticker or on the SSE pipeline.
+ *  ``ticker`` is derived per-session from the active chat task in
+ *  ``MasterAgentView`` — when the PM switches sessions, the rail re-fetches
+ *  against the new engagement. */
+function HouseTasksRail({ ticker }: { ticker: string | null }) {
   const [tasks, setTasks] = useState<ApiEngagementTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -225,7 +183,8 @@ function HouseTasksRail({ pinnedTicker }: { pinnedTicker: string | null }) {
   if (!ticker) {
     return (
       <div className="p-4 text-xs text-muted-foreground italic">
-        Start a Trading-idea or Academic-survey run to see live task progress here.
+        Pick a Trading-idea or Academic-survey session in the left rail —
+        the task list for that engagement shows up here.
       </div>
     );
   }
@@ -287,8 +246,7 @@ function HouseTasksRail({ pinnedTicker }: { pinnedTicker: string | null }) {
 
 /** Files rail. Polls the engagement's files endpoint; click a row opens
  *  the artifact viewer modal (markdown gets CitedMarkdown). */
-function HouseFilesRail({ pinnedTicker }: { pinnedTicker: string | null }) {
-  const ticker = useResolvedHouseTicker(pinnedTicker);
+function HouseFilesRail({ ticker }: { ticker: string | null }) {
   const [files, setFiles] = useState<ApiEngagementFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState<ApiEngagementFile | null>(null);
@@ -318,7 +276,8 @@ function HouseFilesRail({ pinnedTicker }: { pinnedTicker: string | null }) {
   if (!ticker) {
     return (
       <div className="p-4 text-xs text-muted-foreground italic">
-        Start a run to populate research files here.
+        Pick a Trading-idea or Academic-survey session in the left rail to
+        browse its research files.
       </div>
     );
   }
@@ -400,19 +359,34 @@ function FileViewer({
   onClose: () => void;
 }) {
   const [content, setContent] = useState<string | null>(null);
+  const [survey, setSurvey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Memo files (memos/ideas/*.md) cite ``[N]`` refs that live in the
+  // engagement's survey.md, not the memo itself. Load the survey as
+  // companion content so CitedMarkdown can populate the hover tooltips.
+  // Skip for non-memo files (survey.md itself has its own Sources).
   useEffect(() => {
     if (!item) return;
     let cancelled = false;
     setContent(null);
+    setSurvey(null);
     setError(null);
     setLoading(true);
-    getEngagementArtifact(HOUSE_SLUG, ticker, item.path)
+    const main = getEngagementArtifact(HOUSE_SLUG, ticker, item.path)
       .then((r) => { if (!cancelled) setContent(r.content); })
-      .catch((e) => { if (!cancelled) setError((e as Error).message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .catch((e) => { if (!cancelled) setError((e as Error).message); });
+    const needsCompanion =
+      item.path.toLowerCase().endsWith('.md') && item.path.startsWith('memos/');
+    const companion = needsCompanion
+      ? getEngagementArtifact(HOUSE_SLUG, ticker, 'corpus/research/survey.md')
+          .then((r) => { if (!cancelled) setSurvey(r.content); })
+          .catch(() => { /* survey missing → no companion, fine */ })
+      : Promise.resolve();
+    Promise.all([main, companion]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
     return () => { cancelled = true; };
   }, [item, ticker]);
 
@@ -437,7 +411,10 @@ function FileViewer({
             )}
             {error && <div className="text-xs text-rose-500">{error}</div>}
             {content !== null && item.path.toLowerCase().endsWith('.md') && (
-              <CitedMarkdown content={content} />
+              <CitedMarkdown
+                content={content}
+                companionContent={survey ? [survey] : undefined}
+              />
             )}
             {content !== null && !item.path.toLowerCase().endsWith('.md') && (
               <pre className="text-xs whitespace-pre-wrap font-mono">{content}</pre>
@@ -532,19 +509,34 @@ function DeliverableViewer({
   onClose: () => void;
 }) {
   const [content, setContent] = useState<string | null>(null);
+  const [survey, setSurvey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Companion-survey loading: trading-idea memos cite ``[N]`` refs that
+  // live in the engagement's survey.md, not the memo itself. Pulling
+  // both lets CitedMarkdown wire hover tooltips even for memos that
+  // pre-date the SKILL.md change that required an inline Sources block.
   useEffect(() => {
     if (!item) return;
     let cancelled = false;
     setContent(null);
+    setSurvey(null);
     setError(null);
     setLoading(true);
-    getEngagementArtifact(HOUSE_SLUG, item.ticker, item.path)
+    const main = getEngagementArtifact(HOUSE_SLUG, item.ticker, item.path)
       .then((r) => { if (!cancelled) setContent(r.content); })
-      .catch((e) => { if (!cancelled) setError((e as Error).message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .catch((e) => { if (!cancelled) setError((e as Error).message); });
+    const needsCompanion =
+      item.path.toLowerCase().endsWith('.md') && item.path.startsWith('memos/');
+    const companion = needsCompanion
+      ? getEngagementArtifact(HOUSE_SLUG, item.ticker, 'corpus/research/survey.md')
+          .then((r) => { if (!cancelled) setSurvey(r.content); })
+          .catch(() => { /* survey missing → no companion */ })
+      : Promise.resolve();
+    Promise.all([main, companion]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
     return () => { cancelled = true; };
   }, [item]);
 
@@ -569,7 +561,10 @@ function DeliverableViewer({
             )}
             {error && <div className="text-xs text-rose-500">{error}</div>}
             {content !== null && item.path.toLowerCase().endsWith('.md') && (
-              <CitedMarkdown content={content} />
+              <CitedMarkdown
+                content={content}
+                companionContent={survey ? [survey] : undefined}
+              />
             )}
             {content !== null && !item.path.toLowerCase().endsWith('.md') && (
               <pre className="text-xs whitespace-pre-wrap font-mono">{content}</pre>

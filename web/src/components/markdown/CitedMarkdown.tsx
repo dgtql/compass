@@ -14,13 +14,36 @@ import { cn } from '@/lib/utils';
  * Skips ``<code>``, ``<pre>``, and ``<a>`` ancestors so a literal ``[1]``
  * inside a code block or a link's anchor text isn't accidentally
  * tooltipped.
+ *
+ * ``companionContent`` is an optional list of *other* markdown files
+ * whose Sources sections should populate the citation map for this
+ * render. Used by viewers that open a memo file whose ``[N]`` cites
+ * live in the engagement's survey.md but not in the memo itself —
+ * pass the survey content as a companion and the memo's citations
+ * resolve correctly.
  */
-export function CitedMarkdown({ content }: { content: string }) {
+export function CitedMarkdown({
+  content,
+  companionContent,
+}: {
+  content: string;
+  companionContent?: string[];
+}) {
   const html = useMemo(
     () => marked.parse(content, { gfm: true, breaks: false }) as string,
     [content],
   );
-  const refs = useMemo(() => parseCitations(content), [content]);
+  const refs = useMemo(() => {
+    const map = parseCitations(content);
+    for (const c of companionContent ?? []) {
+      // Merge in any [N] entries we don't already have — the rendered
+      // document's own sources win when both define the same number.
+      for (const [k, v] of parseCitations(c)) {
+        if (!map.has(k)) map.set(k, v);
+      }
+    }
+    return map;
+  }, [content, companionContent]);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
