@@ -15,6 +15,7 @@ thin and just stitches them together for the chat surface.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Callable
 
 from compass.analysts import list_analysts
@@ -27,13 +28,47 @@ from compass.engagement import (
 from compass.planner import plan as plan_template
 
 
+# A "theme" engagement is keyed by a synthetic ``IDEA-<slug>`` rather than
+# a tradable ticker. It's the unit of work for the idea-exploration
+# template — filed under the synthetic ``house`` analyst so it doesn't
+# pollute any real analyst's coverage tree.
+HOUSE_ANALYST_SLUG = "house"
+THEME_KEY_PREFIX = "IDEA-"
+
+
+def is_theme_key(key: str) -> bool:
+    """True iff ``key`` is a theme-style engagement key (``IDEA-…``)."""
+    return (key or "").upper().startswith(THEME_KEY_PREFIX)
+
+
+def theme_key_from_text(text: str, *, max_len: int = 40) -> str:
+    """Turn free-form PM framing text into a stable ``IDEA-<slug>`` key.
+
+    Used by chat callers when the PM kicks off an idea exploration from
+    a textarea — they hand us the raw message; we hand back the slug
+    that becomes the engagement's directory name. Idempotent across
+    calls with the same text.
+    """
+    cleaned = re.sub(r"[^A-Za-z0-9]+", "-", (text or "").upper()).strip("-")
+    if not cleaned:
+        cleaned = "UNTITLED"
+    # Drop trailing hyphens that the truncate may introduce.
+    return f"{THEME_KEY_PREFIX}{cleaned[:max_len].rstrip('-')}"
+
+
 def resolve_analyst_for_owner(owner_key: str, ticker: str) -> str:
     """Pick the analyst slug to file the engagement under.
 
+    - ``IDEA-…`` keys are always filed under the synthetic ``house``
+      analyst — these are master-agent theme explorations, not coverage
+      of a specific name.
     - ``master`` → ticker→analyst default map, then first hired analyst,
       then the project fallback.
     - Anything else → treated as the analyst slug verbatim.
     """
+    if is_theme_key(ticker):
+        return HOUSE_ANALYST_SLUG
+
     owner_key = (owner_key or "").strip().lower()
     if owner_key and owner_key != "master":
         return owner_key
@@ -52,6 +87,7 @@ async def run_memo_for_chat(
     ticker: str,
     *,
     template: str = "pitch-memo",
+    message: str | None = None,
     on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Plan + execute a memo engagement, streaming events through ``on_event``.
@@ -64,6 +100,12 @@ async def run_memo_for_chat(
     * ``memo_ready`` — final assembled memo path + text (if compose-assemble
       succeeded)
 
+    When ``template == "idea-exploration"`` the ``ticker`` argument is
+    expected to be a theme key (``IDEA-…``) rather than a tradable ticker,
+    and ``message`` carries the PM's free-form theme text — it gets
+    threaded into the ``frame-theme`` task's params so the skill body
+    sees the verbatim ask.
+
     Returns the dispatcher summary augmented with ``analyst``, ``ticker``,
     ``template``, ``memo_path``, ``memo_text``.
     """
@@ -75,11 +117,15 @@ async def run_memo_for_chat(
     engagement = Engagement.open(ticker, analyst=analyst_slug)
     # Fold the analyst's persona into the engagement so agent-mode skills
     # can write in the right voice. Generic analysts (no persona text)
-    # land with ``""`` and skills behave as before.
-    from compass.analysts import get_analyst
-    analyst = get_analyst(analyst_slug)
-    if analyst and analyst.persona:
-        engagement.persona = analyst.persona
+    # land with ``""`` and skills behave as before. Skip for ``house``
+    # (the synthetic owner of idea-exploration engagements) — there's no
+    # analyst record to read a persona from and the master agent should
+    # write in its own voice anyway.
+    if analyst_slug != HOUSE_ANALYST_SLUG:
+        from compass.analysts import get_analyst
+        analyst = get_analyst(analyst_slug)
+        if analyst and analyst.persona:
+            engagement.persona = analyst.persona
 
     _emit(on_event, {
         "type": "engagement_opened",
@@ -92,6 +138,16 @@ async def run_memo_for_chat(
     # Always replan for v1 — every chat-driven run is a fresh sweep so
     # debugging breaking skills is predictable. Resume/diff comes later.
     tasks = plan_template(engagement, template)
+
+    # Thread the PM's framing message into the frame-theme task for
+    # idea-exploration runs. The skill's SKILL.md only sees ``task.params``
+    # at runtime — the planner can't know the chat text in advance.
+    if template == "idea-exploration" and message and message.strip():
+        for t in tasks:
+            if t.id == "frame-theme":
+                t.params = {**(t.params or {}), "theme": message.strip()}
+                break
+
     engagement.save_tasks(tasks, template=template)
 
     _emit(on_event, {

@@ -1183,6 +1183,7 @@ async def stream_chat_memo(owner_key: str, session_id: str, req: RunMemoReq):
                 owner_key,
                 req.ticker,
                 template=req.template,
+                message=req.message,
                 on_event=_on_event,
             )
         finally:

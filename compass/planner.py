@@ -1157,6 +1157,97 @@ def _maintenance_refresh(engagement: Engagement) -> list[Task]:
 
 
 # ---------------------------------------------------------------------------
+# Idea exploration (master-agent trading-idea workflow)
+# ---------------------------------------------------------------------------
+
+
+@template("idea-exploration")
+def _idea_exploration(engagement: Engagement) -> list[Task]:
+    """A non-ticker workflow: PM hands the master agent a trading theme
+    (capex slowdown, obesity-drug fade, offshore E&P pair trades, ...);
+    we run a 4-task pipeline that frames it, surveys the open web,
+    inventories the pod's existing memos, and generates a trading-idea
+    memo with two sections (existing relevant ideas + new ideas).
+
+    The engagement key (``engagement.ticker``) is a synthetic theme slug
+    — usually ``IDEA-<short-slug>`` — and the engagement is filed under a
+    ``house`` analyst so it doesn't pollute any real analyst's coverage
+    tree. None of the ticker-keyed producers (SEC, Yahoo, …) run for this
+    template; everything here is theme-keyed.
+
+    The PM's raw framing message is threaded in via ``frame-theme``'s
+    ``params.theme``, set by the chat caller (``run_idea_exploration_for_chat``).
+    """
+    theme_slug = engagement.ticker  # caller already set this to the theme slug
+    tasks: list[Task] = []
+
+    tasks.append(Task(
+        id="frame-theme",
+        stage="setup",
+        title=f"Frame the theme: {theme_slug}",
+        skill="frame-theme",
+        priority="high",
+        task_type="planning",
+        params={"theme_slug": theme_slug},  # ``theme`` text injected by chat caller
+        artifact_path=".pipeline/docs/theme.json",
+        description=(
+            "Capture the PM's free-form theme as .pipeline/docs/theme.json. "
+            "The survey, inventory, and idea-generation skills all read this."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="survey-theme",
+        stage="ingest",
+        title=f"Open-web survey on {theme_slug}",
+        skill="survey-theme",
+        priority="high",
+        task_type="ingestion",
+        artifact_path="corpus/research/survey.md",
+        depends_on=["frame-theme"],
+        description=(
+            "Run an open-web survey (WebSearch + WebFetch) on the theme. "
+            "Primary sources first; cite every claim; surface key findings, "
+            "contested areas, and the names that come up repeatedly."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="inventory-existing-ideas",
+        stage="analyze",
+        title="Inventory existing pod memos",
+        skill="inventory-existing-ideas",
+        priority="medium",
+        task_type="analysis",
+        artifact_path="analysis/existing-memos.json",
+        depends_on=["frame-theme"],
+        description=(
+            "Walk every analyst × ticker engagement on disk and produce a "
+            "flat JSON index of memos. The ideation skill picks the relevant "
+            "ones to quote in the final output."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="generate-trading-ideas",
+        stage="compose",
+        title=f"Generate trading-idea memo for {theme_slug}",
+        skill="generate-trading-ideas",
+        priority="high",
+        task_type="writing",
+        artifact_path=f"memos/ideas/{_run_stamp()}.md",
+        depends_on=["survey-theme", "inventory-existing-ideas"],
+        description=(
+            "Synthesize the survey + existing-pod-memos inventory into a "
+            "trading-idea memo. Two sections: existing pod ideas relevant "
+            "to the theme, then 3–6 new trading ideas with rationale and risks."
+        ),
+    ))
+
+    return tasks
+
+
+# ---------------------------------------------------------------------------
 # Auto-wire pack-declared templates at import time
 # ---------------------------------------------------------------------------
 #

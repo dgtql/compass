@@ -935,6 +935,17 @@ export type MemoStreamHandlers = {
    *  *during* a task. ``task_id`` is auto-attached by the dispatcher so
    *  the UI can show the latest say under the right task row. */
   onSay?: (data: { task_id?: string; message: string; elapsed?: number }) => void;
+  /** Every tool invocation the agent makes during a task (WebSearch,
+   *  WebFetch, Read, Write, ...). Fired by ``compass.tools.make_tool_logger``
+   *  through the dispatcher's tagged on_event, so the PM sees in real
+   *  time what the agent is doing — not just task-level status. */
+  onTool?: (data: {
+    task_id?: string;
+    tool_name: string;
+    tool_input?: Record<string, unknown>;
+    preview?: string;
+    elapsed?: number;
+  }) => void;
   onMemoReady?: (data: { memo_path: string | null; memo_text: string | null }) => void;
   onDone?: (data: { summary: Record<string, unknown>; session: ApiChatSession | null }) => void;
   onError?: (err: Error) => void;
@@ -986,6 +997,7 @@ export function streamMemoRun(
             case 'task_error':        handlers.onTaskError?.(d as never);        break;
             case 'task_blocked':      handlers.onTaskBlocked?.(d as never);      break;
             case 'say':               handlers.onSay?.(d as never);              break;
+            case 'tool':              handlers.onTool?.(d as never);             break;
             case 'memo_ready':        handlers.onMemoReady?.(d as never);        break;
             case 'done':              handlers.onDone?.(d as never);             break;
             case 'error':             handlers.onError?.(new Error((d.error as string) ?? 'memo run error')); break;

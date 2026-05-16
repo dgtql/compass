@@ -17,7 +17,8 @@ import { marked } from 'marked';
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
-  X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle, Save,
+  X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle, Save, Lightbulb,
+  Wrench,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -102,6 +103,11 @@ type MemoRunTask = {
    *  most recent assistant message during this task. Cleared when the
    *  task completes; rendered under the row while it's in-progress. */
   latestSay?: string;
+  /** Rolling log of the most recent tool calls the agent made for this
+   *  task (WebSearch / WebFetch / Read / Write / Glob / Grep / ...).
+   *  Capped at the last few entries — we want the PM to see "the agent
+   *  is looking up arXiv right now", not a verbose call trace. */
+  recentTools?: { name: string; preview: string; ts: number }[];
   error?: string;
   /** Producer-supplied explanation when ``status === 'skipped'`` — e.g.
    *  "AKSO.OL is an EU ticker; SEC has no filings." Shown inline in the
@@ -109,6 +115,11 @@ type MemoRunTask = {
   skippedReason?: string;
   elapsed?: number;
 };
+
+/** Cap on per-task tool-call history kept in client state. Tool calls
+ *  beyond this window get dropped — the PM only cares about *what the
+ *  agent is doing right now*, not every read/write the SDK loop made. */
+const MEMO_RUN_TOOL_LOG_CAP = 4;
 
 type MemoRunState = {
   ticker: string;
@@ -125,11 +136,26 @@ type MemoRunState = {
  *  that label as the title, opens a session in it, focuses the composer. */
 const TASK_TYPE_CHIPS: { id: string; label: string; icon: ReactNode }[] = [
   { id: 'memo',          label: 'Memo',          icon: <FileText className="w-3 h-3" /> },
+  { id: 'trading-idea',  label: 'Trading idea',  icon: <Lightbulb className="w-3 h-3" /> },
   { id: 'morning-brief', label: 'Morning brief', icon: <Sunrise className="w-3 h-3" /> },
   { id: 'find-data',     label: 'Find data',     icon: <Search className="w-3 h-3" /> },
   { id: 'data-analysis', label: 'Data analysis', icon: <BarChart3 className="w-3 h-3" /> },
   { id: 'catalysts',     label: 'Catalysts',     icon: <CalendarClock className="w-3 h-3" /> },
 ];
+
+/** Planner template that backs the "Trading idea" chip — keyed by a
+ *  synthetic ``IDEA-<slug>`` engagement key instead of a tradable ticker. */
+const IDEA_TEMPLATE = 'idea-exploration';
+
+/** Mirror of ``compass.chat_skills.theme_key_from_text`` — turn the PM's
+ *  raw framing message into the IDEA-<slug> "ticker" the backend expects.
+ *  Idempotent for the same input so the engagement directory stays stable
+ *  across re-runs of the same theme. */
+function themeKeyFromText(text: string, maxLen = 40): string {
+  const cleaned = (text || '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const body = (cleaned || 'UNTITLED').slice(0, maxLen).replace(/-+$/, '');
+  return `IDEA-${body}`;
+}
 
 type Props = {
   /** 'maria-chen' | 'master' — selects which chats belong here. */
@@ -471,6 +497,7 @@ export function ChatPane({
     // persist its summary into.
     let sessionId: string;
     let newTaskId: string | undefined;
+    const isIdea = template === IDEA_TEMPLATE;
     if (reuseSessionId) {
       sessionId = reuseSessionId;
       setSelectedChip(null);
@@ -478,9 +505,15 @@ export function ChatPane({
       setMemoTicker(null);
     } else {
       try {
+        // Idea-exploration tasks aren't tied to a tradable ticker — use a
+        // human-friendly task title and skip the ``coverage_ticker`` so
+        // the sidebar's Coverage pill stays empty for these.
+        const taskTitle = isIdea
+          ? `Trading ideas — ${message.slice(0, 60)}`
+          : `Memo on ${ticker}`;
         const newT = await createChatTask(ownerKey, {
-          title: `Memo on ${ticker}`,
-          coverage_ticker: ticker,
+          title: taskTitle,
+          coverage_ticker: isIdea ? undefined : ticker,
         });
         const newS = await createChatSession(ownerKey, { task_id: newT.id });
         setTasks((prev) => [newT, ...prev]);
@@ -575,6 +608,26 @@ export function ChatPane({
             )),
           } : prev));
         },
+        onTool: ({ task_id, tool_name, preview }) => {
+          if (!task_id || !tool_name) return;
+          // ``preview`` is the formatted "ToolName arg=value …" string the
+          // backend already produced — readable enough for the chat.
+          const display = (preview || tool_name).trim();
+          setMemoRun((prev) => (prev ? {
+            ...prev,
+            tasks: prev.tasks.map((t) => {
+              if (t.id !== task_id) return t;
+              const next = [
+                ...(t.recentTools ?? []),
+                { name: tool_name, preview: display, ts: Date.now() },
+              ];
+              return {
+                ...t,
+                recentTools: next.slice(-MEMO_RUN_TOOL_LOG_CAP),
+              };
+            }),
+          } : prev));
+        },
         onTaskError: ({ task_id, error }) =>
           setMemoRun((prev) => (prev ? {
             ...prev,
@@ -618,6 +671,19 @@ export function ChatPane({
     // of a memo run (memo flow has its own optimistic bubble).
     setPendingMessage(trimmed);
     setInput('');
+    // Idea-exploration branch: theme-keyed, no ticker needed. The PM's
+    // typed message IS the theme; we derive a stable ``IDEA-<slug>``
+    // engagement key from it and dispatch.
+    if (
+      selectedTemplate === IDEA_TEMPLATE &&
+      (!active || active.messages.length === 0)
+    ) {
+      const themeKey = themeKeyFromText(trimmed);
+      setPendingMessage(null);
+      await sendMemo(trimmed, themeKey, selectedTemplate, active?.id);
+      return;
+    }
+
     // Memo-flow branch: a memo template is active (generic Memo chip or
     // pack workflow chip). If the PM already picked a ticker, we run
     // straight away. If not, do a last-chance synchronous resolve from
@@ -840,12 +906,15 @@ export function ChatPane({
     setSelectedChip((prev) => {
       const next = prev === label ? null : label;
       // The generic "Memo" chip activates the default memo flow with the
-      // ``pitch-memo`` template; everything else (Morning brief, Catalysts,
-      // ...) stays in chat mode for now.
+      // ``pitch-memo`` template. "Trading idea" activates the master-agent
+      // idea-exploration template (theme-keyed, no ticker). Everything else
+      // (Morning brief, Catalysts, ...) stays in chat mode for now.
       if (label === 'Memo') {
         setSelectedTemplate(next === 'Memo' ? 'pitch-memo' : null);
-      } else if (prev === 'Memo') {
-        // Switching away from Memo → exit the memo flow.
+      } else if (label === 'Trading idea') {
+        setSelectedTemplate(next === 'Trading idea' ? IDEA_TEMPLATE : null);
+      } else if (prev === 'Memo' || prev === 'Trading idea') {
+        // Switching away from a workflow chip → exit the memo flow.
         setSelectedTemplate(null);
       }
       return next;
@@ -1504,13 +1573,22 @@ function WelcomePanel({
               );
             })}
       </div>
-      {selectedTemplate !== null && (
+      {selectedTemplate !== null && selectedTemplate !== IDEA_TEMPLATE && (
         <MemoTickerStatus
           candidates={memoCandidates}
           ticker={memoTicker}
           suggesting={memoSuggesting}
           onClear={() => onMemoTicker(null)}
         />
+      )}
+      {selectedTemplate === IDEA_TEMPLATE && (
+        <div className="mx-auto max-w-md text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md px-3 py-2 text-left">
+          <Lightbulb className="inline-block w-3 h-3 text-primary mr-1 -translate-y-px" />
+          <span className="font-medium text-foreground">Trading-idea mode.</span>{' '}
+          Describe a theme in the composer — the master agent will run an open-web
+          survey, inventory the pod's existing memos on the topic, and write up
+          new trading ideas grounded in both. No ticker needed.
+        </div>
       )}
     </div>
   );
@@ -2101,6 +2179,10 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
   // actively running. It's cleared on task_done / task_start (next row).
   const showSay = task.status === 'in-progress' && !!task.latestSay;
   const isSkipped = task.status === 'skipped';
+  // The agent's live tool calls — surfaced under the row while in-progress
+  // so the PM sees "the agent is running WebSearch right now," not just
+  // a spinner. Drops away cleanly when the task completes.
+  const showTools = task.status === 'in-progress' && (task.recentTools?.length ?? 0) > 0;
   return (
     <li className="flex items-start gap-2 text-xs">
       <span className="mt-0.5 shrink-0">{icon}</span>
@@ -2126,6 +2208,20 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
           <div className="mt-1 text-[11px] text-muted-foreground italic leading-snug border-l-2 border-primary/40 pl-2 line-clamp-3">
             {task.latestSay}
           </div>
+        )}
+        {showTools && (
+          <ul className="mt-1 space-y-0.5">
+            {task.recentTools!.map((tc, i) => (
+              <li
+                key={`${tc.ts}-${i}`}
+                className="text-[10px] text-muted-foreground flex items-start gap-1.5 leading-snug"
+                title={tc.preview}
+              >
+                <Wrench className="w-2.5 h-2.5 text-primary/70 mt-[3px] shrink-0" />
+                <span className="font-mono truncate">{tc.preview}</span>
+              </li>
+            ))}
+          </ul>
         )}
         {isSkipped && task.skippedReason && (
           <div className="mt-0.5 text-[11px] text-muted-foreground italic leading-snug">
