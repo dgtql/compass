@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pencil, Check, X, Loader2, ChevronRight, ChevronDown, Trash2, AlertTriangle, Plus, Search } from 'lucide-react';
-import { marked } from 'marked';
+import { CitedMarkdown } from '@/components/markdown/CitedMarkdown';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -1406,14 +1406,10 @@ function FileContentBody({ path, content }: { path: string; content: string }) {
   const lower = path.toLowerCase();
 
   if (lower.endsWith('.md')) {
-    // Marked is sync when no async tokenizers/walkers are registered.
-    const html = marked.parse(content, { gfm: true, breaks: false }) as string;
-    return (
-      <div
-        className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-li:my-0.5 prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-code:text-xs prose-code:bg-muted prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    );
+    // CitedMarkdown wraps marked + a post-render walk that turns every
+    // ``[N]`` mention into a hover-tooltip span pulling text from the
+    // matching reference line in the document's Sources section.
+    return <CitedMarkdown content={content} />;
   }
 
   if (lower.endsWith('.json')) {

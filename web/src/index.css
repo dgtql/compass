@@ -133,4 +133,56 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Inline citation chip — ``[1]``, ``[2]``, ... in rendered memos.
+     Pure-CSS hover tooltip pulls its text from the ``data-ref`` attr,
+     set by ``CitedMarkdown`` after marked render. */
+  .citation {
+    position: relative;
+    display: inline-block;
+    font-size: 0.85em;
+    color: hsl(var(--primary));
+    font-weight: 500;
+    cursor: help;
+    padding: 0 1px;
+    text-decoration: underline dotted hsl(var(--primary) / 0.5);
+    text-underline-offset: 2px;
+  }
+  .citation:hover { background: hsl(var(--primary) / 0.08); border-radius: 3px; }
+  .citation:hover::after,
+  .citation:focus::after {
+    content: attr(data-ref);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 320px;
+    text-align: left;
+    z-index: 60;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+  }
+  /* Small caret connecting the tooltip to the citation. */
+  .citation:hover::before,
+  .citation:focus::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 1px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: hsl(var(--border));
+    z-index: 60;
+    pointer-events: none;
+  }
 }

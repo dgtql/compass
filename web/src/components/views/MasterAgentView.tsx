@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { marked } from 'marked';
 import { Brain, Loader2 } from 'lucide-react';
+import { CitedMarkdown } from '@/components/markdown/CitedMarkdown';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -258,10 +258,7 @@ function DeliverableViewer({
             )}
             {error && <div className="text-xs text-rose-500">{error}</div>}
             {content !== null && item.path.toLowerCase().endsWith('.md') && (
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2"
-                dangerouslySetInnerHTML={{ __html: marked.parse(content, { gfm: true, breaks: false }) as string }}
-              />
+              <CitedMarkdown content={content} />
             )}
             {content !== null && !item.path.toLowerCase().endsWith('.md') && (
               <pre className="text-xs whitespace-pre-wrap font-mono">{content}</pre>

@@ -13,7 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { marked } from 'marked';
+import { CitedMarkdown } from '@/components/markdown/CitedMarkdown';
 import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
@@ -2296,28 +2296,21 @@ function MemoRunRow({ task }: { task: MemoRunTask }) {
 
 /** Render markdown for the analyst/master side of a chat bubble.
  *
- *  Headings, tables, lists, bold, code blocks — all the things Claude
- *  cheerfully produces — get parsed via ``marked`` (already a repo dep,
- *  used by the memo viewer). PM-side messages stay as plain text since
- *  the user types prose and the bubble's primary-foreground colour
- *  doesn't play nicely with prose styles.
+ *  Delegates to ``CitedMarkdown`` so any ``[N]`` references the analyst
+ *  emits get hover tooltips linking to the Sources section. PM-side
+ *  messages stay as plain text since the user types prose and the
+ *  bubble's primary-foreground colour doesn't play nicely with prose
+ *  styles.
  *
  *  Wrapped in try/catch because mid-stream input may be unbalanced
  *  markdown (open code fence, half a table row) — on failure we fall
  *  back to a plain-text render so the bubble still says *something*. */
 function MarkdownBubbleBody({ text }: { text: string }) {
-  let html: string;
   try {
-    html = marked.parse(text, { gfm: true, breaks: false }) as string;
+    return <CitedMarkdown content={text} />;
   } catch {
     return <div className="whitespace-pre-line">{text}</div>;
   }
-  return (
-    <div
-      className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-li:my-0.5 prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-code:text-xs prose-code:bg-muted prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-table:my-3 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-hr:my-3"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
 }
 
 function Bubble({
