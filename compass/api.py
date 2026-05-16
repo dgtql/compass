@@ -1704,6 +1704,20 @@ def get_templates() -> list[str]:
     return list_templates()
 
 
+# --- knowledge graph -------------------------------------------------------
+
+
+@app.get("/api/knowledge/graph")
+def get_knowledge_graph() -> dict:
+    """Derived knowledge graph over the engagements tree.
+
+    Returns ``{nodes, edges, stats}``. Rebuilt on every request — see
+    ``compass.graph_mem`` for the node / edge taxonomy and layout.
+    """
+    from compass.graph_mem import build_graph
+    return build_graph()
+
+
 @app.get("/api/templates/{name}/tasks")
 def get_template_tasks(name: str, ticker: str = Query("TICKER", min_length=1)) -> dict:
     """Return a template's full task list — used by the workflow diagram viewer.

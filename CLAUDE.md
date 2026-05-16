@@ -8,6 +8,8 @@ An AI analyst team for portfolio managers. The PM "hires" analysts (or persona p
 
 The README is out of date — see `docs/design/README.md` for the authoritative design. The project went through a major rewrite in slice 18 (see `docs/slice-18-overnight.md`): the old `agent.py` triad (ask/summarize/research) and the SQLite evidence ledger are gone, replaced by a skills + planner + dispatcher architecture. The current CLI surface is `compass plan / run / status / skills / templates / engagements / serve / chat / ask`.
 
+There are now two flavors of engagement: **ticker-keyed** (the original — pitch memos, earnings reactions, maintenance refreshes, deep dives on a single name) and **theme-keyed** (`idea-exploration` / `academic-exploration` — the master agent receives a free-form trading theme from the PM and runs a survey + inventory + idea-generation pipeline). Theme runs use synthetic `IDEA-<slug>` keys filed under a synthetic `house` analyst so they don't pollute real coverage trees.
+
 ## Common commands
 
 ```powershell
@@ -86,6 +88,15 @@ Every skill is `skills/<slug>/SKILL.md` with YAML-ish frontmatter (hand-parsed, 
 
 `packs/*.json` are persona-pack manifests (Buffett / Munger / Ray Dalio). Hiring a pack fills an `Analyst` record (`compass.analysts`) with the pack's title, sector hint, voice (persona), skill toolkit, default template, and chat-chip workflows. The agent's writing voice comes from the persona; the skill catalogue stays generic.
 
+### Master agent + theme engagements
+
+The PM has a top-level "master" chat in addition to per-analyst chats. `compass.chat_skills` resolves which engagement a chat message should drive:
+
+- A normal ticker request from any chat → planned as a ticker engagement under the appropriate analyst (`DEFAULT_ANALYST_FOR_TICKER`, then first hired, then fallback).
+- A theme request through the master chat → keyed as `IDEA-<slug>` (`theme_key_from_text`) and filed under the `house` analyst. The two templates are `idea-exploration` (open-web `survey-theme`) and `academic-exploration` (arXiv / Semantic Scholar / SSRN via `survey-academic`). Both end with `generate-trading-ideas` writing a two-section memo (existing pod ideas relevant to the theme + 3–6 new ideas) into `memos/ideas/<run-stamp>.md`.
+
+The PM's raw framing text is threaded into the `frame-theme` task via `task.params["theme"]` by `run_memo_for_chat` — the planner can't know it in advance. Citations in the final memo resolve against the companion `corpus/research/survey.md` written earlier in the same run.
+
 ### Frontend
 
 React 18 + Vite 6 + TypeScript + Tailwind 3.4 under `web/`, build outputs to `compass/static/` which FastAPI serves. The bundle is committed (source maps gitignored) so `pip install` + `compass serve` works without Node installed. shadcn-style primitives live in `web/src/components/ui/`. The UI's `PipelineTask` type in `web/src/types/domain.ts` mirrors `compass.engagement.Task` field-for-field — keep them in sync when changing schemas. Mocks in `web/src/mocks/` document the shape the API must return.
@@ -97,7 +108,7 @@ Don't route chat replies through the raw Anthropic Messages API with a Bearer OA
 ## When adding things
 
 - **New data source** → new `skills/fetch-<thing>/` folder with a `produces:` block. The planner picks it up automatically for any compose skill whose `needs:` names that category. No edit to `data_sources.py`.
-- **New memo type** → new compose skill + new planner template function in `compass.planner`. Add it to `TEMPLATES`.
+- **New memo type** → new compose skill + new planner template function in `compass.planner` (decorate with `@template("name")` — registers into `TEMPLATES`).
 - **New analyst persona** → new `packs/<id>.json` manifest. The roster in `compass.analysts` hires from it.
 - **Region-aware producer** → set `regions: [...]` in `produces:`. EU tickers skip US-only fetchers cleanly.
 - **Per-skill instructions for the agent** → edit the SKILL.md body. The system prompt is just that body verbatim.

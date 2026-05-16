@@ -754,6 +754,59 @@ export function getEngagementArtifact(
   );
 }
 
+// --- Knowledge graph -------------------------------------------------------
+
+/** One node in the knowledge graph — see ``compass/graph_mem.py``.
+ *  ``kind`` drives both the visual style and the side-panel layout. */
+export type ApiGraphNode = {
+  id: string;
+  kind: 'memo' | 'ticker' | 'theme' | 'analyst';
+  label: string;
+  title: string;
+  x: number;
+  y: number;
+  data: {
+    // memo
+    analyst?: string;
+    engagement_key?: string;
+    memo_type?: string;
+    rel_path?: string;
+    filename?: string;
+    modified_at?: number;
+    first_paragraph?: string;
+    // ticker
+    ticker?: string;
+    // theme
+    theme_key?: string;
+    // analyst
+    slug?: string;
+  };
+};
+
+export type ApiGraphEdge = {
+  id: string;
+  source: string;
+  target: string;
+  kind: 'wrote' | 'covers' | 'explores' | 'cites';
+};
+
+export type ApiKnowledgeGraph = {
+  nodes: ApiGraphNode[];
+  edges: ApiGraphEdge[];
+  stats: {
+    memo_count: number;
+    ticker_count: number;
+    theme_count: number;
+    analyst_count: number;
+    edge_count: number;
+    cite_count: number;
+  };
+};
+
+export function getKnowledgeGraph(): Promise<ApiKnowledgeGraph> {
+  return getJson<ApiKnowledgeGraph>('/api/knowledge/graph');
+}
+
 // --- Engagement tasks (live tracker — see doc 16) -------------------------
 
 export type ApiEngagementTask = {
