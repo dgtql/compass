@@ -35,7 +35,7 @@ export type ApiUniverse = {
 export type ApiRegion = { id: string; label: string; active: boolean };
 export type ApiCapBucket = { id: string; label: string };
 
-async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
+export async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     headers: { Accept: 'application/json' },
     ...init,

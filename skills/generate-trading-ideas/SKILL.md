@@ -81,6 +81,20 @@ and the new ideas. The PM uses this to seed a watchlist. Format: ticker
 (2–3 bullets on what the next research step would be — open questions
 the survey couldn't answer, data we'd need to fetch, names worth deep-
 diving. This points the PM at the next move.)
+
+## Sources
+(Copy *every* reference you cited inline as a standalone ``[N] <text>``
+line. Same numbering as the survey — if you cite ``[3]`` in the body,
+the line ``[3] <publisher>, "<title>", <date>, <URL>`` must appear here.
+This is what makes the memo self-contained: the UI parses these lines
+and turns every inline ``[N]`` into a hover tooltip showing the source.
+Without this section the citations look like dead numbers.)
+
+```
+[1] <Publisher>, "<Title>", <YYYY-MM-DD>, <URL>
+[2] <Publisher>, "<Title>", <YYYY-MM-DD>, <URL>
+[3] ...
+```
 ```
 
 ## How to generate good ideas (the dr-claw / trading hybrid)
@@ -127,6 +141,11 @@ short Y, or "watch X for entry below $Z") — not "look at semis."
    already have before you propose new things.
 5. **Risks are required.** An idea without a risks bullet doesn't ship.
 6. **Length cap.** 1,000–1,400 words. Tight beats thorough.
+7. **Sources section is mandatory.** Every ``[N]`` you cite inline must
+   have a matching ``[N] <text>`` line under ``## Sources`` at the
+   bottom of the memo. The UI uses this to wire hover tooltips on the
+   inline cites — without it the citations are just dead bracket-and-
+   number tokens.
 
 ## How to run
 

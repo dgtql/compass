@@ -135,8 +135,12 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Inline citation chip — ``[1]``, ``[2]``, ... in rendered memos.
-     Pure-CSS hover tooltip pulls its text from the ``data-ref`` attr,
-     set by ``CitedMarkdown`` after marked render. */
+     Hover tooltip pulls its text from the ``data-ref`` attr set by
+     ``CitedMarkdown`` after marked render.
+
+     Always-present pseudo-elements with opacity toggle (rather than
+     conditional ``content``) so the bundler / minifier can't collapse
+     the hover-only rule and silently drop the tooltip. */
   .citation {
     position: relative;
     display: inline-block;
@@ -149,8 +153,7 @@
     text-underline-offset: 2px;
   }
   .citation:hover { background: hsl(var(--primary) / 0.08); border-radius: 3px; }
-  .citation:hover::after,
-  .citation:focus::after {
+  .citation::after {
     content: attr(data-ref);
     position: absolute;
     bottom: calc(100% + 6px);
@@ -171,10 +174,11 @@
     z-index: 60;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease-in;
   }
   /* Small caret connecting the tooltip to the citation. */
-  .citation:hover::before,
-  .citation:focus::before {
+  .citation::before {
     content: '';
     position: absolute;
     bottom: calc(100% + 1px);
@@ -184,5 +188,13 @@
     border-top-color: hsl(var(--border));
     z-index: 60;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease-in;
+  }
+  .citation:hover::after,
+  .citation:focus::after,
+  .citation:hover::before,
+  .citation:focus::before {
+    opacity: 1;
   }
 }

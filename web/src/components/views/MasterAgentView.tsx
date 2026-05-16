@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Brain, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Brain, Check, Loader2, X, AlertCircle, FileText } from 'lucide-react';
 import { CitedMarkdown } from '@/components/markdown/CitedMarkdown';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,14 @@ import { Avatar } from '@/components/ui/avatar';
 import { Dialog } from '@/components/ui/dialog';
 import { ChatPane } from '@/components/ChatPane';
 import {
-  EngagementFilesRail,
-  EngagementTasksRail,
-} from '@/components/views/AnalystDetailView';
-import {
   getAnalystDeliverables,
   getEngagementArtifact,
+  getEngagementFiles,
+  getEngagementTasks,
+  getJson,
   type ApiAnalystDeliverable,
+  type ApiEngagementFile,
+  type ApiEngagementTask,
 } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +31,17 @@ const TABS: { id: Tab; label: string }[] = [
 /** Synthetic analyst slug all master-agent idea-exploration engagements
  *  land under. Mirrors ``compass.chat_skills.HOUSE_ANALYST_SLUG``. */
 const HOUSE_SLUG = 'house';
+
+/** Polling cadence for the right-rail tasks/files panes. Fast enough that
+ *  the PM sees task transitions live during a run; slow enough we don't
+ *  hammer the API. */
+const RAIL_POLL_MS = 2500;
+
+type EngagementListItem = {
+  analyst: string;
+  ticker: string;
+  modified_at: number;
+};
 
 export function MasterAgentView() {
   const [tab, setTab] = useState<Tab>('chat');
@@ -77,29 +89,24 @@ export function MasterAgentView() {
             counterpartyName="the master agent"
             placeholder="Ask the master agent anything — your pod, your memos, your notes."
             rightRailTabs={({ activeTask }) => {
-              // Idea-exploration tasks file under ``house`` with an
-              // IDEA-<slug> ticker. Once we file the chat task with that
-              // coverage_ticker, the live rails light up using the same
-              // EngagementContext pipeline analysts use.
+              // Engagement scoping rule: if the active chat task carries
+              // a coverage ticker that starts with IDEA-, that's the
+              // engagement we render. Otherwise fall back to the most
+              // recently modified ``house`` engagement on disk — handy
+              // when the chat task pre-dated the coverage_ticker fix or
+              // when the PM is browsing without a fresh active session.
               const ticker = activeTask?.coverageTicker ?? null;
-              const isIdea = ticker?.startsWith('IDEA-') ?? false;
-              const analyst = isIdea ? HOUSE_SLUG : null;
+              const pinned = ticker?.startsWith('IDEA-') ? ticker : null;
               return [
                 {
                   id: 'tasks',
                   label: 'Tasks',
-                  content: <EngagementTasksRail ticker={ticker} />,
+                  content: <HouseTasksRail pinnedTicker={pinned} />,
                 },
                 {
                   id: 'files',
                   label: 'Files',
-                  content: analyst
-                    ? <EngagementFilesRail analyst={analyst} ticker={ticker} />
-                    : (
-                      <div className="p-4 text-xs text-muted-foreground italic">
-                        Open or start an idea-exploration task to browse its files here.
-                      </div>
-                    ),
+                  content: <HouseFilesRail pinnedTicker={pinned} />,
                 },
               ];
             }}
@@ -135,7 +142,314 @@ export function MasterAgentView() {
   );
 }
 
-// --- Deliverables tab ------------------------------------------------------
+// --- Right-rail rails (direct-poll, no EngagementContext) ------------------
+
+/** Resolve which house engagement the right rail should render.
+ *
+ *  Precedence:
+ *  1. ``pinnedTicker`` (when the active chat task carries an IDEA-* slug)
+ *  2. The most recently modified ``house`` engagement on disk
+ *  3. None (rails show a friendly empty state)
+ *
+ *  We re-poll the engagement list every few seconds so kicking off a new
+ *  trading-idea run replaces the pin within a tick.
+ */
+function useResolvedHouseTicker(pinnedTicker: string | null): string | null {
+  const [fallback, setFallback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pinnedTicker) return; // pin wins; no need to poll
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const list = await getJson<EngagementListItem[]>('/api/engagements');
+        if (cancelled) return;
+        const house = list
+          .filter((e) => e.analyst === HOUSE_SLUG)
+          .sort((a, b) => (b.modified_at ?? 0) - (a.modified_at ?? 0));
+        setFallback(house[0]?.ticker ?? null);
+      } catch {
+        // non-fatal — keep last value
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, RAIL_POLL_MS * 2);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [pinnedTicker]);
+
+  return pinnedTicker ?? fallback;
+}
+
+/** Tasks rail (right side of master-agent chat). Polls
+ *  ``/api/engagements/house/<ticker>/tasks`` directly so we don't depend
+ *  on the chat task carrying a coverage_ticker. */
+function HouseTasksRail({ pinnedTicker }: { pinnedTicker: string | null }) {
+  const ticker = useResolvedHouseTicker(pinnedTicker);
+  const [tasks, setTasks] = useState<ApiEngagementTask[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!ticker) {
+      setTasks([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await getEngagementTasks(HOUSE_SLUG, ticker);
+      setTasks(r.tasks);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!ticker) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r = await getEngagementTasks(HOUSE_SLUG, ticker);
+        if (!cancelled) setTasks(r.tasks);
+      } catch {
+        /* swallow — keep last */
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, RAIL_POLL_MS);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [ticker]);
+
+  if (!ticker) {
+    return (
+      <div className="p-4 text-xs text-muted-foreground italic">
+        Start a Trading-idea or Academic-survey run to see live task progress here.
+      </div>
+    );
+  }
+
+  const inProgress = tasks.filter((t) => t.status === 'in-progress').length;
+  const done = tasks.filter((t) => t.status === 'done').length;
+  const errored = tasks.filter((t) => t.status === 'error');
+
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            {ticker} · {tasks.length} tasks
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">
+            {done} done · {inProgress} running
+            {errored.length > 0 && ` · ${errored.length} errored`}
+          </div>
+        </div>
+        <Button variant="ghost" size="sm" onClick={refresh} disabled={loading} className="h-6 px-2 text-[10px]">
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+          Refresh
+        </Button>
+      </div>
+
+      {tasks.length === 0 ? (
+        <div className="text-xs text-muted-foreground italic">
+          {loading ? 'Loading…' : 'No tasks planned yet.'}
+        </div>
+      ) : (
+        <ol className="space-y-1.5">
+          {tasks.map((t) => (
+            <li key={t.id} className="flex items-start gap-2 text-xs">
+              <span className="mt-0.5 shrink-0">{statusGlyph(t.status)}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                    {t.stage}
+                  </span>
+                  <span className="font-medium truncate" title={t.title}>{t.title}</span>
+                </div>
+                <div className="text-[9px] text-muted-foreground font-mono truncate">
+                  {t.skill}
+                  {t.started_at && t.finished_at && ` · ${fmtDuration(t.started_at, t.finished_at)}`}
+                </div>
+                {t.status === 'error' && t.error && (
+                  <code className="text-[9px] text-rose-500 line-clamp-2 block mt-0.5">{t.error}</code>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {error && <div className="text-[10px] text-rose-500">{error}</div>}
+    </div>
+  );
+}
+
+/** Files rail. Polls the engagement's files endpoint; click a row opens
+ *  the artifact viewer modal (markdown gets CitedMarkdown). */
+function HouseFilesRail({ pinnedTicker }: { pinnedTicker: string | null }) {
+  const ticker = useResolvedHouseTicker(pinnedTicker);
+  const [files, setFiles] = useState<ApiEngagementFile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [viewing, setViewing] = useState<ApiEngagementFile | null>(null);
+
+  useEffect(() => {
+    if (!ticker) {
+      setFiles([]);
+      return;
+    }
+    let cancelled = false;
+    const tick = async () => {
+      setLoading(true);
+      try {
+        const r = await getEngagementFiles(HOUSE_SLUG, ticker);
+        if (!cancelled) setFiles(r.files);
+      } catch {
+        /* swallow */
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, RAIL_POLL_MS * 2);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [ticker]);
+
+  if (!ticker) {
+    return (
+      <div className="p-4 text-xs text-muted-foreground italic">
+        Start a run to populate research files here.
+      </div>
+    );
+  }
+
+  // Group by category, newest-first within group, output groups on top.
+  const groups = new Map<string, ApiEngagementFile[]>();
+  for (const f of files) {
+    const arr = groups.get(f.category) ?? [];
+    arr.push(f);
+    groups.set(f.category, arr);
+  }
+  const orderedGroups = Array.from(groups.entries()).sort(([, a], [, b]) => {
+    const aOut = a.some((f) => f.is_output) ? 0 : 1;
+    const bOut = b.some((f) => f.is_output) ? 0 : 1;
+    if (aOut !== bOut) return aOut - bOut;
+    const an = Math.max(...a.map((f) => f.modified_at));
+    const bn = Math.max(...b.map((f) => f.modified_at));
+    return bn - an;
+  });
+
+  return (
+    <div className="p-4 space-y-3">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center justify-between">
+        <span>{ticker} · {files.length} files</span>
+        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+      </div>
+
+      {files.length === 0 ? (
+        <div className="text-xs text-muted-foreground italic">No files yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {orderedGroups.map(([category, items]) => (
+            <section key={category}>
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
+                <span>{category}</span>
+                {items.some((f) => f.is_output) && (
+                  <span className="text-[9px] px-1.5 py-0 rounded bg-primary/10 text-primary normal-case tracking-normal font-medium">
+                    output
+                  </span>
+                )}
+              </h4>
+              <ul className="space-y-1">
+                {items.map((f) => (
+                  <li
+                    key={f.path}
+                    onClick={() => setViewing(f)}
+                    className="text-[11px] rounded border border-border hover:border-primary/50 hover:bg-accent/30 px-2 py-1.5 cursor-pointer"
+                  >
+                    <div className="font-medium truncate flex items-center gap-1">
+                      <FileText className="w-3 h-3 text-muted-foreground shrink-0" />
+                      {f.name}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <code className="text-[9px] text-muted-foreground truncate">{f.path}</code>
+                      <span className="text-[9px] text-muted-foreground shrink-0 tabular-nums">
+                        {fmtBytes(f.size)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <FileViewer ticker={ticker} item={viewing} onClose={() => setViewing(null)} />
+    </div>
+  );
+}
+
+function FileViewer({
+  ticker,
+  item,
+  onClose,
+}: {
+  ticker: string;
+  item: ApiEngagementFile | null;
+  onClose: () => void;
+}) {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!item) return;
+    let cancelled = false;
+    setContent(null);
+    setError(null);
+    setLoading(true);
+    getEngagementArtifact(HOUSE_SLUG, ticker, item.path)
+      .then((r) => { if (!cancelled) setContent(r.content); })
+      .catch((e) => { if (!cancelled) setError((e as Error).message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [item, ticker]);
+
+  return (
+    <Dialog
+      open={item !== null}
+      onClose={onClose}
+      title={item ? `${ticker} · ${item.category}` : ''}
+      maxWidth="max-w-4xl"
+    >
+      {item && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+            <code className="break-all">{item.path}</code>
+            <span className="shrink-0">{fmtBytes(item.size)}</span>
+          </div>
+          <div className="border-t border-border pt-3 max-h-[70vh] overflow-y-auto scrollbar-thin">
+            {loading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading…
+              </div>
+            )}
+            {error && <div className="text-xs text-rose-500">{error}</div>}
+            {content !== null && item.path.toLowerCase().endsWith('.md') && (
+              <CitedMarkdown content={content} />
+            )}
+            {content !== null && !item.path.toLowerCase().endsWith('.md') && (
+              <pre className="text-xs whitespace-pre-wrap font-mono">{content}</pre>
+            )}
+          </div>
+        </div>
+      )}
+    </Dialog>
+  );
+}
+
+// --- Deliverables tab (top-level, not the right rail) ----------------------
 
 /** Lists every memo the master agent has produced (all live under the
  *  synthetic ``house`` analyst). Newest first; click → open in a modal. */
@@ -205,10 +519,7 @@ function DeliverablesPanel() {
         </ul>
       )}
 
-      <DeliverableViewer
-        item={viewing}
-        onClose={() => setViewing(null)}
-      />
+      <DeliverableViewer item={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }
@@ -272,9 +583,7 @@ function DeliverableViewer({
 
 // --- Pod tasks tab ---------------------------------------------------------
 
-/** A flat list of every idea-exploration engagement and its task state.
- *  Right now we surface engagements (one row each); a future slice can
- *  expand to per-task drill-down. */
+/** Top-level Tasks tab — one row per master-agent engagement. */
 function PodTasksPanel() {
   const [items, setItems] = useState<ApiAnalystDeliverable[]>([]);
   const [loading, setLoading] = useState(false);
@@ -289,8 +598,6 @@ function PodTasksPanel() {
     return () => { cancelled = true; };
   }, []);
 
-  // Group deliverables by ticker (= one engagement) so each row represents
-  // one idea-exploration run rather than each individual memo file.
   const grouped = useMemo(() => {
     const byTicker = new Map<string, ApiAnalystDeliverable[]>();
     for (const d of items) {
@@ -349,6 +656,25 @@ function PodTasksPanel() {
 
 // --- formatting helpers ----------------------------------------------------
 
+function statusGlyph(status: ApiEngagementTask['status']) {
+  switch (status) {
+    case 'done':         return <Check className="w-3 h-3 text-emerald-500" />;
+    case 'in-progress':  return <Loader2 className="w-3 h-3 text-primary animate-spin" />;
+    case 'error':        return <X className="w-3 h-3 text-rose-500" />;
+    case 'review':       return <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block mt-1" />;
+    case 'cancelled':    return <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 inline-block mt-1" />;
+    default:             return <span className="w-1.5 h-1.5 rounded-full border border-muted-foreground/50 inline-block mt-1" />;
+  }
+}
+
+function fmtDuration(startedIso: string, finishedIso: string): string {
+  const ms = new Date(finishedIso).getTime() - new Date(startedIso).getTime();
+  if (Number.isNaN(ms) || ms <= 0) return '';
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  return `${(s / 60).toFixed(1)}m`;
+}
+
 function fmtBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
@@ -363,3 +689,8 @@ function fmtRelative(tsMs: number): string {
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
   return new Date(tsMs).toLocaleDateString();
 }
+
+// AlertCircle is referenced indirectly by some imports — keep the import so
+// future error states don't ship without an icon, and so tree-shaking
+// doesn't rewrite the bundle on a follow-up edit.
+void AlertCircle;
