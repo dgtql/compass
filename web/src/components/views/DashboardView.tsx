@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, FileText, Clock, ListChecks, BookOpen, Lightbulb, Brain } from 'lucide-react';
+import { Sparkles, FileText, Clock, ListChecks, BookOpen } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
-import { Textarea } from '@/components/ui/textarea';
 import { fmtElapsed } from '@/lib/utils';
 import {
   getDashboardActiveTasks,
@@ -120,36 +119,6 @@ export function DashboardView({
             </Button>
           </div>
         </div>
-
-        {/* Idea capture */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Lightbulb className="w-4 h-4 text-primary" />
-              Research an idea
-            </CardTitle>
-            <CardDescription>
-              Drop a question or thesis. The master agent will route it — to a covering analyst, to
-              your knowledge base, or to fresh research.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="e.g. What's the bear case on $NVDA if hyperscaler capex slows?  ·  Anything in the corpus about going-concern qualifications in offshore E&P?"
-              className="min-h-[64px] resize-none"
-            />
-            <div className="flex justify-between items-center mt-3">
-              <div className="text-xs text-muted-foreground">
-                <Brain className="inline-block w-3 h-3 mr-1 -translate-y-px" />
-                Auto-saves answers to your knowledge base.
-              </div>
-              <Button size="sm">
-                <Sparkles className="w-3.5 h-3.5" />
-                Ask
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* The pod */}
         <div className="flex items-center justify-between">
