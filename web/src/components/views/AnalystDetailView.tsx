@@ -1000,8 +1000,12 @@ const STATUS_TONE: Record<ApiEngagementTask['status'], string> = {
 };
 
 /** Tasks tab in the chat right rail. Reads live from EngagementContext —
- *  so the moment the dispatcher transitions a task, this re-renders. */
-function EngagementTasksRail({ ticker }: { ticker: string | null }) {
+ *  so the moment the dispatcher transitions a task, this re-renders.
+ *
+ *  Exported so the master-agent view (which also drives a ChatPane with
+ *  right-rail tabs) can render the exact same rail for its idea-exploration
+ *  engagements. */
+export function EngagementTasksRail({ ticker }: { ticker: string | null }) {
   const { engagement, tasks, isLoading, connected, refreshTasks } = useEngagement();
   // Per-stage expand toggle. Defaults closed; the stage currently running
   // auto-opens via the effect below so the PM always sees what's active.
@@ -1170,8 +1174,12 @@ function EngagementTasksRail({ ticker }: { ticker: string | null }) {
 
 /** Files tab in the chat right rail. Lists intermediate files for the
  *  active engagement (briefs, filings, KPIs, sections, snapshots, …),
- *  grouped by category. Click a row → open the full viewer modal. */
-function EngagementFilesRail({
+ *  grouped by category. Click a row → open the full viewer modal.
+ *
+ *  Exported so the master-agent view can reuse the same rail for its
+ *  idea-exploration engagements (which file under the synthetic ``house``
+ *  analyst). */
+export function EngagementFilesRail({
   analyst,
   ticker,
 }: {

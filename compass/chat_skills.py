@@ -140,9 +140,10 @@ async def run_memo_for_chat(
     tasks = plan_template(engagement, template)
 
     # Thread the PM's framing message into the frame-theme task for
-    # idea-exploration runs. The skill's SKILL.md only sees ``task.params``
-    # at runtime — the planner can't know the chat text in advance.
-    if template == "idea-exploration" and message and message.strip():
+    # idea/academic-exploration runs. The skill's SKILL.md only sees
+    # ``task.params`` at runtime — the planner can't know the chat text
+    # in advance.
+    if template in {"idea-exploration", "academic-exploration"} and message and message.strip():
         for t in tasks:
             if t.id == "frame-theme":
                 t.params = {**(t.params or {}), "theme": message.strip()}

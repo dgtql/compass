@@ -18,7 +18,7 @@ import {
   Send, Brain, Plus, MessageCircle, ChevronDown, ChevronRight,
   FolderOpen, Trash2, FileText, Sunrise, Search, BarChart3, CalendarClock,
   X, AlertTriangle, Check, Loader2, Sparkles, AlertCircle, Save, Lightbulb,
-  Wrench,
+  Wrench, GraduationCap,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -135,17 +135,26 @@ type MemoRunState = {
 /** Task-type chips on the welcome screen. Click → creates a task with
  *  that label as the title, opens a session in it, focuses the composer. */
 const TASK_TYPE_CHIPS: { id: string; label: string; icon: ReactNode }[] = [
-  { id: 'memo',          label: 'Memo',          icon: <FileText className="w-3 h-3" /> },
-  { id: 'trading-idea',  label: 'Trading idea',  icon: <Lightbulb className="w-3 h-3" /> },
-  { id: 'morning-brief', label: 'Morning brief', icon: <Sunrise className="w-3 h-3" /> },
-  { id: 'find-data',     label: 'Find data',     icon: <Search className="w-3 h-3" /> },
-  { id: 'data-analysis', label: 'Data analysis', icon: <BarChart3 className="w-3 h-3" /> },
-  { id: 'catalysts',     label: 'Catalysts',     icon: <CalendarClock className="w-3 h-3" /> },
+  { id: 'memo',             label: 'Memo',              icon: <FileText className="w-3 h-3" /> },
+  { id: 'trading-idea',     label: 'Trading idea',      icon: <Lightbulb className="w-3 h-3" /> },
+  { id: 'academic-idea',    label: 'Academic survey',   icon: <GraduationCap className="w-3 h-3" /> },
+  { id: 'morning-brief',    label: 'Morning brief',     icon: <Sunrise className="w-3 h-3" /> },
+  { id: 'find-data',        label: 'Find data',         icon: <Search className="w-3 h-3" /> },
+  { id: 'data-analysis',    label: 'Data analysis',     icon: <BarChart3 className="w-3 h-3" /> },
+  { id: 'catalysts',        label: 'Catalysts',         icon: <CalendarClock className="w-3 h-3" /> },
 ];
 
-/** Planner template that backs the "Trading idea" chip — keyed by a
- *  synthetic ``IDEA-<slug>`` engagement key instead of a tradable ticker. */
+/** Planner templates that produce trading-idea memos keyed by a synthetic
+ *  ``IDEA-<slug>`` engagement instead of a tradable ticker. Each chip
+ *  picks a different survey lens (open-web news vs. academic literature)
+ *  but the downstream ideation skill is the same. */
 const IDEA_TEMPLATE = 'idea-exploration';
+const ACADEMIC_TEMPLATE = 'academic-exploration';
+
+/** True iff ``template`` is one of the theme-keyed (no-ticker) workflows. */
+function isThemeTemplate(template: string | null): boolean {
+  return template === IDEA_TEMPLATE || template === ACADEMIC_TEMPLATE;
+}
 
 /** Mirror of ``compass.chat_skills.theme_key_from_text`` — turn the PM's
  *  raw framing message into the IDEA-<slug> "ticker" the backend expects.
@@ -313,10 +322,10 @@ export function ChatPane({
   }, [active?.messages.length, activeId, memoRun?.tasks.length, memoRun?.memoText]);
 
   // Load candidate tickers the first time a memo-style flow becomes active.
-  // Skip the idea-exploration template — it's theme-keyed, not ticker-keyed.
+  // Skip theme-keyed flows (trading idea, academic survey) — no ticker needed.
   useEffect(() => {
     if (selectedTemplate === null) return;
-    if (selectedTemplate === IDEA_TEMPLATE) return;
+    if (isThemeTemplate(selectedTemplate)) return;
     if (memoCandidates.length > 0) return;
     let cancelled = false;
     getMemoCandidates(ownerKey)
@@ -345,24 +354,34 @@ export function ChatPane({
   // mid-run page refresh resilient: the streamMemoRun SSE is gone, but the
   // EngagementContext's SSE re-subscribes and re-fetches tasks from disk.
   //
-  // Master-agent memos don't carry the resolved analyst slug in chat state
-  // (only the dispatcher knows which analyst the engagement filed under),
-  // so we skip those for v1 — the master-agent right rail can adopt this
-  // later when we persist the analyst on ApiChatTask.
+  // Special case: master-agent idea-exploration runs land under the synthetic
+  // ``house`` analyst with an ``IDEA-<slug>`` ticker — we know that without
+  // needing the dispatcher to tell us, so the rails light up immediately.
+  // Master-agent *ticker* memos still skip until we persist the resolved
+  // analyst on ApiChatTask.
   useEffect(() => {
-    if (!activeTask || !activeTask.coverageTicker || ownerKey === 'master') {
+    if (!activeTask || !activeTask.coverageTicker) {
       setEngagement(null);
       return;
     }
-    setEngagement({ analyst: ownerKey, ticker: activeTask.coverageTicker });
+    const ticker = activeTask.coverageTicker;
+    if (ticker.startsWith('IDEA-')) {
+      setEngagement({ analyst: 'house', ticker });
+      return;
+    }
+    if (ownerKey === 'master') {
+      setEngagement(null);
+      return;
+    }
+    setEngagement({ analyst: ownerKey, ticker });
   }, [activeTask, ownerKey, setEngagement]);
 
   // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
   // a memo flow is active (any template) and no ticker has been picked yet.
-  // Skip the idea-exploration template — it's theme-keyed, not ticker-keyed.
+  // Skip theme-keyed flows — they don't have a ticker.
   useEffect(() => {
     if (selectedTemplate === null) return;
-    if (selectedTemplate === IDEA_TEMPLATE) return;
+    if (isThemeTemplate(selectedTemplate)) return;
     if (memoTicker) return;
     const trimmed = input.trim();
     if (trimmed.length < 4) return;
@@ -501,7 +520,8 @@ export function ChatPane({
     // persist its summary into.
     let sessionId: string;
     let newTaskId: string | undefined;
-    const isIdea = template === IDEA_TEMPLATE;
+    const isIdea = isThemeTemplate(template);
+    const ideaLabel = template === ACADEMIC_TEMPLATE ? 'Academic ideas' : 'Trading ideas';
     if (reuseSessionId) {
       sessionId = reuseSessionId;
       setSelectedChip(null);
@@ -509,15 +529,16 @@ export function ChatPane({
       setMemoTicker(null);
     } else {
       try {
-        // Idea-exploration tasks aren't tied to a tradable ticker — use a
-        // human-friendly task title and skip the ``coverage_ticker`` so
-        // the sidebar's Coverage pill stays empty for these.
+        // For theme-keyed flows we file the chat task under the synthetic
+        // IDEA-<slug> "ticker" so the right-rail Tasks/Files tabs + the
+        // MemoRunPanel can resume against the same engagement after a
+        // page reload (without this they'd lose their handle and go blank).
         const taskTitle = isIdea
-          ? `Trading ideas — ${message.slice(0, 60)}`
+          ? `${ideaLabel} — ${message.slice(0, 60)}`
           : `Memo on ${ticker}`;
         const newT = await createChatTask(ownerKey, {
           title: taskTitle,
-          coverage_ticker: isIdea ? undefined : ticker,
+          coverage_ticker: ticker,
         });
         const newS = await createChatSession(ownerKey, { task_id: newT.id });
         setTasks((prev) => [newT, ...prev]);
@@ -675,11 +696,12 @@ export function ChatPane({
     // of a memo run (memo flow has its own optimistic bubble).
     setPendingMessage(trimmed);
     setInput('');
-    // Idea-exploration branch: theme-keyed, no ticker needed. The PM's
-    // typed message IS the theme; we derive a stable ``IDEA-<slug>``
-    // engagement key from it and dispatch.
+    // Theme-keyed branch (Trading idea / Academic survey): no ticker
+    // needed. The PM's typed message IS the theme; we derive a stable
+    // ``IDEA-<slug>`` engagement key from it and dispatch.
     if (
-      selectedTemplate === IDEA_TEMPLATE &&
+      selectedTemplate !== null &&
+      isThemeTemplate(selectedTemplate) &&
       (!active || active.messages.length === 0)
     ) {
       const themeKey = themeKeyFromText(trimmed);
@@ -759,12 +781,12 @@ export function ChatPane({
           message: trimmed,
           workflows: all,
         });
-        if (route.workflow === IDEA_TEMPLATE) {
-          // The router picked idea-exploration — no ticker prompt, just run
-          // it directly with a theme-derived key.
+        if (route.workflow && isThemeTemplate(route.workflow)) {
+          // The router picked a theme-keyed workflow — no ticker prompt,
+          // just run it directly with a theme-derived key.
           setRouting(false);
           setPendingMessage(null);
-          await sendMemo(trimmed, themeKeyFromText(trimmed), IDEA_TEMPLATE, active?.id);
+          await sendMemo(trimmed, themeKeyFromText(trimmed), route.workflow, active?.id);
           return;
         }
         if (route.workflow) {
@@ -886,9 +908,9 @@ export function ChatPane({
     if (!pendingRoute) return;
     const { command, ticker, message } = pendingRoute;
     setPendingRoute(null);
-    // Idea-exploration has no ticker — derive the theme key from the PM's
-    // message and run.
-    if (command === IDEA_TEMPLATE) {
+    // Theme-keyed workflows have no ticker — derive the key from the
+    // PM's message and run.
+    if (isThemeTemplate(command)) {
       setPendingMessage(null);
       await sendMemo(message, themeKeyFromText(message), command, active?.id);
       return;
@@ -924,16 +946,17 @@ export function ChatPane({
   function toggleChip(label: string) {
     setSelectedChip((prev) => {
       const next = prev === label ? null : label;
-      // The generic "Memo" chip activates the default memo flow with the
-      // ``pitch-memo`` template. "Trading idea" activates the master-agent
-      // idea-exploration template (theme-keyed, no ticker). Everything else
-      // (Morning brief, Catalysts, ...) stays in chat mode for now.
-      if (label === 'Memo') {
-        setSelectedTemplate(next === 'Memo' ? 'pitch-memo' : null);
-      } else if (label === 'Trading idea') {
-        setSelectedTemplate(next === 'Trading idea' ? IDEA_TEMPLATE : null);
-      } else if (prev === 'Memo' || prev === 'Trading idea') {
-        // Switching away from a workflow chip → exit the memo flow.
+      // Chip → planner-template mapping. Anything not in this map stays
+      // in chat mode (Morning brief, Catalysts, ...).
+      const chipTemplate: Record<string, string> = {
+        'Memo':            'pitch-memo',
+        'Trading idea':    IDEA_TEMPLATE,
+        'Academic survey': ACADEMIC_TEMPLATE,
+      };
+      const wasWorkflow = prev !== null && prev in chipTemplate;
+      if (next !== null && next in chipTemplate) {
+        setSelectedTemplate(chipTemplate[next]);
+      } else if (wasWorkflow) {
         setSelectedTemplate(null);
       }
       return next;
@@ -1174,7 +1197,7 @@ export function ChatPane({
                         {pendingRoute.description}
                       </div>
                     )}
-                    {!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE && (
+                    {!pendingRoute.ticker && !isThemeTemplate(pendingRoute.command) && (
                       <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
                         Couldn't auto-resolve a ticker — pick one below.
                       </div>
@@ -1185,8 +1208,8 @@ export function ChatPane({
                 {/* Ticker picker — visible when the router couldn't resolve
                     one from the message. Searches coverage first (instant,
                     in-memory), then the broader universe as the PM types.
-                    Suppressed for idea-exploration, which is theme-keyed. */}
-                {!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE && (
+                    Suppressed for theme-keyed workflows (Trading idea / Academic). */}
+                {!pendingRoute.ticker && !isThemeTemplate(pendingRoute.command) && (
                   <RouteTickerPicker
                     candidates={memoCandidates}
                     onPick={(ticker) => setPendingRoute((prev) => (
@@ -1213,10 +1236,10 @@ export function ChatPane({
                   <Button
                     size="sm"
                     onClick={confirmRouterSuggestion}
-                    disabled={!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE}
+                    disabled={!pendingRoute.ticker && !isThemeTemplate(pendingRoute.command)}
                     title={
-                      pendingRoute.command === IDEA_TEMPLATE
-                        ? 'Run this idea-exploration'
+                      isThemeTemplate(pendingRoute.command)
+                        ? 'Run this workflow'
                         : pendingRoute.ticker
                           ? 'Run this workflow'
                           : 'Pick a ticker first'
@@ -1599,7 +1622,7 @@ function WelcomePanel({
               );
             })}
       </div>
-      {selectedTemplate !== null && selectedTemplate !== IDEA_TEMPLATE && (
+      {selectedTemplate !== null && !isThemeTemplate(selectedTemplate) && (
         <MemoTickerStatus
           candidates={memoCandidates}
           ticker={memoTicker}
@@ -1614,6 +1637,15 @@ function WelcomePanel({
           Describe a theme in the composer — the master agent will run an open-web
           survey, inventory the pod's existing memos on the topic, and write up
           new trading ideas grounded in both. No ticker needed.
+        </div>
+      )}
+      {selectedTemplate === ACADEMIC_TEMPLATE && (
+        <div className="mx-auto max-w-md text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md px-3 py-2 text-left">
+          <GraduationCap className="inline-block w-3 h-3 text-primary mr-1 -translate-y-px" />
+          <span className="font-medium text-foreground">Academic-survey mode.</span>{' '}
+          Describe a theme. The survey reads arXiv q-fin, Semantic Scholar, and
+          SSRN (papers, not news) and feeds the ideation step. Same trading-idea
+          memo at the end, grounded in the research literature.
         </div>
       )}
     </div>

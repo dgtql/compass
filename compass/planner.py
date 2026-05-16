@@ -1247,6 +1247,88 @@ def _idea_exploration(engagement: Engagement) -> list[Task]:
     return tasks
 
 
+@template("academic-exploration")
+def _academic_exploration(engagement: Engagement) -> list[Task]:
+    """Same shape as ``idea-exploration`` but the survey reads academic
+    literature (arXiv, Semantic Scholar, SSRN) instead of the open web.
+
+    The downstream ideation skill is the same — `generate-trading-ideas`
+    reads ``corpus/research/survey.md`` and doesn't care which surveyor
+    wrote it. That's intentional: the PM gets trading ideas regardless
+    of which lens they wanted the survey through; the lens just changes
+    what evidence is on the table.
+    """
+    theme_slug = engagement.ticker
+    tasks: list[Task] = []
+
+    tasks.append(Task(
+        id="frame-theme",
+        stage="setup",
+        title=f"Frame the theme: {theme_slug}",
+        skill="frame-theme",
+        priority="high",
+        task_type="planning",
+        params={"theme_slug": theme_slug},
+        artifact_path=".pipeline/docs/theme.json",
+        description=(
+            "Capture the PM's free-form theme as .pipeline/docs/theme.json. "
+            "The academic survey, inventory, and idea-generation skills "
+            "all read this."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="survey-academic",
+        stage="ingest",
+        title=f"Academic-literature survey on {theme_slug}",
+        skill="survey-academic",
+        priority="high",
+        task_type="ingestion",
+        artifact_path="corpus/research/survey.md",
+        depends_on=["frame-theme"],
+        description=(
+            "Survey arXiv q-fin, Semantic Scholar, and SSRN for what the "
+            "research community has published on the theme. Cite every "
+            "finding; quote effect sizes; surface contested results."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="inventory-existing-ideas",
+        stage="analyze",
+        title="Inventory existing pod memos",
+        skill="inventory-existing-ideas",
+        priority="medium",
+        task_type="analysis",
+        artifact_path="analysis/existing-memos.json",
+        depends_on=["frame-theme"],
+        description=(
+            "Walk every analyst × ticker engagement on disk and produce a "
+            "flat JSON index of memos so the ideation skill can quote prior "
+            "pod work alongside the academic findings."
+        ),
+    ))
+
+    tasks.append(Task(
+        id="generate-trading-ideas",
+        stage="compose",
+        title=f"Generate trading-idea memo for {theme_slug}",
+        skill="generate-trading-ideas",
+        priority="high",
+        task_type="writing",
+        artifact_path=f"memos/ideas/{_run_stamp()}.md",
+        depends_on=["survey-academic", "inventory-existing-ideas"],
+        description=(
+            "Synthesize the academic survey + existing-pod-memos inventory "
+            "into a trading-idea memo. Two sections: existing pod ideas "
+            "relevant to the theme, then 3–6 new trading ideas with rationale "
+            "and risks. Lean on the effect sizes the survey quoted."
+        ),
+    ))
+
+    return tasks
+
+
 # ---------------------------------------------------------------------------
 # Auto-wire pack-declared templates at import time
 # ---------------------------------------------------------------------------
