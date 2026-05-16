@@ -313,8 +313,10 @@ export function ChatPane({
   }, [active?.messages.length, activeId, memoRun?.tasks.length, memoRun?.memoText]);
 
   // Load candidate tickers the first time a memo-style flow becomes active.
+  // Skip the idea-exploration template — it's theme-keyed, not ticker-keyed.
   useEffect(() => {
     if (selectedTemplate === null) return;
+    if (selectedTemplate === IDEA_TEMPLATE) return;
     if (memoCandidates.length > 0) return;
     let cancelled = false;
     getMemoCandidates(ownerKey)
@@ -357,8 +359,10 @@ export function ChatPane({
 
   // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
   // a memo flow is active (any template) and no ticker has been picked yet.
+  // Skip the idea-exploration template — it's theme-keyed, not ticker-keyed.
   useEffect(() => {
     if (selectedTemplate === null) return;
+    if (selectedTemplate === IDEA_TEMPLATE) return;
     if (memoTicker) return;
     const trimmed = input.trim();
     if (trimmed.length < 4) return;
@@ -755,6 +759,14 @@ export function ChatPane({
           message: trimmed,
           workflows: all,
         });
+        if (route.workflow === IDEA_TEMPLATE) {
+          // The router picked idea-exploration — no ticker prompt, just run
+          // it directly with a theme-derived key.
+          setRouting(false);
+          setPendingMessage(null);
+          await sendMemo(trimmed, themeKeyFromText(trimmed), IDEA_TEMPLATE, active?.id);
+          return;
+        }
         if (route.workflow) {
           setPendingRoute({
             command: route.workflow,
@@ -874,6 +886,13 @@ export function ChatPane({
     if (!pendingRoute) return;
     const { command, ticker, message } = pendingRoute;
     setPendingRoute(null);
+    // Idea-exploration has no ticker — derive the theme key from the PM's
+    // message and run.
+    if (command === IDEA_TEMPLATE) {
+      setPendingMessage(null);
+      await sendMemo(message, themeKeyFromText(message), command, active?.id);
+      return;
+    }
     if (!ticker) {
       // Workflow detected but no ticker — fall back to chat with the
       // original message so the PM can clarify in conversation.
@@ -1155,7 +1174,7 @@ export function ChatPane({
                         {pendingRoute.description}
                       </div>
                     )}
-                    {!pendingRoute.ticker && (
+                    {!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE && (
                       <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
                         Couldn't auto-resolve a ticker — pick one below.
                       </div>
@@ -1165,8 +1184,9 @@ export function ChatPane({
 
                 {/* Ticker picker — visible when the router couldn't resolve
                     one from the message. Searches coverage first (instant,
-                    in-memory), then the broader universe as the PM types. */}
-                {!pendingRoute.ticker && (
+                    in-memory), then the broader universe as the PM types.
+                    Suppressed for idea-exploration, which is theme-keyed. */}
+                {!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE && (
                   <RouteTickerPicker
                     candidates={memoCandidates}
                     onPick={(ticker) => setPendingRoute((prev) => (
@@ -1193,8 +1213,14 @@ export function ChatPane({
                   <Button
                     size="sm"
                     onClick={confirmRouterSuggestion}
-                    disabled={!pendingRoute.ticker}
-                    title={pendingRoute.ticker ? 'Run this workflow' : 'Pick a ticker first'}
+                    disabled={!pendingRoute.ticker && pendingRoute.command !== IDEA_TEMPLATE}
+                    title={
+                      pendingRoute.command === IDEA_TEMPLATE
+                        ? 'Run this idea-exploration'
+                        : pendingRoute.ticker
+                          ? 'Run this workflow'
+                          : 'Pick a ticker first'
+                    }
                   >
                     <Sparkles className="w-3 h-3" />
                     Run {pendingRoute.name}
