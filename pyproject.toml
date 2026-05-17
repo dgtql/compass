@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "compass-research"
 version = "0.1.0"
-description = "Compass — your AI analyst team. Analyst-grade research at AI speed and cost."
+description = "AI analyst pod for portfolio managers. Distilled investor personas, knowledge-graph second brain, idea generation."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = "PolyForm-Noncommercial-1.0.0"
+license-files = ["LICENSE"]
 authors = [{ name = "Di Zhu", email = "zhudi2825@gmail.com" }]
-keywords = ["llm", "claude", "investment-research", "agent", "analyst"]
+keywords = ["llm", "claude", "claude-code", "multi-agent", "investment-research", "fundamental-analysis", "knowledge-graph", "buy-side", "agent", "analyst"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
@@ -18,7 +19,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "claude-agent-sdk>=0.1.0",
@@ -42,8 +42,9 @@ dev = [
 compass = "compass.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/zhudi/compass"
-Documentation = "https://github.com/zhudi/compass/tree/main/docs"
+Homepage = "https://github.com/dgtql/compass"
+Repository = "https://github.com/dgtql/compass"
+Issues = "https://github.com/dgtql/compass/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["compass"]
