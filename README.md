@@ -15,6 +15,10 @@
 </a>
 </p>
 
+<p align="center">
+  <strong>English</strong> | <a href="./README.zh-CN.md">中文</a> | <a href="./README.ar.md">العربية</a> | <a href="./README.es.md">Español</a>
+</p>
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -57,7 +61,7 @@ The workbench is the surface — a browser UI where chats, coverage trees, memos
 
 </details>
 
-<details>
+<details open>
 <summary><strong>🧠 Second Brain</strong> — Knowledge graph of every memo, ticker, theme, analyst, and citation your pod has produced.</summary>
 
 <p align="center">
