@@ -85,6 +85,10 @@ Thumbs.db
 
 # ===== Claude Code local state =====
 .claude/
+CLAUDE.md
+
+# ===== Internal design docs =====
+docs/
 
 # ===== Personal reference materials =====
 background/
