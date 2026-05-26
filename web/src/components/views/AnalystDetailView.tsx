@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { ChatPane } from '@/components/ChatPane';
+import { inferTickerFromMessages } from '@/lib/ticker-infer';
 import { useEngagement } from '@/contexts/EngagementContext';
 import { Dialog } from '@/components/ui/dialog';
 import { mockCoverages } from '@/mocks/pipeline';
@@ -234,12 +235,21 @@ export function AnalystDetailView({
                 : `Ask ${analyst.name.split(' ')[0]} anything.`
             }
             packWorkflows={packWorkflows}
-            rightRailTabs={({ activeTask }) => {
-              // The right rail is scoped to the active chat task's engagement.
-              // When the active task carries a ticker we render live task
-              // stats + the engagement's intermediate files (briefs, KPIs,
-              // filings, sections); otherwise we show a placeholder.
-              const ticker = activeTask?.coverageTicker ?? null;
+            inferTicker={({ activeSession }) =>
+              inferTickerFromMessages(activeSession?.messages, analyst.coverage)
+            }
+            rightRailTabs={({ activeTask, activeSession }) => {
+              // The right rail follows the active chat task's engagement.
+              // Prefer the task's explicit coverageTicker (set by the memo
+              // flow); otherwise infer from chat messages so a free-form
+              // "write me a pitch for SOC" still attaches the rail to the
+              // SOC engagement. ChatPane's setEngagement uses the same
+              // inference so EngagementContext stays in sync with what we
+              // render here.
+              const ticker =
+                activeTask?.coverageTicker
+                ?? inferTickerFromMessages(activeSession?.messages, analyst.coverage)
+                ?? null;
               return [
                 {
                   id: 'tasks',

@@ -172,6 +172,13 @@ type Props = {
    *  ``workflow.command`` as the planner template. AnalystDetailView fills
    *  this from the pack the analyst was hired from. */
   packWorkflows?: ApiPackWorkflow[];
+  /** Optional fallback ticker resolver. When ``activeTask.coverageTicker``
+   *  is null (free-form chat that never went through a workflow chip), the
+   *  setEngagement effect calls this so EngagementContext can still attach
+   *  to a sensible engagement — e.g. AnalystDetailView scans messages for
+   *  a coverage ticker mentioned in the chat. Returning ``null`` keeps the
+   *  rail in its empty-state. */
+  inferTicker?: (ctx: ChatPaneCtx) => string | null;
 };
 
 export function ChatPane({
@@ -183,6 +190,7 @@ export function ChatPane({
   rightRailTabs,
   initialRailTab,
   packWorkflows,
+  inferTicker,
 }: Props) {
   const { setEngagement, tasks: liveEngagementTasks, connected: engagementConnected } = useEngagement();
   const [tasks, setTasks] = useState<ApiChatTask[]>([]);
@@ -357,11 +365,21 @@ export function ChatPane({
   // analyst on ApiChatTask.
   useEffect(() => {
     if (loading) return;
-    if (!activeTask || !activeTask.coverageTicker) {
+    if (!activeTask) {
       setEngagement(null);
       return;
     }
-    const ticker = activeTask.coverageTicker;
+    // Prefer the task's explicit coverageTicker; fall back to the
+    // caller-provided inference (AnalystDetailView scans messages for a
+    // coverage ticker). Lets free-form chats that mention a covered name
+    // still light up the right-rail engagement panels.
+    const ticker =
+      activeTask.coverageTicker
+      ?? inferTicker?.({ activeTask, activeSession: active ?? null, tasks }) ?? null;
+    if (!ticker) {
+      setEngagement(null);
+      return;
+    }
     if (ticker.startsWith('IDEA-')) {
       setEngagement({ analyst: 'house', ticker });
       return;
@@ -371,7 +389,7 @@ export function ChatPane({
       return;
     }
     setEngagement({ analyst: ownerKey, ticker });
-  }, [activeTask, ownerKey, setEngagement, loading]);
+  }, [activeTask, active, tasks, ownerKey, setEngagement, loading, inferTicker]);
 
   // Debounced LLM pre-fill of the ticker as the PM types. Only runs while
   // a memo flow is active (any template) and no ticker has been picked yet.
